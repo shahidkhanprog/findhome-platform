@@ -1,0 +1,85 @@
+========================================
+  React + Tailwind CSS Setup Guide
+  (Vite + React + Tailwind v4)
+========================================
+
+STEP 1 - Create React app with Vite:
+--------------------------------------
+npm create vite@latest client -- --template react
+
+
+STEP 2 - Navigate into the project:
+--------------------------------------
+cd client
+
+
+STEP 3 - Install dependencies:
+--------------------------------------
+npm install
+
+
+STEP 4 - Install Tailwind CSS:
+--------------------------------------
+npm install -D tailwindcss @tailwindcss/vite
+
+
+STEP 5 - Configure Tailwind in vite.config.js:
+--------------------------------------
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+
+export default defineConfig({
+  plugins: [
+    react(),
+    tailwindcss(),
+  ],
+})
+
+
+STEP 6 - Add Tailwind to src/index.css:
+(Replace everything in the file with this)
+--------------------------------------
+@import "tailwindcss";
+
+
+STEP 7 - Run the dev server:
+--------------------------------------
+npm run dev
+
+
+========================================
+  DONE! Tailwind is ready to use.
+========================================
+
+Test it by adding a class to any element in App.jsx:
+  className="text-blue-500 text-3xl"
+
+NOTE: If npm is blocked in PowerShell, run this first:
+  Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+
+========================================
+
+========================
+File Structure
+========================
+
+client/
+├── node_modules/               (all installed dependencies)
+├── public/                     (static files, served as-is)
+├── src/
+│   ├── assets/                 (images, icons, etc.)
+│   ├── App.css                 (can delete — not needed with Tailwind)
+│   ├── App.jsx                 ← YOUR MAIN FILE
+│   ├── index.css               ← SINGLE TAILWIND IMPORT (@import "tailwindcss")
+│   └── main.jsx                (entry point — renders App into index.html)
+├── index.html                  (HTML shell — don't touch usually)
+├── package.json                (project info & dependencies list)
+├── package-lock.json           (auto-generated, don't edit)
+├── vite.config.js              ← TAILWIND CONFIG (plugin added here)
+└── .gitignore                  (files git ignores)
+
+====================================
+React App Flow
+
+  Browser → index.js → main.jsx → App.jsx → components
