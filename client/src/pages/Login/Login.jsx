@@ -1,9 +1,9 @@
 import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { FaEnvelope, FaLock } from "react-icons/fa";
-import TextInput from "../../components/textinput/TextInput";
-import PasswordInput from "../../components/passwordinput/PasswordInput";
-import Button from "../../components/button/Button";
+import TextInput from "../../components/common/TextInput";
+import PasswordInput from "../../components/common/PasswordInput";
+import Button from "../../components/common/Button";
 
 
 const Login = () => {
@@ -102,7 +102,7 @@ const Login = () => {
           </div>
 
           {/* Submit Button */}
-          <Button type="submit">Login</Button>
+          <Button type="submit" text="Login" />
         </form>
 
         <p className="text-center text-gray-500 mt-4 text-sm">

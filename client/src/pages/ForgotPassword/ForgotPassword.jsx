@@ -1,8 +1,8 @@
-import { useState, useRef } from "react";
+import React, { useState } from "react";
 import { FaEnvelope } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import TextInput from "../../components/textinput/TextInput";
-import Button from "../../components/button/Button";
+import TextInput from "../../components/common/TextInput"; // fixed path
+import Button from "../../components/common/Button"; // fixed path
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -30,7 +30,10 @@ const ForgotPassword = () => {
 
       // Scroll and focus
       if (validationErrors.email && emailRef.current) {
-        emailRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        emailRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
         emailRef.current.focus();
       }
       return;
@@ -43,7 +46,9 @@ const ForgotPassword = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="bg-white shadow-lg rounded-xl p-8 sm:p-10 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-gray-900">Forgot Password</h2>
+        <h2 className="text-2xl font-bold text-center text-gray-900">
+          Forgot Password
+        </h2>
         <p className="text-center text-gray-500 mb-6">
           Enter your email and we'll send you a link to reset your password
         </p>
@@ -54,18 +59,7 @@ const ForgotPassword = () => {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
-            <TextInput
-              icon={FaEnvelope}
-              value={email}
-              onChange={handleChange}
-              placeholder="you@example.com"
-              error={errors.email}
-              name="email"
-              inputRef={emailRef}
-              type="email"
-            />
-
-            <Button type="submit">Send Reset Link</Button>
+            <Button type="submit" text="Send Reset Link" />
           </form>
         )}
 

@@ -1,9 +1,9 @@
 import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
-import TextInput from "../../components/textinput/TextInput";
-import PasswordInput from "../../components/passwordinput/PasswordInput";
-import Button from "../../components/button/Button";
+import TextInput from "../../components/common/TextInput";
+import PasswordInput from "../../components/common/PasswordInput";
+import Button from "../../components/common/Button";
 
 const Register = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -35,10 +35,13 @@ const Register = () => {
     const newErrors = {};
     if (!form.name.trim()) newErrors.name = "Full Name is required";
     if (!form.email.trim()) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(form.email)) newErrors.email = "Email is invalid";
+    else if (!/\S+@\S+\.\S+/.test(form.email))
+      newErrors.email = "Email is invalid";
     if (!form.password) newErrors.password = "Password is required";
-    else if (form.password.length < 6) newErrors.password = "Password must be at least 6 characters";
-    if (!form.confirmPassword) newErrors.confirmPassword = "Confirm Password is required";
+    else if (form.password.length < 6)
+      newErrors.password = "Password must be at least 6 characters";
+    if (!form.confirmPassword)
+      newErrors.confirmPassword = "Confirm Password is required";
     else if (form.password !== form.confirmPassword)
       newErrors.confirmPassword = "Passwords do not match";
     return newErrors;
@@ -54,7 +57,10 @@ const Register = () => {
       const firstErrorField = Object.keys(validationErrors)[0];
       const fieldRef = refs[firstErrorField];
       if (fieldRef && fieldRef.current) {
-        fieldRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        fieldRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
         fieldRef.current.focus();
       }
       return;
@@ -67,7 +73,9 @@ const Register = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="bg-white shadow-lg rounded-xl p-8 sm:p-10 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-gray-900">Create Account</h2>
+        <h2 className="text-2xl font-bold text-center text-gray-900">
+          Create Account
+        </h2>
         <p className="text-center text-gray-500 mb-6">Join FindHome today</p>
 
         <form onSubmit={handleRegister} className="space-y-5">
@@ -147,7 +155,7 @@ const Register = () => {
           </div>
 
           {/* Register Button */}
-          <Button type="submit">Register</Button>
+              <Button type="submit" text="Register" />
         </form>
 
         <p className="text-center text-gray-500 mt-4 text-sm">
