@@ -1,6 +1,9 @@
 import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
+import TextInput from "../../components/textinput/TextInput";
+import PasswordInput from "../../components/passwordinput/PasswordInput";
+import Button from "../../components/button/Button";
 
 const Register = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -34,8 +37,7 @@ const Register = () => {
     if (!form.email.trim()) newErrors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(form.email)) newErrors.email = "Email is invalid";
     if (!form.password) newErrors.password = "Password is required";
-    else if (form.password.length < 6)
-      newErrors.password = "Password must be at least 6 characters";
+    else if (form.password.length < 6) newErrors.password = "Password must be at least 6 characters";
     if (!form.confirmPassword) newErrors.confirmPassword = "Confirm Password is required";
     else if (form.password !== form.confirmPassword)
       newErrors.confirmPassword = "Passwords do not match";
@@ -62,14 +64,6 @@ const Register = () => {
     // Registration logic
   };
 
-  const inputWrapperClass =
-    "relative flex items-center border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition";
-
-  const inputClass = (error) =>
-    `w-full pl-10 pr-10 py-3 focus:outline-none rounded-lg ${
-      error ? "border-red-500" : "border-gray-300"
-    }`;
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="bg-white shadow-lg rounded-xl p-8 sm:p-10 w-full max-w-md">
@@ -78,78 +72,53 @@ const Register = () => {
 
         <form onSubmit={handleRegister} className="space-y-5">
           {/* Full Name */}
-          <div className={inputWrapperClass}>
-            <FaUser className="absolute left-3 text-gray-400" />
-            <input
-              ref={refs.name}
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              placeholder="John Doe"
-              className={inputClass(errors.name)}
-            />
-          </div>
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+          <TextInput
+            icon={FaUser}
+            value={form.name}
+            onChange={handleChange}
+            placeholder="John Doe"
+            error={errors.name}
+            inputRef={refs.name}
+            name="name"
+          />
 
           {/* Email */}
-          <div className={inputWrapperClass}>
-            <FaEnvelope className="absolute left-3 text-gray-400" />
-            <input
-              ref={refs.email}
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="you@example.com"
-              className={inputClass(errors.email)}
-            />
-          </div>
-          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+          <TextInput
+            icon={FaEnvelope}
+            value={form.email}
+            onChange={handleChange}
+            placeholder="you@example.com"
+            error={errors.email}
+            inputRef={refs.email}
+            name="email"
+            type="email"
+          />
 
           {/* Password */}
-          <div className={inputWrapperClass}>
-            <FaLock className="absolute left-3 text-gray-400" />
-            <input
-              ref={refs.password}
-              type={passwordVisible ? "text" : "password"}
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              placeholder="••••••••"
-              className={inputClass(errors.password)}
-            />
-            <span
-              className="absolute right-3 cursor-pointer text-gray-500 hover:text-blue-500"
-              onClick={() => setPasswordVisible(!passwordVisible)}
-            >
-              {passwordVisible ? <FaEyeSlash /> : <FaEye />}
-            </span>
-          </div>
-          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+          <PasswordInput
+            icon={FaLock}
+            value={form.password}
+            onChange={handleChange}
+            placeholder="••••••••"
+            error={errors.password}
+            inputRef={refs.password}
+            name="password"
+            visible={passwordVisible}
+            setVisible={setPasswordVisible}
+          />
 
           {/* Confirm Password */}
-          <div className={inputWrapperClass}>
-            <FaLock className="absolute left-3 text-gray-400" />
-            <input
-              ref={refs.confirmPassword}
-              type={confirmPasswordVisible ? "text" : "password"}
-              name="confirmPassword"
-              value={form.confirmPassword}
-              onChange={handleChange}
-              placeholder="••••••••"
-              className={inputClass(errors.confirmPassword)}
-            />
-            <span
-              className="absolute right-3 cursor-pointer text-gray-500 hover:text-blue-500"
-              onClick={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
-            >
-              {confirmPasswordVisible ? <FaEyeSlash /> : <FaEye />}
-            </span>
-          </div>
-          {errors.confirmPassword && (
-            <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
-          )}
+          <PasswordInput
+            icon={FaLock}
+            value={form.confirmPassword}
+            onChange={handleChange}
+            placeholder="••••••••"
+            error={errors.confirmPassword}
+            inputRef={refs.confirmPassword}
+            name="confirmPassword"
+            visible={confirmPasswordVisible}
+            setVisible={setConfirmPasswordVisible}
+          />
 
           {/* Role Selection */}
           <div className="flex space-x-2">
@@ -178,12 +147,7 @@ const Register = () => {
           </div>
 
           {/* Register Button */}
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-300"
-          >
-            Register
-          </button>
+          <Button type="submit">Register</Button>
         </form>
 
         <p className="text-center text-gray-500 mt-4 text-sm">

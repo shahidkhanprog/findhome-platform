@@ -1,14 +1,15 @@
 import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEnvelope, FaLock } from "react-icons/fa";
+import TextInput from "../../components/textinput/TextInput";
+import PasswordInput from "../../components/passwordinput/PasswordInput";
+import Button from "../../components/button/Button";
+
 
 const Login = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
+  const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
 
   const refs = {
@@ -50,16 +51,8 @@ const Login = () => {
     }
 
     console.log("Login submitted:", form, "Remember Me:", rememberMe);
-    // Handle login logic
+    // Add login logic here
   };
-
-  const inputWrapperClass =
-    "relative flex items-center border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition";
-
-  const inputClass = (error) =>
-    `w-full pl-10 pr-12 py-3 focus:outline-none rounded-lg ${
-      error ? "border-red-500" : "border-gray-300"
-    }`;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
@@ -70,40 +63,27 @@ const Login = () => {
 
         <form onSubmit={handleLogin} className="space-y-5">
           {/* Email */}
-          <div className={inputWrapperClass}>
-            <FaEnvelope className="absolute left-3 text-gray-400" />
-            <input
-              ref={refs.email}
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
-              className={inputClass(errors.email)}
-            />
-          </div>
-          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+          <TextInput
+            icon={FaEnvelope}
+            value={form.email}
+            onChange={handleChange}
+            placeholder="Enter your email"
+            error={errors.email}
+            inputRef={refs.email}
+            type="email"
+            name="email"
+          />
 
           {/* Password */}
-          <div className={inputWrapperClass}>
-            <FaLock className="absolute left-3 text-gray-400" />
-            <input
-              ref={refs.password}
-              type={passwordVisible ? "text" : "password"}
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              placeholder="Enter your password"
-              className={inputClass(errors.password)}
-            />
-            <span
-              className="absolute right-3 cursor-pointer text-gray-500 hover:text-blue-500"
-              onClick={() => setPasswordVisible(!passwordVisible)}
-            >
-              {passwordVisible ? <FaEyeSlash /> : <FaEye />}
-            </span>
-          </div>
-          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+          <PasswordInput
+            icon={FaLock}
+            value={form.password}
+            onChange={handleChange}
+            placeholder="Enter your password"
+            error={errors.password}
+            inputRef={refs.password}
+            name="password"
+          />
 
           {/* Remember Me & Forgot Password */}
           <div className="flex items-center justify-between">
@@ -122,12 +102,7 @@ const Login = () => {
           </div>
 
           {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-300"
-          >
-            Login
-          </button>
+          <Button type="submit">Login</Button>
         </form>
 
         <p className="text-center text-gray-500 mt-4 text-sm">

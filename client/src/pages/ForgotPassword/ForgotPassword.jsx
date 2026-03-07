@@ -1,6 +1,8 @@
 import { useState, useRef } from "react";
 import { FaEnvelope } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import TextInput from "../../components/textinput/TextInput";
+import Button from "../../components/button/Button";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -38,14 +40,6 @@ const ForgotPassword = () => {
     setSubmitted(true);
   };
 
-  const inputWrapperClass =
-    "relative flex items-center border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition";
-
-  const inputClass = (error) =>
-    `w-full pl-10 pr-4 py-3 focus:outline-none rounded-lg ${
-      error ? "border-red-500" : "border-gray-300"
-    }`;
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="bg-white shadow-lg rounded-xl p-8 sm:p-10 w-full max-w-md">
@@ -60,28 +54,18 @@ const ForgotPassword = () => {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
-            <div className={inputWrapperClass}>
-              <FaEnvelope className="absolute left-3 text-gray-400" />
-              <input
-                ref={emailRef}
-                type="email"
-                name="email"
-                value={email}
-                onChange={handleChange}
-                placeholder="you@example.com"
-                className={inputClass(errors.email)}
-              />
-            </div>
-            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+            <TextInput
+              icon={FaEnvelope}
+              value={email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              error={errors.email}
+              name="email"
+              inputRef={emailRef}
+              type="email"
+            />
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-300"
-            >
-              Send Reset Link
-            </button>
+            <Button type="submit">Send Reset Link</Button>
           </form>
         )}
 
