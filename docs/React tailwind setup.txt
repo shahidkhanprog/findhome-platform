@@ -83,3 +83,7 @@ client/
 React App Flow
 
   Browser → index.js → main.jsx → App.jsx → components
+
+  npm i react-router-dom
+
+  npm install react-icons

@@ -1,10 +1,7 @@
+import AppRouter from "./routes/AppRouter";
 
-function App() {
-  return (
-    <>
-      <p className="bg-blue-400">shahid khan </p>
-    </>
-  );
-}
+const App = () => {
+  return <AppRouter />;
+};
 
 export default App;
