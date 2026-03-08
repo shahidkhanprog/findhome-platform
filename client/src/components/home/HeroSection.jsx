@@ -7,7 +7,7 @@ const HeroSection = () => {
       className="relative h-[85vh] flex items-center bg-cover bg-center overflow-hidden"
       style={{
         backgroundImage:
-          'url("https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=80")',
+          'url("/homePage-hero-section.png")',
       }}
     >
       {/* Dark overlay for text readability */}

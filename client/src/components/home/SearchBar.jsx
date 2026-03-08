@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
-import StatsSection from "./StatsSection";
 
 const SearchBar = () => {
   const navigate = useNavigate();
