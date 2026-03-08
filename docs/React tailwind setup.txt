@@ -87,3 +87,5 @@ React App Flow
   npm i react-router-dom
 
   npm install react-icons
+
+  npm install react-slick slick-carousel react-icons
