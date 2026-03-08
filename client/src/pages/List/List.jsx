@@ -1,17 +1,19 @@
+// src/pages/List.js
 import { useState, useMemo } from "react";
 import SearchInput from "../../components/common/SearchInput";
 
+// Property data with listingType (rent / sale)
 const PROPERTIES = [
-  { id: 1, title: "Modern Downtown Loft", location: "New York, NY", price: 4200, type: "Apartment", image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&q=80" },
-  { id: 2, title: "Suburban Family Home", location: "Austin, TX", price: 620000, type: "House", image: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&q=80" },
-  { id: 3, title: "Beachfront Villa", location: "Miami, FL", price: 1250000, type: "Villa", image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80" },
-  { id: 4, title: "Cozy Studio Apartment", location: "Chicago, IL", price: 1800, type: "Apartment", image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&q=80" },
-  { id: 5, title: "Luxury Penthouse Suite", location: "Los Angeles, CA", price: 8500, type: "Apartment", image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&q=80" },
-  { id: 6, title: "Mountain Retreat Cabin", location: "Denver, CO", price: 475000, type: "House", image: "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?w=600&q=80" },
-  { id: 7, title: "Historic Brownstone", location: "Boston, MA", price: 890000, type: "House", image: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=600&q=80" },
-  { id: 8, title: "Minimalist City Flat", location: "Seattle, WA", price: 2900, type: "Apartment", image: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=600&q=80" },
-  { id: 9, title: "Gated Community Townhouse", location: "Phoenix, AZ", price: 385000, type: "Townhouse", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80" },
-  { id: 10, title: "Waterfront Condo", location: "San Diego, CA", price: 3600, type: "Apartment", image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&q=80" },
+  { id: 1, title: "Modern Downtown Loft", location: "New York, NY", price: 4200, type: "Apartment", listingType: "rent", image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&q=80" },
+  { id: 2, title: "Suburban Family Home", location: "Austin, TX", price: 620000, type: "House", listingType: "sale", image: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&q=80" },
+  { id: 3, title: "Beachfront Villa", location: "Miami, FL", price: 1250000, type: "Villa", listingType: "sale", image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80" },
+  { id: 4, title: "Cozy Studio Apartment", location: "Chicago, IL", price: 1800, type: "Apartment", listingType: "rent", image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&q=80" },
+  { id: 5, title: "Luxury Penthouse Suite", location: "Los Angeles, CA", price: 8500, type: "Apartment", listingType: "rent", image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&q=80" },
+  { id: 6, title: "Mountain Retreat Cabin", location: "Denver, CO", price: 475000, type: "House", listingType: "sale", image: "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?w=600&q=80" },
+  { id: 3, title: "Beachfront Villa", location: "Miami, FL", price: 1250000, type: "Villa", listingType: "sale", image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80" },
+  { id: 4, title: "Cozy Studio Apartment", location: "Chicago, IL", price: 1800, type: "Apartment", listingType: "rent", image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&q=80" },
+  { id: 5, title: "Luxury Penthouse Suite", location: "Los Angeles, CA", price: 8500, type: "Apartment", listingType: "rent", image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&q=80" },
+  { id: 6, title: "Mountain Retreat Cabin", location: "Denver, CO", price: 475000, type: "House", listingType: "sale", image: "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?w=600&q=80" },
 ];
 
 const PER_PAGE = 6;
@@ -19,7 +21,7 @@ const PER_PAGE = 6;
 function List() {
   const [sort, setSort] = useState("newest");
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ query: "", category: "All Types" });
+  const [filters, setFilters] = useState({ query: "", category: "All Types", listingType: "All" });
 
   const handleSearch = (newFilters) => {
     setFilters(newFilters);
@@ -28,6 +30,11 @@ function List() {
 
   const filtered = useMemo(() => {
     let list = [...PROPERTIES];
+
+    // Filter by Listing Type (rent / sale)
+    if (filters.listingType !== "All") {
+      list = list.filter(p => p.listingType.toLowerCase() === filters.listingType.toLowerCase());
+    }
 
     // Filter by Category
     if (filters.category !== "All Types") {
@@ -57,7 +64,7 @@ function List() {
   return (
     <div className="min-h-screen bg-[#fef7f6] pt-5">
       {/* SEARCH HEADER */}
-      <div className="bg-white border-b shadow-sm sticky top-0 z-40">
+      <div className="bg-white border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 space-y-4">
           <SearchInput onSearch={handleSearch} />
           <div className="flex items-center justify-between">
@@ -85,6 +92,13 @@ function List() {
               <div key={p.id} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
                 <div className="relative">
                   <img src={p.image} alt={p.title} className="w-full h-56 object-cover" />
+                  
+                  {/* Listing Type Badge */}
+                  <div className="absolute top-4 left-4 bg-[#f36c3a] text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase">
+                    {p.listingType === "rent" ? "For Rent" : "For Sale"}
+                  </div>
+                  
+                  {/* Property Type Badge */}
                   <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[10px] font-bold text-[#f36c3a] uppercase">
                     {p.type}
                   </div>
@@ -105,7 +119,7 @@ function List() {
         ) : (
           <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">
             <h3 className="text-xl font-bold text-slate-700">No properties found</h3>
-            <p className="text-slate-400">Try adjusting your search or category.</p>
+            <p className="text-slate-400">Try adjusting your search, category, or listing type.</p>
           </div>
         )}
       </div>

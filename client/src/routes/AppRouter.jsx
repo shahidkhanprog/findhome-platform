@@ -68,6 +68,7 @@ import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
 import ForgotPassword from "../pages/ForgotPassword/ForgotPassword";
 import SearchResultsPage from "../pages/SearchResultsPage/SearchResultsPage";
+import PropertyDetailPage from "../pages/PropertyDetailPage/PropertyDetailPage";
 
 const router = createBrowserRouter([
   {
@@ -81,7 +82,8 @@ const router = createBrowserRouter([
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
       { path: "forgotpassword", element: <ForgotPassword /> },
-      { path: "search-results", element: <SearchResultsPage /> }
+      { path: "search-results", element: <SearchResultsPage /> },
+      { path: "property-detail", element: <PropertyDetailPage /> }
     ],
   },
 ]);

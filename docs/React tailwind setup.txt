@@ -91,3 +91,5 @@ React App Flow
   npm install react-slick slick-carousel react-icons
 
   npm install lucide-react (remove)
+
+  Remove-Item -Recurse -Force node_modules/.vite; npm run dev // powershell
