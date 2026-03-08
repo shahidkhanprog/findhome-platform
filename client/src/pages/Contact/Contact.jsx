@@ -1,190 +1,486 @@
-import React, { useState } from 'react';
-import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaClock, FaFacebook, FaTwitter, FaLinkedin, FaInstagram } from 'react-icons/fa';
+import React, { useState } from "react";
+import {
+  FaPhoneAlt, FaEnvelope, FaMapMarkerAlt,
+  FaFacebook, FaTwitter, FaLinkedin, FaInstagram,
+  FaCheckCircle, FaWhatsapp,
+} from "react-icons/fa";
 
+// ── Contact info data ─────────────────────────────────────────
+const CONTACT_INFO = [
+  {
+    icon: <FaPhoneAlt />,
+    title: "Call Us Directly",
+    detail: "+92 300 123 4567",
+    sub: "Mon – Sat, 9 AM – 7 PM PKT",
+    link: "tel:+923001234567",
+    linkLabel: "Call Now",
+    color: "bg-blue-50 text-blue-500",
+  },
+  {
+    icon: <FaWhatsapp />,
+    title: "WhatsApp",
+    detail: "+92 300 123 4567",
+    sub: "Quick replies within minutes",
+    link: "https://wa.me/923001234567",
+    linkLabel: "Chat on WhatsApp",
+    color: "bg-emerald-50 text-emerald-500",
+  },
+  {
+    icon: <FaEnvelope />,
+    title: "Email Us",
+    detail: "info@findhome.com",
+    sub: "We reply within 24 hours",
+    link: "mailto:info@findhome.com",
+    linkLabel: "Send Email",
+    color: "bg-orange-50 text-[#f36c3a]",
+  },
+  {
+    icon: <FaMapMarkerAlt />,
+    title: "Visit Our Office",
+    detail: "Plot 5, F-10 Markaz, Islamabad",
+    sub: "Open Mon – Sat, 9 AM – 6 PM",
+    link: "#map",
+    linkLabel: "View on Map",
+    color: "bg-purple-50 text-purple-500",
+  },
+];
+
+const SOCIAL = [
+  { icon: <FaFacebook />,  label: "Facebook",  color: "hover:bg-blue-600",  href: "#" },
+  { icon: <FaTwitter />,   label: "Twitter",   color: "hover:bg-sky-400",   href: "#" },
+  { icon: <FaLinkedin />,  label: "LinkedIn",  color: "hover:bg-blue-700",  href: "#" },
+  { icon: <FaInstagram />, label: "Instagram", color: "hover:bg-pink-600",  href: "#" },
+];
+
+const SUBJECTS = [
+  "Buy a Property",
+  "Rent a Property",
+  "Sell My Property",
+  "Property Management",
+  "Investment Advisory",
+  "Legal & Documentation",
+  "General Inquiry",
+];
+
+// ── Helper: Contact Info Card ─────────────────────────────────
+const ContactInfoCard = ({ icon, title, detail, sub, link, linkLabel, color }) => (
+  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex gap-4 items-start hover:shadow-md transition-all duration-300">
+    <div className={`p-3 rounded-xl shrink-0 ${color}`}>
+      <span className="text-xl">{icon}</span>
+    </div>
+    <div className="min-w-0">
+      <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-0.5">
+        {title}
+      </p>
+      <p className="font-bold text-slate-900 text-sm sm:text-base truncate">
+        {detail}
+      </p>
+      <p className="text-slate-400 text-xs mt-0.5 mb-2">{sub}</p>
+      
+        <a
+        href={link}
+        target={link.startsWith("http") ? "_blank" : undefined}
+        rel="noreferrer"
+        className="text-[#f36c3a] text-xs font-bold hover:underline"
+      >
+        {linkLabel} →
+      </a>
+    </div>
+  </div>
+);
+
+// ── Helper: Social Icon ───────────────────────────────────────
+const SocialIcon = ({ icon, label, color, href }) => (
+  
+   <a
+    href={href}
+    aria-label={label}
+    className={`relative group w-11 h-11 bg-white border border-slate-100 flex items-center justify-center rounded-xl text-slate-500 transition-all duration-300 shadow-sm hover:text-white hover:shadow-xl hover:-translate-y-1 ${color}`}
+  >
+    <span className="text-lg group-hover:scale-125 transition-transform duration-300">
+      {icon}
+    </span>
+    <span className="absolute -top-8 left-1/2 -translate-x-1/2 scale-0 group-hover:scale-100 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap">
+      {label}
+    </span>
+  </a>
+);
+
+// ── Main Contact Page ─────────────────────────────────────────
 const Contact = () => {
-  // --- JS Validation State ---
   const [formData, setFormData] = useState({
     fullName: "",
-    email: "",
-    subject: "Buy a Home",
-    message: ""
+    email:    "",
+    phone:    "",
+    subject:  "Buy a Property",
+    message:  "",
   });
-  
-  const [errors, setErrors] = useState({});
+  const [errors,    setErrors]    = useState({});
+  const [submitted, setSubmitted] = useState(false);
+  const [loading,   setLoading]   = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    // Clear error when user starts typing again
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: "" });
-    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const validateForm = () => {
-    let newErrors = {};
+    const newErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!formData.fullName.trim()) newErrors.fullName = "Name is required";
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!emailRegex.test(formData.email)) {
+    if (!formData.fullName.trim())
+      newErrors.fullName = "Full name is required";
+    if (!formData.email.trim())
+      newErrors.email = "Email address is required";
+    else if (!emailRegex.test(formData.email))
       newErrors.email = "Please enter a valid email address";
-    }
-    if (!formData.message.trim()) {
+    if (!formData.message.trim())
       newErrors.message = "Message cannot be empty";
-    } else if (formData.message.length < 10) {
+    else if (formData.message.length < 10)
       newErrors.message = "Message must be at least 10 characters";
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      console.log("Form Data Submitted Successfully:", formData);
-      alert("Thank you! Your message has been sent.");
-      // Reset form
-      setFormData({ fullName: "", email: "", subject: "Buy a Home", message: "" });
-    }
+    if (!validateForm()) return;
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setSubmitted(true);
+      setFormData({
+        fullName: "", email: "", phone: "",
+        subject: "Buy a Property", message: "",
+      });
+    }, 1200);
   };
 
   return (
     <div className="font-sans text-[#101828] bg-white">
-      {/* Hero Section */}
-      <section className="relative h-[40vh] flex items-center justify-center bg-cover bg-center"
-        style={{ backgroundImage: `url('https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop')`, backgroundAttachment: "fixed" }}>
-        <div className="absolute inset-0 bg-slate-900/60"></div>
-        <div className="relative z-10 text-center text-white px-6">
-          <h1 className="text-4xl md:text-6xl font-extrabold mb-4">Get In <span className="text-[#f36c3a]">Touch</span></h1>
+
+      {/* ── Hero ─────────────────────────────────────────────── */}
+      <section
+        className="relative h-[45vh] sm:h-[50vh] flex items-center justify-center bg-cover bg-center"
+        style={{
+          backgroundImage: `url('https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop')`,
+          backgroundAttachment: "fixed",
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 to-slate-900/50" />
+        <div className="relative z-10 text-center text-white px-5 sm:px-8 max-w-2xl mx-auto">
+          <p className="text-xs sm:text-sm font-bold uppercase tracking-widest text-[#f36c3a] mb-3">
+            We're Here to Help
+          </p>
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold mb-4 leading-tight">
+            Get In <span className="text-[#f36c3a]">Touch</span>
+          </h1>
+          <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+            Whether you're buying, renting, or investing — our team is ready
+            to guide you every step of the way.
+          </p>
         </div>
       </section>
 
-      {/* Contact Content */}
-      <section className="py-24 px-6 lg:px-32">
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-16">
-          
-          {/* Left Side: Contact Info */}
-          <div className="lg:w-1/3 space-y-10">
-            <h2 className="text-3xl font-bold mb-6">Contact Information</h2>
-            <div className="space-y-6">
-              <ContactInfoItem icon={<FaPhoneAlt />} title="Phone" detail="+1 (555) 000-1234" />
-              <ContactInfoItem icon={<FaEnvelope />} title="Email" detail="info@findhome.com" />
-              <ContactInfoItem icon={<FaMapMarkerAlt />} title="Location" detail="123 Luxury Lane, NY" />
+      {/* ── Contact Info Cards ────────────────────────────────── */}
+      <section className="py-12 sm:py-16 px-5 sm:px-8 lg:px-20 bg-slate-50">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          {CONTACT_INFO.map((item, i) => (
+            <ContactInfoCard key={i} {...item} />
+          ))}
+        </div>
+      </section>
+
+      {/* ── Main Content: Info + Form ─────────────────────────── */}
+      <section className="py-12 sm:py-16 lg:py-20 px-5 sm:px-8 lg:px-20">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-10 lg:gap-16">
+
+          {/* ── Left: Info + social ── */}
+          <div className="lg:w-5/12 space-y-8">
+
+            <div>
+              <p className="text-xs sm:text-sm font-bold uppercase tracking-widest text-[#f36c3a] mb-2">
+                Contact Us
+              </p>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight mb-4">
+                Let's Find Your{" "}
+                <span className="text-[#f36c3a]">Perfect Property</span> Together
+              </h2>
+              <p className="text-slate-500 text-sm sm:text-base leading-relaxed">
+                Our team of verified agents across Islamabad, Lahore, Peshawar,
+                and Rawalpindi is ready to help. No bots — a real person will
+                respond to every inquiry within 24 hours.
+              </p>
             </div>
 
-            {/* Social Media with Hover Effects */}
-            <div className="pt-6 border-t border-slate-100">
-              <h4 className="font-bold mb-4">Follow Us</h4>
-              <div className="flex gap-4">
-                <SocialIcon icon={<FaFacebook />} label="Facebook" color="hover:bg-blue-600" />
-                <SocialIcon icon={<FaTwitter />} label="Twitter" color="hover:bg-sky-400" />
-                <SocialIcon icon={<FaLinkedin />} label="LinkedIn" color="hover:bg-blue-700" />
-                <SocialIcon icon={<FaInstagram />} label="Instagram" color="hover:bg-pink-600" />
+            {/* Why contact us */}
+            <div className="bg-[#fef7f6] rounded-2xl border border-[#f36c3a]/20 p-5 sm:p-6 space-y-3">
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">
+                Why reach out to us?
+              </p>
+              {[
+                "Free consultation — no commitment required",
+                "Dedicated agent assigned within 2 hours",
+                "Access to 100+ off-market listings",
+                "Full legal & documentation support",
+                "Transparent pricing, zero hidden fees",
+              ].map((point, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <FaCheckCircle className="text-[#f36c3a] shrink-0 mt-0.5 text-sm" />
+                  <p className="text-slate-600 text-xs sm:text-sm">{point}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Office hours */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">
+                Office Hours
+              </p>
+              {[
+                { day: "Monday – Friday", hours: "9:00 AM – 7:00 PM" },
+                { day: "Saturday",        hours: "10:00 AM – 5:00 PM" },
+                { day: "Sunday",          hours: "Closed" },
+              ].map((row, i) => (
+                <div
+                  key={i}
+                  className={`flex justify-between text-xs sm:text-sm py-2.5 ${
+                    i < 2 ? "border-b border-slate-100" : ""
+                  }`}
+                >
+                  <span className="font-bold text-slate-700">{row.day}</span>
+                  <span className={
+                    row.hours === "Closed"
+                      ? "text-rose-400 font-bold"
+                      : "text-slate-500"
+                  }>
+                    {row.hours}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Social */}
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">
+                Follow Us
+              </p>
+              <div className="flex gap-3">
+                {SOCIAL.map((s, i) => (
+                  <SocialIcon key={i} {...s} />
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Right Side: Validated Form */}
-          <div className="lg:w-2/3">
-            <div className="bg-[#fef7f6] p-8 md:p-12 rounded-3xl shadow-sm border border-slate-100">
-              <h3 className="text-2xl font-bold mb-8">Send Us a Message</h3>
-              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                {/* Full Name */}
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700">Full Name</label>
-                  <input 
-                    name="fullName" value={formData.fullName} onChange={handleInputChange}
-                    type="text" placeholder="Your Name" 
-                    className={`w-full px-5 py-4 rounded-xl border ${errors.fullName ? 'border-red-500' : 'border-slate-200'} focus:border-[#f36c3a] outline-none transition-all`} 
-                  />
-                  {errors.fullName && <p className="text-red-500 text-xs font-semibold">{errors.fullName}</p>}
-                </div>
+          {/* ── Right: Form ── */}
+          <div className="lg:w-7/12">
+            <div className="bg-[#fef7f6] p-6 sm:p-8 md:p-10 rounded-3xl shadow-sm border border-slate-100">
 
-                {/* Email */}
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700">Email Address</label>
-                  <input 
-                    name="email" value={formData.email} onChange={handleInputChange}
-                    type="email" placeholder="Your Email" 
-                    className={`w-full px-5 py-4 rounded-xl border ${errors.email ? 'border-red-500' : 'border-slate-200'} focus:border-[#f36c3a] outline-none transition-all`} 
-                  />
-                  {errors.email && <p className="text-red-500 text-xs font-semibold">{errors.email}</p>}
-                </div>
-
-                {/* Subject */}
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-bold text-slate-700">Subject</label>
-                  <select name="subject" value={formData.subject} onChange={handleInputChange}
-                    className="w-full px-5 py-4 rounded-xl border border-slate-200 focus:border-[#f36c3a] outline-none bg-white">
-                    <option>Buy a Home</option>
-                    <option>Rent a Home</option>
-                    <option>Property Management</option>
-                  </select>
-                </div>
-
-                {/* Message */}
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-bold text-slate-700">Message</label>
-                  <textarea 
-                    name="message" value={formData.message} onChange={handleInputChange}
-                    rows="5" placeholder="How can we help you?" 
-                    className={`w-full px-5 py-4 rounded-xl border ${errors.message ? 'border-red-500' : 'border-slate-200'} focus:border-[#f36c3a] outline-none transition-all resize-none`}
-                  ></textarea>
-                  {errors.message && <p className="text-red-500 text-xs font-semibold">{errors.message}</p>}
-                </div>
-
-                <div className="md:col-span-2 pt-4">
-                  <button type="submit" className="w-full md:w-auto bg-[#f36c3a] text-white px-12 py-4 rounded-full font-bold shadow-lg hover:bg-slate-900 hover:scale-105 transition-all active:scale-95">
-                    Send Message
+              {submitted ? (
+                /* Success state */
+                <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
+                  <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center">
+                    <FaCheckCircle className="text-emerald-500 text-3xl" />
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900">
+                    Message Sent!
+                  </h3>
+                  <p className="text-slate-500 text-sm sm:text-base max-w-sm leading-relaxed">
+                    Thank you for reaching out. A dedicated agent will contact
+                    you within 24 hours to discuss your requirements.
+                  </p>
+                  <button
+                    onClick={() => setSubmitted(false)}
+                    className="mt-2 bg-[#f36c3a] hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-xl transition-all active:scale-95 text-sm"
+                  >
+                    Send Another Message
                   </button>
                 </div>
-              </form>
+              ) : (
+                <>
+                  <p className="text-xs sm:text-sm font-bold uppercase tracking-widest text-[#f36c3a] mb-2">
+                    Send a Message
+                  </p>
+                  <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 mb-6 sm:mb-8">
+                    How Can We Help You?
+                  </h3>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+
+                    {/* Full Name */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs sm:text-sm font-bold text-slate-700">
+                        Full Name <span className="text-rose-400">*</span>
+                      </label>
+                      <input
+                        name="fullName"
+                        value={formData.fullName}
+                        onChange={handleInputChange}
+                        type="text"
+                        placeholder="e.g. Ahmed Raza"
+                        className={`w-full px-4 py-3 sm:py-3.5 rounded-xl border text-sm focus:outline-none transition-all ${
+                          errors.fullName
+                            ? "border-red-400 bg-red-50"
+                            : "border-slate-200 bg-white focus:border-[#f36c3a]"
+                        }`}
+                      />
+                      {errors.fullName && (
+                        <p className="text-red-500 text-xs font-semibold">
+                          {errors.fullName}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Email */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs sm:text-sm font-bold text-slate-700">
+                        Email Address <span className="text-rose-400">*</span>
+                      </label>
+                      <input
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        type="email"
+                        placeholder="you@example.com"
+                        className={`w-full px-4 py-3 sm:py-3.5 rounded-xl border text-sm focus:outline-none transition-all ${
+                          errors.email
+                            ? "border-red-400 bg-red-50"
+                            : "border-slate-200 bg-white focus:border-[#f36c3a]"
+                        }`}
+                      />
+                      {errors.email && (
+                        <p className="text-red-500 text-xs font-semibold">
+                          {errors.email}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Phone */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs sm:text-sm font-bold text-slate-700">
+                        Phone Number
+                        <span className="text-slate-400 font-normal ml-1">(optional)</span>
+                      </label>
+                      <input
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        type="tel"
+                        placeholder="+92 300 000 0000"
+                        className="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-[#f36c3a] transition-all"
+                      />
+                    </div>
+
+                    {/* Subject */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs sm:text-sm font-bold text-slate-700">
+                        Subject
+                      </label>
+                      <select
+                        name="subject"
+                        value={formData.subject}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-[#f36c3a] transition-all cursor-pointer"
+                      >
+                        {SUBJECTS.map((s) => (
+                          <option key={s}>{s}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Message */}
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <label className="text-xs sm:text-sm font-bold text-slate-700">
+                        Message <span className="text-rose-400">*</span>
+                      </label>
+                      <textarea
+                        name="message"
+                        value={formData.message}
+                        onChange={handleInputChange}
+                        rows={5}
+                        placeholder="Tell us what you're looking for — property type, budget, location, timeline..."
+                        className={`w-full px-4 py-3 sm:py-3.5 rounded-xl border text-sm focus:outline-none transition-all resize-none ${
+                          errors.message
+                            ? "border-red-400 bg-red-50"
+                            : "border-slate-200 bg-white focus:border-[#f36c3a]"
+                        }`}
+                      />
+                      <div className="flex items-center justify-between">
+                        {errors.message ? (
+                          <p className="text-red-500 text-xs font-semibold">
+                            {errors.message}
+                          </p>
+                        ) : (
+                          <span />
+                        )}
+                        <p className="text-xs text-slate-400">
+                          {formData.message.length} / 500
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Submit */}
+                    <div className="sm:col-span-2 pt-2">
+                      <button
+                        onClick={handleSubmit}
+                        disabled={loading}
+                        className="w-full sm:w-auto bg-[#f36c3a] hover:bg-orange-600 disabled:bg-orange-300 text-white font-bold px-10 sm:px-14 py-3.5 sm:py-4 rounded-full shadow-lg shadow-orange-200 hover:shadow-xl transition-all active:scale-95 text-sm sm:text-base flex items-center gap-3"
+                      >
+                        {loading ? (
+                          <>
+                            <svg
+                              className="animate-spin w-4 h-4"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12" cy="12" r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              />
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8v8z"
+                              />
+                            </svg>
+                            Sending…
+                          </>
+                        ) : (
+                          "Send Message →"
+                        )}
+                      </button>
+                      <p className="text-xs text-slate-400 mt-3">
+                        By submitting, you agree to our privacy policy. We never share your data.
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
       </section>
-       {/* 3. Embedded Map Section (Placeholder) */}
-      <section className="h-[450px] w-full bg-slate-200 grayscale hover:grayscale-0 transition-all duration-700">
-        <iframe 
+
+      {/* ── Embedded Map ─────────────────────────────────────── */}
+      <section
+        id="map"
+        className="h-[350px] sm:h-[450px] w-full bg-slate-200 grayscale hover:grayscale-0 transition-all duration-700"
+      >
+        <iframe
           title="Office Location"
           src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.215707164965!2d-73.985428!3d40.748817!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDQ0JzU1LjciTiA3M8KwNTknMDcuNSJX!5e0!3m2!1sen!2sus!4v1634567890123!5m2!1sen!2sus"
-          width="100%" 
-          height="100%" 
-          style={{ border: 0 }} 
-          allowFullScreen="" 
+          width="100%"
+          height="100%"
+          style={{ border: 0 }}
+          allowFullScreen=""
           loading="lazy"
-        ></iframe>
+        />
       </section>
     </div>
   );
 };
-
-// --- Helper Components ---
-
-const ContactInfoItem = ({ icon, title, detail }) => (
-  <div className="flex items-start gap-4">
-    <div className="bg-[#fef7f6] p-4 rounded-2xl text-[#f36c3a]">{icon}</div>
-    <div>
-      <h4 className="font-bold text-slate-900">{title}</h4>
-      <p className="text-[#667085]">{detail}</p>
-    </div>
-  </div>
-);
-
-const SocialIcon = ({ icon, color }) => (
-  <div className={`relative group w-12 h-12 bg-white border border-slate-100 flex items-center justify-center rounded-xl text-slate-600 transition-all duration-300 shadow-sm cursor-pointer hover:text-white hover:shadow-xl hover:-translate-y-2 ${color}`}>
-    <span className="text-xl group-hover:scale-125 transition-transform duration-300">
-      {icon}
-    </span>
-    {/* Subtle Tooltip Effect */}
-    <span className="absolute -top-10 scale-0 group-hover:scale-100 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-all">
-      Follow
-    </span>
-  </div>
-);
 
 export default Contact;
