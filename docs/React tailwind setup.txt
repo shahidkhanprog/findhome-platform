@@ -89,3 +89,5 @@ React App Flow
   npm install react-icons
 
   npm install react-slick slick-carousel react-icons
+
+  npm install lucide-react
