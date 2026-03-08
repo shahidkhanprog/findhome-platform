@@ -118,7 +118,7 @@ const About = () => {
           backgroundAttachment: "fixed"
         }}
       >
-        <div className="absolute inset-0 bg-[#f36c3a]/90"></div>
+        <div className="absolute inset-0 bg-black/60"></div>
         <div className="relative z-10 text-center text-white px-6 space-y-8">
           <h2 className="text-4xl md:text-6xl font-extrabold leading-tight">
             Ready to Find Your <br /> Next Chapter?
