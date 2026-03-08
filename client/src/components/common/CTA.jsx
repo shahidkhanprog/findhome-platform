@@ -26,7 +26,7 @@ const CTA = () => {
 
         <div className="flex flex-col sm:flex-row justify-center gap-6">
           <Link
-            to="/properties"
+            to="/list"
             className="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition"
           >
             Browse Properties
