@@ -51,7 +51,7 @@ const Home = () => {
       max: searchData.maxPrice,
     }).toString();
 
-    navigate(`/list?${queryParams}`);
+    navigate(`/search-results?${queryParams}`);
   };
 
   return (

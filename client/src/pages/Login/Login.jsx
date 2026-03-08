@@ -55,7 +55,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <div className="flex items-center justify-center bg-gray-100 px-4 pt-[70px] pb-[50px]">
       <div className="bg-white shadow-lg rounded-xl p-8 sm:p-10 w-full max-w-md">
         <h2 className="text-3xl font-bold text-center text-blue-600 mb-6">
           Login to FindHome

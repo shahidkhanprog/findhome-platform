@@ -67,6 +67,7 @@ import List from "../pages/List/List";
 import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
 import ForgotPassword from "../pages/ForgotPassword/ForgotPassword";
+import SearchResultsPage from "../pages/SearchResultsPage/SearchResultsPage";
 
 const router = createBrowserRouter([
   {
@@ -79,7 +80,8 @@ const router = createBrowserRouter([
       { path: "list", element: <List /> },
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
-      { path: "forgotpassword", element: <ForgotPassword /> }
+      { path: "forgotpassword", element: <ForgotPassword /> },
+      { path: "search-results", element: <SearchResultsPage /> }
     ],
   },
 ]);
