@@ -93,3 +93,246 @@ React App Flow
   npm install lucide-react (remove)
 
   Remove-Item -Recurse -Force node_modules/.vite; npm run dev // powershell
+
+
+api
+   => create api main folder
+   => create App.js
+   => cmd: npm init -y // it will be create package.json update or add  [ "type": "module" ]
+   => cmd: npm i express
+
+   => update App.js
+        import express from 'express';
+
+        const app = express();
+        const PORT = 3000;
+
+        console.log('Starting server...');
+
+        app.listen(PORT, () => {
+          console.log(`Server is running on http://localhost:${PORT}`);
+        });
+
+
+   => run: cmd: node app.js 
+      => it will run server onces. not listen every changes
+   
+   => to listen every changes used [Recommended Way (Use Nodemon)]
+    => cmd: npm i nodemon --save-dev
+    => update package.json
+      "scripts": {
+        "start": "node app.js",
+        "dev": "nodemon app.js"
+      }
+    => cmd: npm run dev
+      => it will listen every single changes
+
+  => creating first api end point // 1. Your Current Code
+
+    // App.js
+      app.use("/api/test", (req, res) => {
+        res.send("Hello World! it working");
+      });
+
+    Now when you open:
+
+      => http://localhost:3000/api/test
+
+    Response:
+
+      => Hello World! it working
+
+    What is happening here?
+
+      app.use(PATH, FUNCTION)
+          => PATH → API URL
+          => FUNCTION → What to do when someone hits this URL
+
+      so: 
+          => /api/test
+
+          means: 
+            BASE URL: http://localhost:3000
+            API PATH: /api/test
+
+          Full URL:
+              http://localhost:3000/api/test
+
+      2. Better Way (Use HTTP Methods)
+        => Instead of app.use() we normally use:
+
+          app.get()
+          app.post()
+          app.put()
+          app.delete()
+
+          => explain HTTP Methods with example
+        
+        Example:
+            app.get("/api/test", (req, res) => {
+             res.send("API is working");
+           });
+
+      3. Example Multiple API Endpoints
+
+          app.get("/api/users", (req, res) => {
+            res.send("All users");
+          });
+
+          app.post("/api/users", (req, res) => {
+            res.send("User created");
+          });
+
+          app.put("/api/users/1", (req, res) => {
+            res.send("User updated");
+          });
+
+          app.delete("/api/users/1", (req, res) => {
+            res.send("User deleted");
+          });
+
+      => Now your API has multiple endpoints.
+
+    4. Problem With This Structure
+
+      => If your project grows, your app.js will become very messy.
+      => Example bad structure:
+          => app.js
+              2000 lines
+          => So professional developers use route files.
+
+    5. Professional Backend Structure
+      Create folders:
+
+              api/
+              │
+              ├── controllers
+              │      userController.js
+              │
+              ├── routes
+              │      userRoutes.js
+              │
+              ├── models
+              │
+              ├── config
+              │
+              ├── middleware
+              │
+              └── app.js
+
+      6. Main Server File (app.js)
+
+           const express = require("express");
+
+           const app = express();
+
+           const userRoutes = require("./routes/userRoutes");
+
+           app.use(express.json());
+
+           app.use("/api/users", userRoutes);
+
+           app.listen(3000, () => {
+             console.log("Server running on http://localhost:3000");
+           });
+
+        => Here:
+            => /api/users
+             => is the base route.
+
+    7. Routes File
+      => routes/userRoutes.js
+
+        const express = require("express");
+
+        const router = express.Router();
+
+        router.get("/", (req, res) => {
+          res.send("Get all users");
+        });
+
+        router.get("/:id", (req, res) => {
+          res.send("Get single user");
+        });
+
+        router.post("/", (req, res) => {
+          res.send("Create user");
+        });
+
+        router.put("/:id", (req, res) => {
+          res.send("Update user");
+        });
+
+        router.delete("/:id", (req, res) => {
+          res.send("Delete user");
+        });
+
+        module.exports = router;
+
+    => 8. Now Your API Endpoints Become
+          => Because of:
+              => app.use("/api/users", userRoutes);
+
+          => Your routes automatically become:
+
+            | Endpoint      | URL            |
+            | ------------- | -------------- |
+            | Get all users | `/api/users`   |
+            | Get user      | `/api/users/1` |
+            | Create user   | `/api/users`   |
+            | Update user   | `/api/users/1` |
+            | Delete user   | `/api/users/1` |
+
+      => 9. Controllers (Business Logic)
+          => Instead of writing logic inside routes.
+
+             => controllers/userController.js
+
+                  exports.getUsers = (req, res) => {
+                    res.send("All users");
+                  };
+
+                  exports.createUser = (req, res) => {
+                    res.send("User created");
+                  };
+
+             => Then use in routes:
+
+                const { getUsers, createUser } = require("../controllers/userController");
+
+                router.get("/", getUsers);
+                router.post("/", createUser);
+
+              => Now your code becomes clean and scalable.
+
+          10. Final Professional Structure
+
+              findhome-platform
+              │
+              ├── api
+              │
+              │   ├── controllers
+              │   │     userController.js
+              │   │
+              │   ├── routes
+              │   │     userRoutes.js
+              │   │
+              │   ├── models
+              │   │     userModel.js
+              │   │
+              │   ├── middleware
+              │   │
+              │   ├── config
+              │   │     db.js
+              │   │
+              │   └── app.js
+
+          11. Real Example for Your Project
+            => For your FindHome platform, routes could be:
+
+              /api/users
+              /api/properties
+              /api/auth/login
+              /api/auth/register
+              /api/bookings
+              /api/reviews
