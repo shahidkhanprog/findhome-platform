@@ -336,3 +336,33 @@ api
               /api/auth/register
               /api/bookings
               /api/reviews
+
+_______________________________________________________
+
+    install bcrypt 
+      => npm i bcrypt
+       => to hash password
+      => npm i prisma
+       
+      
+      => npx prisma init --datasource-provider mongodb
+          => Used to initialize Prisma ORM in a Node.js project and configure it to connect with MongoDB.
+          
+            => What happens when it runs
+              1️⃣ Creates a prisma folder prisma/schema.prisma
+              2️⃣ Creates .env file // DATABASE_URL=""
+              3️⃣ Sets MongoDB as database provider in schema.prisma
+
+                  datasource db {
+                    provider = "mongodb"
+                    url      = env("DATABASE_URL")
+                  }
+
+            npx prisma init --datasource-provider mongodb initializes Prisma in a project and configures it to use MongoDB as the database.
+
+
+-----------------------------------------------
+
+      => create user model
+
+          -> after making any changes on  prisma.schema run "npx prisma db push" 
