@@ -366,3 +366,5 @@ _______________________________________________________
       => create user model
 
           -> after making any changes on  prisma.schema run "npx prisma db push" 
+
+      => npm i @prisma/client
