@@ -368,3 +368,22 @@ _______________________________________________________
           -> after making any changes on  prisma.schema run "npx prisma db push" 
 
       => npm i @prisma/client
+
+
+      node -e "console.log(require('crypto').randomBytes(32).toString('hex'))" used to generate secret key for JWt
+
+//=========================================================================
+
+  => for .env file to run it and access it varible in all files 
+
+  npm install dotenv
+
+  Load .env in your main file
+    => Open app.js (or server.js) and add this at the top:
+  
+      import dotenv from "dotenv";
+      dotenv.config();
+    
+    => Now all variables become available.
+
+//=========================================================================
