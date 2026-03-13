@@ -41,7 +41,7 @@ export const register = async (req, res) => {
         username,
         email,
         password: hashedPassword,
-        role: "USER", // Always set role to USER on backend, never trust frontend input for roles
+        role: "USER", 
       },
     });
 
@@ -83,17 +83,21 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
 
     // 3️⃣ Generate JWT token
+const Age = 1000 * 60 * 24 * 7; // 7 days
+
     // const token = jwt.sign(
     //   { id: user.id, role: user.role },
     //   JWT_SECRET,
     //   { expiresIn: "1d" } // token valid for 1 day
     // );
 
+    res.cookie("test2", "my-value", {httpOnly: true, maxAge: Age }).status(200).json({ message: "Login successful"});
+
     // 4️⃣ Respond with token and user info (excluding password)
-    res.status(200).json({
-      message: "Login successful",
-      // token,
-    });
+    // res.status(200).json({
+    //   message: "Login successful",
+    //   token,
+    // });
   } catch (error) {
     console.error("Error logging in:", error);
     res.status(500).json({ message: "Error logging in", error: error.message });

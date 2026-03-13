@@ -1,12 +1,15 @@
 import "dotenv/config";
 import express from 'express';
 import authRoute from './routes/auth.route.js';
+import cookieParser from "cookie-parser";
 
 const app = express();
 const PORT = 3000;
 
 // Middleware to parse JSON bodies
 app.use(express.json());
+
+app.use(cookieParser());
 
 app.use('/api/auth', authRoute);
 
