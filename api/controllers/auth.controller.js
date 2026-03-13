@@ -1,7 +1,7 @@
 // auth.controller.js
 import bcrypt from "bcrypt";
 import prisma from "../lib/prisma.js";
-// import jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 // Secret key for JWT, store in .env in real projects
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key";
