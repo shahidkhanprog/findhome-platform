@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import apiRequest from "../../lib/apiRequest";
+import { authEvents } from "../../lib/authEvents";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -72,7 +73,7 @@ const Login = () => {
       // Optionally store user data in localStorage if needed
 
       localStorage.setItem("user", JSON.stringify(res.data)); // Store user data in localStorage
-
+      authEvents.login(); // ← tells Navbar to re-render instantly
       navigate("/"); // Redirect to home on success
     } catch (err) {
       setApiError(err?.response?.data?.message || "Invalid email or password.");
