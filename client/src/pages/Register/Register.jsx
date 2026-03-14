@@ -1,17 +1,19 @@
 import { useState, useRef } from "react";
-import { Link } from "react-router-dom";
-import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
-import TextInput from "../../components/common/TextInput";
-import PasswordInput from "../../components/common/PasswordInput";
-import Button from "../../components/common/Button";
+import { Link, useNavigate } from "react-router-dom";
+import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import apiRequest from "../../lib/apiRequest";
 
 const Register = () => {
+  const navigate = useNavigate();
+
+  // State management
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
-  const [role, setRole] = useState("buyer");
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   const [form, setForm] = useState({
-    name: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -19,151 +21,220 @@ const Register = () => {
 
   const [errors, setErrors] = useState({});
 
+  // Refs for focusing errors
   const refs = {
-    name: useRef(null),
+    username: useRef(null),
     email: useRef(null),
     password: useRef(null),
     confirmPassword: useRef(null),
   };
 
+  /**
+   * Updates state on keystroke.
+   * This makes the input "normal" and writable.
+   */
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: "" });
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    // Clear errors when user starts typing again
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+    setApiError("");
   };
 
   const validate = () => {
     const newErrors = {};
-    if (!form.name.trim()) newErrors.name = "Full Name is required";
+    const emailRegex = /\S+@\S+\.\S+/;
+
+    if (!form.username.trim()) newErrors.username = "Username is required";
+    else if (form.username.trim().length < 3)
+      newErrors.username = "Min 3 characters required";
+
     if (!form.email.trim()) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(form.email))
-      newErrors.email = "Email is invalid";
+    else if (!emailRegex.test(form.email))
+      newErrors.email = "Invalid email format";
+
     if (!form.password) newErrors.password = "Password is required";
     else if (form.password.length < 6)
-      newErrors.password = "Password must be at least 6 characters";
+      newErrors.password = "Min 6 characters required";
+
     if (!form.confirmPassword)
-      newErrors.confirmPassword = "Confirm Password is required";
+      newErrors.confirmPassword = "Confirm your password";
     else if (form.password !== form.confirmPassword)
       newErrors.confirmPassword = "Passwords do not match";
+
     return newErrors;
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
+
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-
-      // Scroll and focus the first invalid input
-      const firstErrorField = Object.keys(validationErrors)[0];
-      const fieldRef = refs[firstErrorField];
-      if (fieldRef && fieldRef.current) {
-        fieldRef.current.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-        fieldRef.current.focus();
-      }
+      // Focus first field with error
+      const firstError = Object.keys(validationErrors)[0];
+      refs[firstError].current?.focus();
       return;
     }
 
-    console.log("Register submitted:", { ...form, role });
-    // Registration logic
+    setIsLoading(true);
+    setApiError("");
+
+    try {
+      const res = await apiRequest.post("/auth/register", {
+        username: form.username,
+        email: form.email,
+        password: form.password,
+      });
+      navigate("/login");
+    } catch (err) {
+      setApiError(err.response.data.message || "Registration failed.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="flex items-center justify-center bg-gray-100 px-4 pt-[70px] pb-[50px]">
-      <div className="bg-white shadow-lg rounded-xl p-8 sm:p-10 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-gray-900">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
+      <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md">
+        <h2 className="text-3xl font-extrabold text-center text-gray-800">
           Create Account
         </h2>
-        <p className="text-center text-gray-500 mb-6">Join FindHome today</p>
+        <p className="text-center text-gray-500 mb-8">Join the community</p>
 
-        <form onSubmit={handleRegister} className="space-y-5">
-          {/* Full Name */}
-          <TextInput
-            icon={FaUser}
-            value={form.name}
-            onChange={handleChange}
-            placeholder="John Doe"
-            error={errors.name}
-            inputRef={refs.name}
-            name="name"
-          />
-
-          {/* Email */}
-          <TextInput
-            icon={FaEnvelope}
-            value={form.email}
-            onChange={handleChange}
-            placeholder="you@example.com"
-            error={errors.email}
-            inputRef={refs.email}
-            name="email"
-            type="email"
-          />
-
-          {/* Password */}
-          <PasswordInput
-            icon={FaLock}
-            value={form.password}
-            onChange={handleChange}
-            placeholder="••••••••"
-            error={errors.password}
-            inputRef={refs.password}
-            name="password"
-            visible={passwordVisible}
-            setVisible={setPasswordVisible}
-          />
-
-          {/* Confirm Password */}
-          <PasswordInput
-            icon={FaLock}
-            value={form.confirmPassword}
-            onChange={handleChange}
-            placeholder="••••••••"
-            error={errors.confirmPassword}
-            inputRef={refs.confirmPassword}
-            name="confirmPassword"
-            visible={confirmPasswordVisible}
-            setVisible={setConfirmPasswordVisible}
-          />
-
-          {/* Role Selection */}
-          <div className="flex space-x-2">
-            <button
-              type="button"
-              className={`flex-1 py-2 rounded-lg border transition ${
-                role === "buyer"
-                  ? "bg-yellow-100 border-yellow-400 text-yellow-700"
-                  : "border-gray-300 text-gray-700 hover:bg-gray-100"
-              }`}
-              onClick={() => setRole("buyer")}
+        <form onSubmit={handleRegister} className="space-y-5" noValidate>
+          {/* Username Input */}
+          <div>
+            <div
+              className={`flex items-center border-2 rounded-lg px-3 py-2 transition-all ${errors.username ? "border-red-500" : "border-gray-200 focus-within:border-blue-500"}`}
             >
-              Buyer / Renter
-            </button>
-            <button
-              type="button"
-              className={`flex-1 py-2 rounded-lg border transition ${
-                role === "owner"
-                  ? "bg-yellow-100 border-yellow-400 text-yellow-700"
-                  : "border-gray-300 text-gray-700 hover:bg-gray-100"
-              }`}
-              onClick={() => setRole("owner")}
-            >
-              Property Owner
-            </button>
+              <FaUser className="text-gray-400 mr-2" />
+              <input
+                ref={refs.username}
+                name="username"
+                type="text"
+                placeholder="Username"
+                className="w-full outline-none bg-transparent text-gray-700"
+                value={form.username}
+                onChange={handleChange}
+              />
+            </div>
+            {errors.username && (
+              <p className="text-xs text-red-500 mt-1">{errors.username}</p>
+            )}
           </div>
 
-          {/* Register Button */}
-              <Button type="submit" text="Register" />
+          {/* Email Input */}
+          <div>
+            <div
+              className={`flex items-center border-2 rounded-lg px-3 py-2 transition-all ${errors.email ? "border-red-500" : "border-gray-200 focus-within:border-blue-500"}`}
+            >
+              <FaEnvelope className="text-gray-400 mr-2" />
+              <input
+                ref={refs.email}
+                name="email"
+                type="email"
+                placeholder="Email Address"
+                className="w-full outline-none bg-transparent text-gray-700"
+                value={form.email}
+                onChange={handleChange}
+              />
+            </div>
+            {errors.email && (
+              <p className="text-xs text-red-500 mt-1">{errors.email}</p>
+            )}
+          </div>
+
+          {/* Password Input */}
+          <div>
+            <div
+              className={`flex items-center border-2 rounded-lg px-3 py-2 transition-all ${errors.password ? "border-red-500" : "border-gray-200 focus-within:border-blue-500"}`}
+            >
+              <FaLock className="text-gray-400 mr-2" />
+              <input
+                ref={refs.password}
+                name="password"
+                type={passwordVisible ? "text" : "password"}
+                placeholder="Password"
+                className="w-full outline-none bg-transparent text-gray-700"
+                value={form.password}
+                onChange={handleChange}
+              />
+              <button
+                type="button"
+                onClick={() => setPasswordVisible(!passwordVisible)}
+              >
+                {passwordVisible ? (
+                  <FaEyeSlash className="text-gray-400" />
+                ) : (
+                  <FaEye className="text-gray-400" />
+                )}
+              </button>
+            </div>
+            {errors.password && (
+              <p className="text-xs text-red-500 mt-1">{errors.password}</p>
+            )}
+          </div>
+
+          {/* Confirm Password Input */}
+          <div>
+            <div
+              className={`flex items-center border-2 rounded-lg px-3 py-2 transition-all ${errors.confirmPassword ? "border-red-500" : "border-gray-200 focus-within:border-blue-500"}`}
+            >
+              <FaLock className="text-gray-400 mr-2" />
+              <input
+                ref={refs.confirmPassword}
+                name="confirmPassword"
+                type={confirmPasswordVisible ? "text" : "password"}
+                placeholder="Confirm Password"
+                className="w-full outline-none bg-transparent text-gray-700"
+                value={form.confirmPassword}
+                onChange={handleChange}
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  setConfirmPasswordVisible(!confirmPasswordVisible)
+                }
+              >
+                {confirmPasswordVisible ? (
+                  <FaEyeSlash className="text-gray-400" />
+                ) : (
+                  <FaEye className="text-gray-400" />
+                )}
+              </button>
+            </div>
+            {errors.confirmPassword && (
+              <p className="text-xs text-red-500 mt-1">
+                {errors.confirmPassword}
+              </p>
+            )}
+          </div>
+
+          {apiError && (
+            <p className="text-sm text-red-500 text-center font-medium">
+              {apiError}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors disabled:bg-blue-300"
+          >
+            {isLoading ? "Processing..." : "Register"}
+          </button>
         </form>
 
-        <p className="text-center text-gray-500 mt-4 text-sm">
+        <div className="mt-6 text-center text-sm text-gray-600">
           Already have an account?{" "}
-          <Link to="/login" className="text-blue-500 hover:underline">
+          <Link
+            to="/login"
+            className="text-blue-600 font-semibold hover:underline"
+          >
             Login
           </Link>
-        </p>
+        </div>
       </div>
     </div>
   );
