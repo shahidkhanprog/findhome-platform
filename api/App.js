@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from 'express';
 import cors from 'cors';
 import authRoute from './routes/auth.route.js';
+import testRoute from "./routes/test.route.js";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 
@@ -18,6 +19,7 @@ dotenv.config();
 app.use(cookieParser());
 
 app.use('/api/auth', authRoute);
+app.use('/api/test', testRoute);
 
 
 app.listen(PORT, () => {

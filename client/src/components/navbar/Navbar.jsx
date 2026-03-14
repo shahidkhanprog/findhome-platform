@@ -1,48 +1,22 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { NavLink, useNavigate } from "react-router-dom";
-
-// ─── Auth event bus ────────────────────────────────────────────────────────────
-// Call authEvents.login() right after localStorage.setItem("user", ...) in your
-// login page so the Navbar re-renders instantly — no page refresh needed.
-export const authEvents = {
-  login:  () => window.dispatchEvent(new Event("auth-change")),
-  logout: () => window.dispatchEvent(new Event("auth-change")),
-};
-
-const readUser = () => {
-  try {
-    const stored = localStorage.getItem("user");
-    return stored ? JSON.parse(stored)?.userData ?? null : null;
-  } catch {
-    return null;
-  }
-};
+import { AuthContext } from "../../context/AuthContext";
 
 const Navbar = () => {
-  const [menuOpen, setMenuOpen]       = useState(false);
+  const { currentUser, logout } = useContext(AuthContext);
+
+  // ✅ Safely unwrap the nested userData — currentUser can be null when logged out
+  const user = currentUser?.userData ?? null;
+
+  const [menuOpen, setMenuOpen]         = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [user, setUser]               = useState(readUser);   // reads localStorage on first render
   const dropdownRef = useRef(null);
   const navigate    = useNavigate();
 
   const closeMenu = () => setMenuOpen(false);
 
-  // ── Sync user state without refresh ──────────────────────────────────────────
-  // "auth-change"  → same-tab: your login/logout pages dispatch this via authEvents
-  // "storage"      → cross-tab: browser fires this automatically when another tab
-  //                  writes to localStorage, so opening a new tab also stays in sync
-  useEffect(() => {
-    const sync = () => setUser(readUser());
-    window.addEventListener("auth-change", sync);
-    window.addEventListener("storage",     sync);
-    return () => {
-      window.removeEventListener("auth-change", sync);
-      window.removeEventListener("storage",     sync);
-    };
-  }, []);
-
-  // ── Close dropdown on outside click
+  // ── Close dropdown on outside click ──────────────────────────────────────────
   useEffect(() => {
     const onOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target))
@@ -53,8 +27,7 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    authEvents.logout();          // triggers sync → hides avatar instantly
+    logout();
     setDropdownOpen(false);
     navigate("/");
   };
@@ -64,7 +37,7 @@ const Navbar = () => {
       isActive ? "text-blue-500 font-semibold" : "text-gray-300 hover:text-blue-500"
     }`;
 
-  // ── Reusable avatar circle
+  // ── Reusable avatar circle ────────────────────────────────────────────────────
   const Avatar = ({ size = "w-7 h-7", text = "text-xs" }) =>
     user?.avatar ? (
       <img
@@ -99,7 +72,7 @@ const Navbar = () => {
     </button>
   );
 
-  // ── Desktop dropdown — dark theme matching navbar ─────────────────────────────
+  // ── Desktop dropdown ──────────────────────────────────────────────────────────
   const DropdownMenu = () => (
     <div className="absolute right-0 mt-2 w-56 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden z-50 animate-fadeIn">
 

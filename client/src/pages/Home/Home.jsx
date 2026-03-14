@@ -8,8 +8,14 @@ import FeaturedProperties from "../../components/home/FeaturedProperties";
 import TestimonialCarousel from "../../components/common/TestimonialCarousel";
 import Services from "../../components/common/Services";
 import CTA from "../../components/common/CTA";
+import { useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
 
 const Home = () => {
+
+  const { currentUser } = useContext(AuthContext);
+  console.log("Current User:", currentUser);
+
   return (
     <div className="font-sans text-slate-900 bg-white">
       <HeroSection />

@@ -59,7 +59,7 @@
 // export default AppRouter;
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import AppLayout from "../components/Layout/AppLayout";
+import AppLayout, { RequireAuth } from "../components/Layout/AppLayout";
 import Home from "../pages/Home/Home";
 import About from "../pages/About/About";
 import Contact from "../pages/Contact/Contact";
@@ -83,7 +83,14 @@ const router = createBrowserRouter([
       { path: "register", element: <Register /> },
       { path: "forgotpassword", element: <ForgotPassword /> },
       { path: "search-results", element: <SearchResultsPage /> },
-      { path: "property-detail/:id", element: <PropertyDetailPage /> }
+      // { path: "property-detail/:id", element: <PropertyDetailPage /> }
+    ],
+  },
+  {
+    path: "/",
+    element: <RequireAuth />,
+    children: [
+      { path: "property-detail/:id", element: <PropertyDetailPage /> }, // just for testing 
     ],
   },
 ]);
