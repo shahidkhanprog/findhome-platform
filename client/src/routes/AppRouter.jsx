@@ -9,7 +9,7 @@ import Register from "../pages/Register/Register";
 import ForgotPassword from "../pages/ForgotPassword/ForgotPassword";
 import SearchResultsPage from "../pages/SearchResultsPage/SearchResultsPage";
 import PropertyDetailPage from "../pages/PropertyDetailPage/PropertyDetailPage";
-import UserDashboard from "../pages/user/UserDashboard";
+import UserDashboard from "../pages/dashboard/UserDashboard";
 
 const router = createBrowserRouter([
   {
