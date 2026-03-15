@@ -10,6 +10,12 @@ import ForgotPassword from "../pages/ForgotPassword/ForgotPassword";
 import SearchResultsPage from "../pages/SearchResultsPage/SearchResultsPage";
 import PropertyDetailPage from "../pages/PropertyDetailPage/PropertyDetailPage";
 import UserDashboard from "../pages/dashboard/UserDashboard";
+import Profile from "../pages/dashboard/components/Profile";
+import AddProperty from "../pages/dashboard/components/AddProperty";
+import SavedPosts from "../pages/dashboard/components/SavedPosts";
+import MyProperties from "../pages/dashboard/components/MyProperties";
+import Messages from "../pages/dashboard/components/Messages";
+import Overview from "../pages/dashboard/components/Overview";
 
 const router = createBrowserRouter([
   {
@@ -33,6 +39,20 @@ const router = createBrowserRouter([
     children: [
       { path: "property-detail/:id", element: <PropertyDetailPage /> }, // just for testing 
       { path: "dashboard/", element: <UserDashboard /> }, // just for testing 
+    ],
+  },
+  {
+    path: "/dashboard/*",
+    element: <UserDashboard />,
+    children: [
+      { path: "profile", element: <Profile /> },
+      { path: "addProperty", element: <AddProperty /> },
+      { path: "myProperties", element: <MyProperties /> },
+      { path: "favorites", element: <SavedPosts /> },
+      { path: "messages", element: <Messages /> },
+      { path: "overview", element: <Overview /> },
+      // { path: "overview", element: <Overview /> },
+      // { path: "overview", element: <Overview /> },
     ],
   },
 ]);

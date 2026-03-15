@@ -177,3 +177,127 @@ export default function PropertyDashboard() {
     </>
   );
 }
+
+
+// import { Routes, Route, useNavigate, useParams } from "react-router-dom";
+// import { useEffect, useState } from "react";
+
+// /* Components */
+// import Sidebar from "./components/Sidebar";
+// import DashHeader from "./components/DashHeader";
+// import Overview from "./components/Overview";
+// import MyProperties from "./components/MyProperties";
+// import AddProperty from "./components/AddProperty";
+// import SavedPosts from "./components/SavedPosts";
+// import Messages from "./components/Messages";
+// import Profile from "./components/Profile";
+// import DeleteModal from "./components/DeleteModal";
+
+// /* Data */
+// import { MOCK_USER, MOCK_POSTS } from "./constants";
+
+// // Wrapper to handle editing a post via URL param
+// function EditPropertyWrapper({ posts, onSave }) {
+//   const { id } = useParams();
+//   const navigate = useNavigate();
+//   const post = posts.find(p => p.id === id);
+
+//   if (!post) return <div>Post not found</div>;
+
+//   return (
+//     <AddProperty
+//       post={post}
+//       onSave={onSave}
+//       onCancel={() => navigate("/dashboard/properties")}
+//     />
+//   );
+// }
+
+// export default function PropertyDashboard() {
+//   const [sidebarOpen, setSidebarOpen] = useState(
+//     typeof window !== "undefined" ? window.innerWidth >= 768 : true
+//   );
+
+//   const [posts, setPosts] = useState(MOCK_POSTS);
+//   const [user, setUser] = useState(MOCK_USER);
+//   const [deleteConfirm, setDeleteConfirm] = useState(null);
+
+//   const navigate = useNavigate();
+
+//   useEffect(() => {
+//     const onResize = () => { if (window.innerWidth < 768) setSidebarOpen(false); };
+//     window.addEventListener("resize", onResize);
+//     return () => window.removeEventListener("resize", onResize);
+//   }, []);
+
+//   const handleSavePost = form => {
+//     const existing = posts.find(p => p.id === form.id);
+//     if (existing) {
+//       setPosts(ps => ps.map(p => p.id === form.id ? { ...p, ...form } : p));
+//     } else {
+//       setPosts(ps => [
+//         ...ps,
+//         { ...form, id: `p${Date.now()}`, userId: user.id, createdAt: new Date().toISOString(), images: [] },
+//       ]);
+//     }
+//     navigate("/dashboard/properties");
+//   };
+
+//   const handleDelete = id => {
+//     setPosts(ps => ps.filter(p => p.id !== id));
+//     setDeleteConfirm(null);
+//   };
+
+//   const handleStatusChange = (id, status) =>
+//     setPosts(ps => ps.map(p => p.id === id ? { ...p, status } : p));
+
+//   const handleEdit = post => navigate(`/dashboard/edit/${post.id}`);
+//   const handleAddNew = () => navigate("/dashboard/add");
+
+//   return (
+//     <>
+//       <div className="h-screen pt-6 flex flex-col overflow-hidden bg-slate-50" style={{ fontFamily:"'DM Sans',sans-serif" }}>
+//         <div className="w-full max-w-[1600px] mx-auto flex flex-1 min-h-0">
+
+//           <Sidebar
+//             sidebarOpen={sidebarOpen}
+//             setSidebarOpen={setSidebarOpen}
+//           />
+
+//           <div className="flex-1 flex flex-col min-w-0">
+//             <DashHeader user={user} />
+
+//             <main className="flex-1 min-h-0 overflow-y-auto overflow-x-auto">
+//               <div className="px-4 md:px-6 py-5 min-w-[320px]">
+//                 <Routes>
+//                   <Route path="/" element={<Overview posts={posts} user={user} />} />
+//                   <Route path="properties" element={
+//                     <MyProperties
+//                       posts={posts}
+//                       onEdit={handleEdit}
+//                       onDelete={handleDelete}
+//                       onStatusChange={handleStatusChange}
+//                       onAddNew={handleAddNew}
+//                     />
+//                   }/>
+//                   <Route path="add" element={<AddProperty post={null} onSave={handleSavePost} onCancel={() => navigate("/dashboard/properties")} />} />
+//                   <Route path="edit/:id" element={<EditPropertyWrapper posts={posts} onSave={handleSavePost} />} />
+//                   <Route path="saved" element={<SavedPosts />} />
+//                   <Route path="messages" element={<Messages />} />
+//                   <Route path="profile" element={<Profile user={user} onSave={setUser} />} />
+//                 </Routes>
+//               </div>
+//             </main>
+//           </div>
+//         </div>
+//       </div>
+
+//       {deleteConfirm && (
+//         <DeleteModal
+//           onConfirm={() => handleDelete(deleteConfirm)}
+//           onCancel={() => setDeleteConfirm(null)}
+//         />
+//       )}
+//     </>
+//   );
+// }
