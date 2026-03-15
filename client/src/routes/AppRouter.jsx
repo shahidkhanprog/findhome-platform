@@ -69,6 +69,7 @@ import Register from "../pages/Register/Register";
 import ForgotPassword from "../pages/ForgotPassword/ForgotPassword";
 import SearchResultsPage from "../pages/SearchResultsPage/SearchResultsPage";
 import PropertyDetailPage from "../pages/PropertyDetailPage/PropertyDetailPage";
+import UserDashboard from "../pages/user/UserDashboard";
 
 const router = createBrowserRouter([
   {
@@ -91,6 +92,7 @@ const router = createBrowserRouter([
     element: <RequireAuth />,
     children: [
       { path: "property-detail/:id", element: <PropertyDetailPage /> }, // just for testing 
+      { path: "dashboard/", element: <UserDashboard /> }, // just for testing 
     ],
   },
 ]);
