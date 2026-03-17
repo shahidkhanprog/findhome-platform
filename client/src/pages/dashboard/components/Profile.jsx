@@ -1,397 +1,432 @@
-// import { useState, useRef } from "react";
-// import { Avatar } from "./ui";
-// import { INPUT_CLS, LABEL_CLS } from "../constants";
-
-// export default function Profile({ user, onSave }) {
-//   const [form, setForm]       = useState({ ...user });
-//   const [preview, setPreview] = useState(user.avatar);
-//   const [saved, setSaved]     = useState(false);
-//   const fileRef = useRef();
-
-//   const handleImageChange = e => {
-//     const file = e.target.files[0];
-//     if (!file) return;
-//     const url = URL.createObjectURL(file);
-//     setPreview(url);
-//     setForm(f => ({ ...f, avatar: url }));
-//   };
-
-//   const handleSave = () => {
-//     onSave(form);
-//     setSaved(true);
-//     setTimeout(() => setSaved(false), 2000);
-//   };
-
-//   return (
-//     <div className="max-w-xl">
-//       <h2 className="text-lg font-semibold text-slate-800 mb-6">Profile Settings</h2>
-
-//       <div className="bg-white rounded-2xl border border-slate-200 p-6">
-//         {/* Avatar row */}
-//         <div className="flex items-center gap-5 mb-6">
-//           <div className="relative shrink-0">
-//             <Avatar src={preview} name={form.username} size={72} />
-//             <button
-//               onClick={() => fileRef.current?.click()}
-//               className="absolute -bottom-1 -right-1 w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs hover:bg-indigo-700 transition-colors shadow"
-//             >
-//               ✎
-//             </button>
-//             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-//           </div>
-//           <div className="min-w-0">
-//             <p className="font-semibold text-slate-800 truncate">{form.username}</p>
-//             <p className="text-sm text-slate-400">
-//               {form.role} · Member since {new Date(form.createdAt).getFullYear()}
-//             </p>
-//             <button onClick={() => fileRef.current?.click()} className="text-xs text-indigo-600 hover:underline mt-0.5">
-//               Change profile picture
-//             </button>
-//           </div>
-//         </div>
-
-//         {/* Form fields */}
-//         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-//           {[{ label:"Username", key:"username" }, { label:"Email", key:"email" }].map(({ label, key }) => (
-//             <div key={key}>
-//               <label className={LABEL_CLS}>{label}</label>
-//               <input
-//                 type="text"
-//                 value={form[key] || ""}
-//                 onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-//                 className={INPUT_CLS}
-//               />
-//             </div>
-//           ))}
-
-//           <div>
-//             <label className={LABEL_CLS}>New Password</label>
-//             <input type="password" placeholder="Leave blank to keep" className={INPUT_CLS} />
-//           </div>
-
-//           <div>
-//             <label className={LABEL_CLS}>Role</label>
-//             <select
-//               value={form.role}
-//               onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
-//               className={INPUT_CLS}
-//             >
-//               <option value="agent">Agent</option>
-//               <option value="buyer">Buyer</option>
-//               <option value="seller">Seller</option>
-//             </select>
-//           </div>
-//         </div>
-
-//         <button
-//           onClick={handleSave}
-//           className={`mt-6 w-full rounded-xl py-2.5 text-sm font-medium transition-all ${
-//             saved ? "bg-emerald-500 text-white" : "bg-indigo-600 text-white hover:bg-indigo-700"
-//           }`}
-//         >
-//           {saved ? "✓ Saved!" : "Save Profile"}
-//         </button>
-//       </div>
-//     </div>
-//   );
-// }
-
-// pages/dashboard/Profile.jsx
-// ─────────────────────────────────────────────────────────────────
-// User schema:  id · username · email · password · avatar · role · createdAt · updatedAt
-// Editable:     username · password · avatar (profile picture)
-// Read-only:    email (shown but disabled)
-// Hidden:       id · role · createdAt · updatedAt
-// ─────────────────────────────────────────────────────────────────
+// pages/dashboard/components/Profile.jsx
 import { useState, useRef, useContext } from "react";
 import { AuthContext } from "../../../context/AuthContext"; // adjust path if needed
+import {
+  MdOutlineModeEdit,
+  MdOutlineEmail,
+  MdOutlinePerson,
+  MdOutlineLock,
+  MdCheckCircle,
+  MdError,
+  MdWarning,
+  MdVisibility,
+  MdVisibilityOff,
+} from "react-icons/md";
 
-/* ─── Dummy user — swap with real AuthContext data ───────────────
-   Shape matches your schema exactly. When you wire up real data,
-   replace DUMMY_USER with:  const { currentUser } = useContext(AuthContext);
-   and replace updateUser()  with your real update call / API request.
-   ──────────────────────────────────────────────────────────────── */
+/* ─── Dummy user — remove when real AuthContext is ready ─────────── */
 const DUMMY_USER = {
   id:        "usr_01",
-  username:  "ahmad_khan",
+  username:  "Ahmad Khan",
   email:     "ahmad@example.com",
-  password:  "",                         // never pre-fill password
-  avatar:    null,                       // null → show initials avatar
+  password:  "",
+  avatar:    null,
   role:      "User",
   createdAt: "2024-03-01T00:00:00.000Z",
-  updatedAt: "2025-01-10T00:00:00.000Z",
 };
 
 /* ─── Avatar ─────────────────────────────────────────────────────── */
 function Avatar({ src, name = "", size = 80 }) {
-  const initials = name.slice(0, 2).toUpperCase() || "U";
-  return src ? (
-    <img src={src} alt={name} style={{
-      width: size, height: size, borderRadius: "50%",
-      objectFit: "cover", flexShrink: 0,
-      border: "3px solid #ede9fe",
-    }} />
-  ) : (
-    <div style={{
-      width: size, height: size, borderRadius: "50%", flexShrink: 0,
-      background: "linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.3, fontWeight: 700, color: "#fff",
-      border: "3px solid #ede9fe", letterSpacing: 1,
-    }}>
-      {initials}
+  const letter = name.trim().charAt(0).toUpperCase() || "?";
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={name}
+        className="rounded-full object-cover border-[3px] border-violet-100 flex-shrink-0"
+        style={{ width: size, height: size }}
+        onError={(e) => { e.currentTarget.style.display = "none"; }}
+      />
+    );
+  }
+  return (
+    <div
+      className="rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center font-bold text-white flex-shrink-0 border-[3px] border-violet-100 select-none"
+      style={{ width: size, height: size, fontSize: size * 0.35 }}
+    >
+      {letter}
     </div>
   );
 }
 
-/* ─── Reusable field ─────────────────────────────────────────────── */
-function Field({ label, type = "text", value, onChange, placeholder, disabled }) {
+/* ─── Field ──────────────────────────────────────────────────────── */
+function Field({ label, type = "text", value, onChange, placeholder, disabled, icon: Icon, error, showToggle, onToggleShow, isVisible }) {
   const [focused, setFocused] = useState(false);
+
+  // If showToggle is true, the actual input type is controlled by isVisible prop
+  const inputType = showToggle ? (isVisible ? "text" : "password") : type;
+
   return (
-    <div>
-      <label style={{
-        display: "block", fontSize: 12, fontWeight: 600,
-        color: "#64748b", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em",
-      }}>
+    <div className="flex flex-col gap-1.5">
+      <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+        {Icon && <Icon size={13} className="text-slate-400" />}
         {label}
         {disabled && (
-          <span style={{
-            marginLeft: 8, fontSize: 10, fontWeight: 600,
-            background: "#f1f5f9", color: "#94a3b8",
-            borderRadius: 4, padding: "2px 6px", textTransform: "uppercase", letterSpacing: "0.05em",
-          }}>locked</span>
+          <span className="ml-1 text-[10px] font-semibold bg-slate-100 text-slate-400 rounded px-1.5 py-px">
+            locked
+          </span>
         )}
       </label>
-      <input
-        type={type}
-        value={value ?? ""}
-        onChange={onChange}
-        placeholder={placeholder}
-        disabled={disabled}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        style={{
-          width: "100%", padding: "10px 13px",
-          fontSize: 14, fontWeight: 500,
-          fontFamily: "'DM Sans', sans-serif",
-          background: disabled ? "#f8fafc" : "#f8f7ff",
-          border: `1.5px solid ${focused && !disabled ? "#6366f1" : "#e8e8f0"}`,
-          borderRadius: 10, outline: "none",
-          boxShadow: focused && !disabled ? "0 0 0 3px rgba(99,102,241,0.12)" : "none",
-          color: disabled ? "#94a3b8" : "#1e1b4b",
-          cursor: disabled ? "not-allowed" : "text",
-          transition: "border-color 0.15s, box-shadow 0.15s",
-          boxSizing: "border-box",
-        }}
-      />
+      <div className="relative">
+        <input
+          type={inputType}
+          value={value ?? ""}
+          onChange={onChange}
+          placeholder={placeholder}
+          disabled={disabled}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          className={[
+            "w-full px-3 py-2.5 text-[13.5px] font-medium rounded-xl outline-none transition-all",
+            "border",
+            showToggle ? "pr-10" : "",
+            disabled
+              ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed"
+              : error
+              ? "bg-red-50 text-slate-800 border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100"
+              : focused
+              ? "bg-violet-50/50 text-slate-800 border-violet-400 ring-2 ring-violet-100"
+              : "bg-slate-50 text-slate-800 border-slate-200 hover:border-slate-300",
+          ].join(" ")}
+        />
+        {/* Show/hide toggle button */}
+        {showToggle && !disabled && (
+          <button
+            type="button"
+            onClick={onToggleShow}
+            tabIndex={-1}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors"
+            title={isVisible ? "Hide password" : "Show password"}
+          >
+            {isVisible ? <MdVisibilityOff size={17} /> : <MdVisibility size={17} />}
+          </button>
+        )}
+      </div>
+      {error && (
+        <p className="flex items-center gap-1 text-[11.5px] text-red-500 font-medium">
+          <MdWarning size={13} />
+          {error}
+        </p>
+      )}
     </div>
   );
 }
 
-/* ─── Profile page ───────────────────────────────────────────────── */
+/* ─── Card ───────────────────────────────────────────────────────── */
+function Card({ title, children, headerRight }) {
+  return (
+    <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm shadow-slate-100">
+      {title && (
+        <div className="px-4 sm:px-5 py-3 sm:py-3.5 border-b border-slate-100 flex items-center justify-between">
+          <h3 className="text-[13px] font-bold text-slate-700">{title}</h3>
+          {headerRight}
+        </div>
+      )}
+      <div className="p-4 sm:p-5 flex flex-col gap-3 sm:gap-4">{children}</div>
+    </div>
+  );
+}
+
+/* ─── Profile ────────────────────────────────────────────────────── */
 export default function Profile() {
-  // ── When real data is ready, replace these two lines: ──────────
+  // ── Swap with real data when ready: ────────────────────────────
   // const { currentUser, updateUser } = useContext(AuthContext);
   // const source = currentUser;
-  const source = DUMMY_USER; // ← remove this when using real data
+  const source = DUMMY_USER;
   // ───────────────────────────────────────────────────────────────
 
-  const [username, setUsername] = useState(source.username ?? "");
+  const [username, setUsername] = useState(source?.username ?? "");
   const [password, setPassword] = useState("");
   const [confirm,  setConfirm]  = useState("");
-  const [preview,  setPreview]  = useState(source.avatar ?? null);
+  const [preview,  setPreview]  = useState(source?.avatar ?? null);
   const [status,   setStatus]   = useState("idle"); // idle | saved | error
+
+  // ── Password section toggle ───────────────────────────────────
+  const [changePassword, setChangePassword] = useState(false);
+
+  // ── Show/hide password visibility ────────────────────────────
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm,  setShowConfirm]  = useState(false);
+
+  // ── Validation errors ─────────────────────────────────────────
+  const [errors, setErrors] = useState({
+    username: "",
+    password: "",
+    confirm:  "",
+  });
+
   const fileRef = useRef();
 
-  /* Avatar upload */
+  /* ── Toggle change-password section ── */
+  const handleToggleChangePassword = () => {
+    const next = !changePassword;
+    setChangePassword(next);
+    // Reset fields and errors when hiding
+    if (!next) {
+      setPassword("");
+      setConfirm("");
+      setShowPassword(false);
+      setShowConfirm(false);
+      setErrors(prev => ({ ...prev, password: "", confirm: "" }));
+    }
+  };
+
+  /* ── Validate all fields, return true if valid ── */
+  const validate = () => {
+    const newErrors = { username: "", password: "", confirm: "" };
+    let valid = true;
+
+    if (!username.trim()) {
+      newErrors.username = "Username cannot be empty.";
+      valid = false;
+    } else if (username.trim().length < 3) {
+      newErrors.username = "Username must be at least 3 characters.";
+      valid = false;
+    } else if (!/^[a-zA-Z0-9_ ]+$/.test(username.trim())) {
+      newErrors.username = "Only letters, numbers, spaces, and underscores allowed.";
+      valid = false;
+    }
+
+    // Password fields are required when changePassword is enabled
+    if (changePassword) {
+      if (!password) {
+        newErrors.password = "New password is required.";
+        valid = false;
+      } else if (password.length < 6) {
+        newErrors.password = "Password must be at least 6 characters.";
+        valid = false;
+      }
+
+      if (!confirm) {
+        newErrors.confirm = "Please confirm your new password.";
+        valid = false;
+      } else if (password && password !== confirm) {
+        newErrors.confirm = "Passwords do not match.";
+        valid = false;
+      }
+    }
+
+    setErrors(newErrors);
+    return valid;
+  };
+
+  /* ── Avatar upload ── */
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     setPreview(URL.createObjectURL(file));
   };
 
-  /* Save */
+  /* ── Save ── */
   const handleSave = () => {
-    if (password && password !== confirm) {
+    if (!validate()) {
       setStatus("error");
-      setTimeout(() => setStatus("idle"), 2500);
+      setTimeout(() => setStatus("idle"), 3000);
       return;
     }
 
-    // Build only the fields your API accepts
     const payload = {
-      username,
+      username: username.trim(),
       avatar: preview,
-      ...(password ? { password } : {}),
+      ...(changePassword && password ? { password } : {}),
     };
 
-    // ── Replace this comment with your real update call: ─────────
-    // updateUser(payload);           // AuthContext updater
-    // await apiUpdateUser(payload);  // API call
+    // Replace with real API/context call:
+    // updateUser(payload);
     console.log("Save profile →", payload);
-    // ─────────────────────────────────────────────────────────────
 
     setPassword("");
     setConfirm("");
+    setChangePassword(false);
+    setShowPassword(false);
+    setShowConfirm(false);
+    setErrors({ username: "", password: "", confirm: "" });
     setStatus("saved");
     setTimeout(() => setStatus("idle"), 2500);
   };
 
-  const memberYear = source.createdAt
+  /* ── Clear field error on change ── */
+  const handleUsernameChange = (e) => {
+    setUsername(e.target.value);
+    if (errors.username) setErrors(prev => ({ ...prev, username: "" }));
+  };
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+    if (errors.password) setErrors(prev => ({ ...prev, password: "" }));
+  };
+  const handleConfirmChange = (e) => {
+    setConfirm(e.target.value);
+    if (errors.confirm) setErrors(prev => ({ ...prev, confirm: "" }));
+  };
+
+  const memberYear = source?.createdAt
     ? new Date(source.createdAt).getFullYear()
     : new Date().getFullYear();
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
-        .prof-root  { font-family:'DM Sans',sans-serif; max-width:580px; display:flex; flex-direction:column; gap:18px; }
-        .prof-root * { box-sizing:border-box; }
-        .prof-card  { background:#fff; border:1px solid #e8e8f0; border-radius:18px; overflow:hidden; }
-        .prof-card-title { padding:15px 22px; border-bottom:1px solid #f1f0f9; font-size:13px; font-weight:700; color:#1e1b4b; }
-        .prof-card-body  { padding:22px; display:flex; flex-direction:column; gap:16px; }
-        .save-btn {
-          width:100%; padding:12px; border:none; border-radius:11px;
-          font-size:14px; font-weight:600; cursor:pointer;
-          font-family:'DM Sans',sans-serif; color:#fff;
-          transition: opacity .15s, transform .1s;
-        }
-        .save-btn:hover  { opacity:.91; transform:translateY(-1px); }
-        .save-btn:active { transform:translateY(0); }
-      `}</style>
+    <div className="flex flex-col gap-3 sm:gap-4 w-full max-w-[560px] px-0">
 
-      <div className="prof-root">
+      {/* ── Avatar card ──────────────────────────────────────── */}
+      <Card>
+        {/* On mobile: centered column. On sm+: row */}
+        <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-4">
 
-        {/* ── Avatar card ──────────────────────────────────────── */}
-        <div className="prof-card">
-          <div className="prof-card-body" style={{ flexDirection: "row", alignItems: "center", gap: 20 }}>
+          {/* Photo + edit button */}
+          <div className="relative flex-shrink-0">
+            <Avatar src={preview} name={username} size={72} />
+            <button
+              onClick={() => fileRef.current?.click()}
+              title="Change photo"
+              className="absolute bottom-0.5 right-0.5 w-6 h-6 rounded-full bg-gradient-to-br from-violet-600 to-purple-600 border-2 border-white flex items-center justify-center cursor-pointer shadow-md shadow-violet-300 hover:scale-110 transition-transform"
+            >
+              <MdOutlineModeEdit size={12} color="white" />
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageChange}
+            />
+          </div>
 
-            {/* Photo + pencil */}
-            <div style={{ position: "relative", flexShrink: 0 }}>
-              <Avatar src={preview} name={username} size={80} />
-              <button
-                onClick={() => fileRef.current?.click()}
-                title="Change photo"
-                style={{
-                  position: "absolute", bottom: 1, right: 1,
-                  width: 26, height: 26, borderRadius: "50%",
-                  background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
-                  border: "2px solid #fff", cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 12, color: "#fff",
-                  boxShadow: "0 2px 6px rgba(99,102,241,.4)",
-                }}
-              >✎</button>
-              <input ref={fileRef} type="file" accept="image/*"
-                style={{ display: "none" }} onChange={handleImageChange} />
-            </div>
-
-            {/* Name + meta */}
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <p style={{ fontSize: 16, fontWeight: 700, color: "#1e1b4b", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {username || "Your Name"}
+          {/* Name + meta — centered on mobile, left-aligned on sm+ */}
+          <div className="flex-1 min-w-0 flex flex-col items-center sm:items-start">
+            <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
+              <p className="text-[15px] font-bold text-slate-800 leading-tight">
+                {username.trim() || "Your Name"}
               </p>
-              <p style={{ fontSize: 12, color: "#94a3b8", margin: "4px 0 10px", textTransform: "capitalize" }}>
-                {source.role} · Member since {memberYear}
-              </p>
-              <button
-                onClick={() => fileRef.current?.click()}
-                style={{
-                  fontSize: 12, color: "#6366f1", fontWeight: 600,
-                  background: "none", border: "none", cursor: "pointer",
-                  padding: 0, fontFamily: "'DM Sans',sans-serif",
-                }}
-              >
-                Change profile picture →
-              </button>
+              {/* Role badge — inline on mobile, right-floated on sm+ */}
+              <span className="bg-violet-50 text-violet-700 text-[11px] font-bold rounded-full px-2.5 py-0.5 capitalize">
+                {source?.role ?? "Member"}
+              </span>
             </div>
+            <p className="text-[12px] text-slate-400 mt-0.5 capitalize text-center sm:text-left">
+              Member since {memberYear}
+            </p>
+            <button
+              onClick={() => fileRef.current?.click()}
+              className="mt-2 text-[12px] text-violet-600 font-semibold bg-transparent border-none cursor-pointer p-0 hover:text-violet-800 transition-colors"
+            >
+              Change profile picture →
+            </button>
+          </div>
 
-            {/* Role badge */}
-            <span style={{
-              flexShrink: 0,
-              background: "#ede9fe", color: "#6366f1",
-              borderRadius: 20, fontSize: 11, fontWeight: 700,
-              padding: "4px 12px", textTransform: "capitalize",
-            }}>
-              {source.role}
+        </div>
+      </Card>
+
+      {/* ── Account info ─────────────────────────────────────── */}
+      <Card title="Account Information">
+        <Field
+          label="Email Address"
+          type="email"
+          value={source?.email ?? ""}
+          disabled
+          icon={MdOutlineEmail}
+          placeholder="email@example.com"
+        />
+        <Field
+          label="Username"
+          value={username}
+          onChange={handleUsernameChange}
+          placeholder="Enter your username"
+          icon={MdOutlinePerson}
+          error={errors.username}
+        />
+      </Card>
+
+      {/* ── Change password ──────────────────────────────────── */}
+      <Card
+        title="Password"
+        headerRight={
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <span className="text-[12px] font-semibold text-slate-500">
+              {changePassword ? "Cancel" : "Change password"}
             </span>
-          </div>
-        </div>
-
-        {/* ── Account info ─────────────────────────────────────── */}
-        <div className="prof-card">
-          <div className="prof-card-title">Account Information</div>
-          <div className="prof-card-body">
-
-            {/* Email — disabled, matches schema */}
-            <Field
-              label="Email Address"
-              type="email"
-              value={source.email}
-              disabled
-              placeholder="email@example.com"
-            />
-
-            {/* Username — editable */}
-            <Field
-              label="Username"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              placeholder="Enter username"
-            />
-
-          </div>
-        </div>
-
-        {/* ── Change password ──────────────────────────────────── */}
-        <div className="prof-card">
-          <div className="prof-card-title">Change Password</div>
-          <div className="prof-card-body">
-
-            <Field
-              label="New Password"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="Leave blank to keep current password"
-            />
-            <Field
-              label="Confirm New Password"
-              type="password"
-              value={confirm}
-              onChange={e => setConfirm(e.target.value)}
-              placeholder="Repeat new password"
-            />
-
-            {status === "error" && (
-              <p style={{
-                fontSize: 12, color: "#ef4444", fontWeight: 600,
-                background: "#fef2f2", border: "1px solid #fecaca",
-                borderRadius: 8, padding: "8px 12px", margin: 0,
-              }}>
-                ✕ Passwords don't match — please try again.
+            {/* Toggle switch */}
+            <div
+              onClick={handleToggleChangePassword}
+              className={[
+                "relative w-9 h-5 rounded-full transition-colors duration-200 cursor-pointer flex-shrink-0",
+                changePassword
+                  ? "bg-gradient-to-r from-violet-600 to-purple-600"
+                  : "bg-slate-200",
+              ].join(" ")}
+            >
+              <div
+                className={[
+                  "absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-200",
+                  changePassword ? "translate-x-4" : "translate-x-0.5",
+                ].join(" ")}
+              />
+            </div>
+          </label>
+        }
+      >
+        {!changePassword ? (
+          /* Placeholder row when collapsed */
+          <div className="flex items-center gap-3 py-1">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+              <MdOutlineLock size={16} className="text-slate-400" />
+            </div>
+            <div>
+              <p className="text-[13px] font-semibold text-slate-700">Password is set</p>
+              <p className="text-[11.5px] text-slate-400 mt-0.5">
+                Toggle the switch to update your password.
               </p>
-            )}
+            </div>
           </div>
-        </div>
+        ) : (
+          /* Password fields — required when visible */
+          <>
+            <Field
+              label="New Password *"
+              value={password}
+              onChange={handlePasswordChange}
+              placeholder="Enter new password"
+              icon={MdOutlineLock}
+              error={errors.password}
+              showToggle
+              isVisible={showPassword}
+              onToggleShow={() => setShowPassword(v => !v)}
+            />
+            <Field
+              label="Confirm New Password *"
+              value={confirm}
+              onChange={handleConfirmChange}
+              placeholder="Repeat new password"
+              icon={MdOutlineLock}
+              error={errors.confirm}
+              showToggle
+              isVisible={showConfirm}
+              onToggleShow={() => setShowConfirm(v => !v)}
+            />
+            <p className="text-[11.5px] text-slate-400 -mt-1">
+              * Both fields are required to update your password.
+            </p>
+          </>
+        )}
+      </Card>
 
-        {/* ── Save button ──────────────────────────────────────── */}
-        <button
-          className="save-btn"
-          onClick={handleSave}
-          style={{
-            background:
-              status === "saved" ? "linear-gradient(135deg,#10b981,#059669)" :
-              status === "error" ? "linear-gradient(135deg,#ef4444,#dc2626)" :
-              "linear-gradient(135deg,#6366f1,#8b5cf6)",
-          }}
-        >
-          {status === "saved" ? "✓ Changes Saved!" :
-           status === "error" ? "✕ Fix errors above" :
-           "Save Changes"}
-        </button>
+      {/* ── Save button ──────────────────────────────────────── */}
+      <button
+        onClick={handleSave}
+        className={[
+          "w-full py-3 rounded-xl text-[14px] font-bold text-white border-none cursor-pointer transition-all",
+          "hover:opacity-90 hover:-translate-y-px active:translate-y-0",
+          status === "saved" ? "bg-gradient-to-r from-emerald-500 to-green-500 shadow-md shadow-emerald-200"
+          : status === "error" ? "bg-gradient-to-r from-red-500 to-rose-500 shadow-md shadow-red-200"
+          : "bg-gradient-to-r from-violet-600 to-purple-600 shadow-md shadow-violet-200",
+        ].join(" ")}
+      >
+        <span className="flex items-center justify-center gap-2">
+          {status === "saved" && <MdCheckCircle size={17} />}
+          {status === "error" && <MdError size={17} />}
+          {status === "saved" ? "Changes Saved!"
+          : status === "error" ? "Fix errors above"
+          : "Save Changes"}
+        </span>
+      </button>
 
-      </div>
-    </>
+    </div>
   );
 }
