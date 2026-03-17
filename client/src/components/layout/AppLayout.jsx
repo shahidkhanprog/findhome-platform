@@ -13,17 +13,17 @@ const AppLayout = () => {
     </>
   );
 };
-export function RequireAuth() {
-  const { currentUser } = useContext(AuthContext);
+// export function RequireAuth() {
+//   const { currentUser } = useContext(AuthContext);
 
-  return (
-    !currentUser ? (<Navigate to="/login" />) : (
-      <>
-        <Header /> 
-        <Outlet />
-        <Footer />
-      </>
-    )
-  );
-};
+//   return (
+//     !currentUser ? (<Navigate to="/login" />) : (
+//       <>
+//         <Header /> 
+//         <Outlet />
+//         <Footer />
+//       </>
+//     )
+//   );
+// };
 export default AppLayout;
