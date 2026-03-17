@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 import AppLayout from "../components/Layout/AppLayout";
 import Home from "../pages/Home/Home";
 import About from "../pages/About/About";
@@ -42,18 +42,38 @@ const router = createBrowserRouter([
   //     { path: "dashboard/", element: <UserDashboard /> }, // just for testing 
   //   ],
   // },
+  // {
+  //   path: "/dashboard/*",
+  //   element: <UserDashboardLayout />,
+  //   children: [
+  //     { path: "profile", element: <Profile /> },
+  //     { path: "addProperty", element: <AddProperty /> },
+  //     { path: "myProperties", element: <MyProperties /> },
+  //     { path: "favorites", element: <SavedPosts /> },
+  //     { path: "messages", element: <Messages /> },
+  //     { path: "overview", element: <Overview /> },
+  //     // { path: "overview", element: <Overview /> },
+  //     // { path: "overview", element: <Overview /> },
+  //   ],
+  // },
+
+   /* ── Dashboard (protected, nested) ─────────────────────────── */
   {
-    path: "/dashboard/*",
+    path: "/dashboard",
     element: <UserDashboardLayout />,
     children: [
-      { path: "profile", element: <Profile /> },
-      { path: "addProperty", element: <AddProperty /> },
-      { path: "myProperties", element: <MyProperties /> },
-      { path: "favorites", element: <SavedPosts /> },
-      { path: "messages", element: <Messages /> },
-      { path: "overview", element: <Overview /> },
-      // { path: "overview", element: <Overview /> },
-      // { path: "overview", element: <Overview /> },
+      /*
+        /dashboard  → redirect to /dashboard/overview so the sidebar
+        always has an active item on first load
+      */
+      { index: true, element: <Navigate to="overview" replace /> },
+ 
+      { path: "overview",      element: <Overview /> },
+      { path: "myProperties",  element: <MyProperties /> },
+      { path: "addProperty",   element: <AddProperty /> },
+      { path: "favorites",     element: <SavedPosts /> },
+      { path: "messages",      element: <Messages /> },
+      { path: "profile",       element: <Profile /> },
     ],
   },
 ]);
