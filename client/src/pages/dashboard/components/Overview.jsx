@@ -55,15 +55,34 @@
 //     </div>
 //   );
 // }
-
-// pages/dashboard/Overview.jsx// pages/dashboard/Overview.jsx
+// pages/dashboard/Overview.jsx
+// Pure React + Tailwind CSS — mobile-first, fully responsive
 import { useContext } from "react";
 import { Link } from "react-router-dom";
-import { AuthContext } from "../../../context/AuthContext"; // adjust path if needed
+import { AuthContext } from "../../../context/AuthContext"; // adjust path
 
-/* ── Dummy posts ─────────────────────────────────────────────────── */
-// Replace `DUMMY_POSTS` with your real data source when ready.
-// e.g. const { posts } = useContext(PostContext);
+// React Icons
+import {
+  MdOutlineHome,
+  MdCheckCircleOutline,
+  MdHighlightOff,
+  MdOutlineAccessTime,
+  MdAddHome,
+} from "react-icons/md";
+
+/* ─── Dummy user — swap with real AuthContext when ready ─────────── */
+// To test with photo: set avatar to any image URL string
+// To test initials:   set avatar to null or ""
+const DUMMY_USER = {
+  id:       "usr_01",
+  username: "Shahid Khan",
+  email:    "shahid@example.com",
+  role:     "agent",
+  avatar:   null,            // e.g. "https://i.pravatar.cc/150?img=3"
+  createdAt: "2024-03-01",
+};
+
+/* ─── Dummy posts — swap with real context/API when ready ─────────── */
 const DUMMY_POSTS = [
   { id: "1", title: "Modern 3BR Apartment in Blue Area", city: "Islamabad", price: 25000000, status: "available" },
   { id: "2", title: "5 Marla House in DHA Phase 2",      city: "Lahore",    price: 45000000, status: "sold"      },
@@ -72,7 +91,7 @@ const DUMMY_POSTS = [
   { id: "5", title: "Studio Apartment near LUMS",         city: "Lahore",    price: 9500000,  status: "available"},
 ];
 
-/* ── Helpers ─────────────────────────────────────────────────────── */
+/* ─── Helpers ────────────────────────────────────────────────────── */
 function formatPrice(n) {
   if (!n && n !== 0) return "—";
   if (n >= 10_000_000) return `PKR ${(n / 10_000_000).toFixed(1)}cr`;
@@ -80,199 +99,186 @@ function formatPrice(n) {
   return `PKR ${Number(n).toLocaleString()}`;
 }
 
-const STATUS_STYLES = {
-  available: { bg: "#ecfdf5", color: "#059669", dot: "#10b981", label: "Available" },
-  sold:      { bg: "#f8fafc", color: "#475569", dot: "#94a3b8", label: "Sold"      },
-  rented:    { bg: "#fffbeb", color: "#b45309", dot: "#f59e0b", label: "Rented"    },
+/* ─── Status config ──────────────────────────────────────────────── */
+const STATUS = {
+  available: { dot: "bg-emerald-400", text: "text-emerald-700", bg: "bg-emerald-50", label: "Available" },
+  sold:      { dot: "bg-slate-400",   text: "text-slate-600",   bg: "bg-slate-50",   label: "Sold"      },
+  rented:    { dot: "bg-amber-400",   text: "text-amber-700",   bg: "bg-amber-50",   label: "Rented"    },
 };
 
+/* ─── StatusBadge ────────────────────────────────────────────────── */
 function StatusBadge({ status }) {
-  const s = STATUS_STYLES[status] ?? STATUS_STYLES.available;
+  const s = STATUS[status] ?? STATUS.available;
   return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", gap: 5,
-      background: s.bg, color: s.color, borderRadius: 20,
-      fontSize: 11, fontWeight: 600, padding: "3px 10px", whiteSpace: "nowrap",
-    }}>
-      <span style={{ width: 6, height: 6, borderRadius: "50%", background: s.dot, flexShrink: 0 }} />
+    <span className={`inline-flex items-center gap-1.5 ${s.bg} ${s.text} text-[11px] font-semibold rounded-full px-2.5 py-1 whitespace-nowrap`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${s.dot} flex-shrink-0`} />
       {s.label}
     </span>
   );
 }
 
-function Avatar({ name = "", size = 48 }) {
-  const initials = name.split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() ?? "").join("") || "U";
+/* ─── Smart Avatar ───────────────────────────────────────────────────
+   • If `src` is a valid URL  → shows the profile photo
+   • If no `src`              → shows first letter of `name` (not "U")
+   ─────────────────────────────────────────────────────────────────── */
+function Avatar({ src, name = "", className = "w-12 h-12", textClass = "text-lg" }) {
+  // Use first letter of first word of name, fallback to "?"
+  const letter = name.trim().charAt(0).toUpperCase() || "?";
+
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={name}
+        className={`${className} rounded-full object-cover flex-shrink-0 border-2 border-violet-100`}
+        onError={(e) => { e.currentTarget.style.display = "none"; }} // graceful fallback
+      />
+    );
+  }
+
   return (
-    <div style={{
-      width: size, height: size, borderRadius: "50%",
-      background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.33, fontWeight: 700, color: "#fff", flexShrink: 0,
-    }}>
-      {initials}
+    <div className={`${className} rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center ${textClass} font-bold text-white flex-shrink-0 select-none`}>
+      {letter}
     </div>
   );
 }
 
-function StatCard({ label, value, color, icon }) {
+/* ─── StatCard ───────────────────────────────────────────────────── */
+const STAT_STYLES = {
+  violet:  { value: "text-violet-600",  iconBg: "bg-violet-100",  iconText: "text-violet-500"  },
+  emerald: { value: "text-emerald-600", iconBg: "bg-emerald-100", iconText: "text-emerald-500" },
+  slate:   { value: "text-slate-600",   iconBg: "bg-slate-100",   iconText: "text-slate-500"   },
+  amber:   { value: "text-amber-500",   iconBg: "bg-amber-100",   iconText: "text-amber-500"   },
+};
+
+function StatCard({ label, value, colorKey, Icon }) {
+  const s = STAT_STYLES[colorKey];
   return (
-    <div style={{
-      background: "#fff", border: "1px solid #e8e8f0",
-      borderRadius: 16, padding: "18px 20px",
-      display: "flex", flexDirection: "column", gap: 8,
-    }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 500 }}>{label}</span>
-        <span style={{
-          width: 32, height: 32, borderRadius: 9,
-          background: color + "18",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          color, fontSize: 16,
-        }}>{icon}</span>
+    <div className="bg-white border border-slate-100 rounded-2xl p-4 flex flex-col gap-3 hover:shadow-md hover:shadow-slate-100 transition-shadow">
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-slate-400 font-medium">{label}</span>
+        <span className={`w-8 h-8 rounded-[9px] flex items-center justify-center ${s.iconBg} ${s.iconText}`}>
+          <Icon size={18} />
+        </span>
       </div>
-      <span style={{ fontSize: 28, fontWeight: 800, color, lineHeight: 1 }}>{value}</span>
+      <span className={`text-3xl font-extrabold leading-none ${s.value}`}>{value}</span>
     </div>
   );
 }
 
-/* ── Component ───────────────────────────────────────────────────── */
+/* ─── Overview ───────────────────────────────────────────────────── */
 export default function Overview() {
-  const { currentUser } = useContext(AuthContext);
-
-  // Swap DUMMY_POSTS with your real data when ready:
-  // e.g. const { posts } = useContext(PostContext);
-  const posts = DUMMY_POSTS;
+  // When real data is ready, replace DUMMY_USER / DUMMY_POSTS:
+  // const { currentUser } = useContext(AuthContext);
+  // const { posts } = useContext(PostContext);
+  const currentUser = DUMMY_USER;
+  const posts       = DUMMY_POSTS;
 
   const stats = [
-    { label: "Total Listings", value: posts.length,                                       color: "#6366f1", icon: "⌂" },
-    { label: "Available",      value: posts.filter(p => p.status === "available").length,  color: "#10b981", icon: "✓" },
-    { label: "Sold",           value: posts.filter(p => p.status === "sold").length,        color: "#64748b", icon: "⊙" },
-    { label: "Rented",         value: posts.filter(p => p.status === "rented").length,      color: "#f59e0b", icon: "⌛" },
+    { label: "Total Listings", value: posts.length,                                      colorKey: "violet",  Icon: MdOutlineHome         },
+    { label: "Available",      value: posts.filter(p => p.status === "available").length, colorKey: "emerald", Icon: MdCheckCircleOutline   },
+    { label: "Sold",           value: posts.filter(p => p.status === "sold").length,      colorKey: "slate",   Icon: MdHighlightOff         },
+    { label: "Rented",         value: posts.filter(p => p.status === "rented").length,    colorKey: "amber",   Icon: MdOutlineAccessTime    },
   ];
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
-        .ov-root { font-family: 'DM Sans', sans-serif; display: flex; flex-direction: column; gap: 20px; }
-        .ov-root * { box-sizing: border-box; }
-        .ov-stats {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 14px;
-        }
-        @media (max-width: 900px) { .ov-stats { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 480px) { .ov-stats { grid-template-columns: 1fr 1fr; } }
-        .ov-row { transition: background 0.12s; border-radius: 10px; }
-        .ov-row:hover { background: #fafafe; }
-      `}</style>
+    <div className="flex flex-col gap-4 md:gap-5">
 
-      <div className="ov-root">
+      {/* ── Welcome card ─────────────────────────────────────── */}
+      <div className="bg-white border border-slate-100 rounded-2xl p-4 md:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
 
-        {/* ── Welcome card ───────────────────────────────────── */}
-        <div style={{
-          background: "#fff", border: "1px solid #e8e8f0",
-          borderRadius: 18, padding: "20px 24px",
-          display: "flex", alignItems: "center", gap: 16,
-        }}>
-          <Avatar name={currentUser?.username} size={52} />
+        {/* Avatar + info */}
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          {/* Smart avatar: shows photo if available, else first letter of name */}
+          <Avatar
+            src={currentUser?.avatar}
+            name={currentUser?.username}
+            className="w-12 h-12 md:w-14 md:h-14"
+            textClass="text-lg md:text-xl"
+          />
 
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <p style={{ fontSize: 17, fontWeight: 700, color: "#1e1b4b", margin: 0 }}>
+          <div className="min-w-0">
+            <p className="text-base md:text-[17px] font-bold text-slate-800 truncate">
               Welcome back, {currentUser?.username ?? "User"} 👋
             </p>
-            <p style={{ fontSize: 13, color: "#94a3b8", margin: "4px 0 0", textTransform: "capitalize" }}>
-              {currentUser?.role ?? "Member"} · {currentUser?.email ?? ""}
+            <p className="text-xs md:text-[13px] text-slate-400 capitalize mt-0.5 truncate">
+              {currentUser?.role ?? "Member"}
+              {currentUser?.email ? ` · ${currentUser.email}` : ""}
             </p>
           </div>
+        </div>
 
+        {/* Add property CTA */}
+        <Link
+          to="/dashboard/addProperty"
+          className="inline-flex items-center justify-center gap-1.5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white no-underline rounded-xl px-4 py-2.5 text-[13px] font-semibold whitespace-nowrap flex-shrink-0 transition-all shadow-md shadow-violet-200 w-full sm:w-auto"
+        >
+          <MdAddHome size={17} />
+          Add Property
+        </Link>
+      </div>
+
+      {/* ── Stats grid: 2 cols mobile → 4 cols desktop ───────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        {stats.map(s => <StatCard key={s.label} {...s} />)}
+      </div>
+
+      {/* ── Recent listings ──────────────────────────────────── */}
+      <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 md:px-5 py-3.5 border-b border-slate-100">
+          <h3 className="text-[13px] md:text-sm font-bold text-slate-800">Recent Listings</h3>
           <Link
-            to="/dashboard/addProperty"
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 6,
-              background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-              color: "#fff", textDecoration: "none", borderRadius: 10,
-              padding: "9px 16px", fontSize: 13, fontWeight: 600,
-              whiteSpace: "nowrap", flexShrink: 0,
-            }}
+            to="/dashboard/myProperties"
+            className="text-[12px] text-violet-600 font-semibold no-underline hover:text-violet-800 transition-colors"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-              width="14" height="14">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5"  y1="12" x2="19" y2="12" />
-            </svg>
-            Add Property
+            View all →
           </Link>
         </div>
 
-        {/* ── Stats ──────────────────────────────────────────── */}
-        <div className="ov-stats">
-          {stats.map(s => <StatCard key={s.label} {...s} />)}
-        </div>
-
-        {/* ── Recent listings ────────────────────────────────── */}
-        <div style={{
-          background: "#fff", border: "1px solid #e8e8f0",
-          borderRadius: 18, padding: "20px 24px",
-        }}>
-          <div style={{
-            display: "flex", alignItems: "center",
-            justifyContent: "space-between", marginBottom: 16,
-          }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: "#1e1b4b", margin: 0 }}>
-              Recent Listings
-            </h3>
-            <Link
-              to="/dashboard/myProperties"
-              style={{ fontSize: 12, color: "#6366f1", fontWeight: 600, textDecoration: "none" }}
+        {/* Rows */}
+        <div>
+          {posts.slice(0, 5).map((p, i) => (
+            <div
+              key={p.id}
+              className={`flex items-center gap-3 px-4 md:px-5 py-3 hover:bg-slate-50 transition-colors
+                ${i < Math.min(posts.length, 5) - 1 ? "border-b border-slate-50" : ""}`}
             >
-              View all →
-            </Link>
-          </div>
-
-          <div>
-            {posts.slice(0, 5).map((p, i) => (
-              <div
-                key={p.id}
-                className="ov-row"
-                style={{
-                  display: "flex", alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "11px 10px", gap: 12,
-                  borderBottom: i < Math.min(posts.length, 5) - 1
-                    ? "1px solid #f1f5f9" : "none",
-                }}
-              >
-                {/* Icon + info */}
-                <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0, flex: 1 }}>
-                  <div style={{
-                    width: 38, height: 38, borderRadius: 10, flexShrink: 0,
-                    background: "linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    color: "#6366f1", fontSize: 17,
-                  }}>⌂</div>
-
-                  <div style={{ minWidth: 0 }}>
-                    <p style={{
-                      fontSize: 13, fontWeight: 600, color: "#1e1b4b",
-                      margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                    }}>{p.title}</p>
-                    <p style={{ fontSize: 12, color: "#94a3b8", margin: "2px 0 0" }}>
-                      {p.city} · {formatPrice(p.price)}
-                    </p>
-                  </div>
-                </div>
-
-                <div style={{ flexShrink: 0 }}>
-                  <StatusBadge status={p.status} />
-                </div>
+              {/* Property icon */}
+              <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl flex-shrink-0 bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center text-violet-600">
+                <MdOutlineHome size={18} />
               </div>
-            ))}
-          </div>
+
+              {/* Title + city */}
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-semibold text-slate-800 truncate leading-tight">
+                  {p.title}
+                </p>
+                <p className="text-[11px] text-slate-400 mt-0.5 truncate">
+                  {p.city} · {formatPrice(p.price)}
+                </p>
+              </div>
+
+              {/* Status badge */}
+              <div className="flex-shrink-0">
+                <StatusBadge status={p.status} />
+              </div>
+            </div>
+          ))}
         </div>
 
+        {/* Mobile-only footer link */}
+        <div className="sm:hidden px-4 py-3 border-t border-slate-50">
+          <Link
+            to="/dashboard/myProperties"
+            className="block text-center text-[12px] text-violet-600 font-semibold no-underline py-1"
+          >
+            View all properties →
+          </Link>
+        </div>
       </div>
-    </>
+
+    </div>
   );
 }
