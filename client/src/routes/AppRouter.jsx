@@ -31,7 +31,7 @@ const router = createBrowserRouter([
       { path: "register", element: <Register /> },
       { path: "forgotpassword", element: <ForgotPassword /> },
       { path: "search-results", element: <SearchResultsPage /> },
-      // { path: "property-detail/:id", element: <PropertyDetailPage /> }
+      { path: "property-detail/:id", element: <PropertyDetailPage /> }
     ],
   },
   // {
