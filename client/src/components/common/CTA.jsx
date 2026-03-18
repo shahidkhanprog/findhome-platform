@@ -8,7 +8,7 @@ const CTA = () => {
       className="relative py-24 px-6 lg:px-20 bg-cover bg-center"
       style={{
         backgroundImage:
-          'url("https://images.unsplash.com/photo-1600585154340-be6161a56a0c")', "background-attachment": "fixed"
+          'url("/homePage-hero-section.png")', "background-attachment": "fixed"
       }}
     >
       {/* Overlay */}

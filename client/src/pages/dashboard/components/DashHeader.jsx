@@ -1,7 +1,7 @@
 // src/pages/dashboard/components/DashHeader.jsx
-import { useContext } from "react";
+import { useContext , useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { AuthContext } from "../../../context/AuthContext"; // adjust path if needed
+import { AuthContext } from "../../../context/AuthContext"; 
 import { MdNotificationsNone } from "react-icons/md";
 
 /* ─── Page titles ────────────────────────────────────────────────── */
@@ -32,6 +32,12 @@ const todayString = () =>
 
 /* ─── DashHeader ─────────────────────────────────────────────────── */
 const DashHeader = () => {
+  // From context / props / API
+// const { unreadCount } = useContext(MessagesContext);
+
+// or local state
+const [unreadCount, setUnreadCount] = useState(12);
+
   const { currentUser } = useContext(AuthContext);
   const { pathname }    = useLocation();
   const navigate        = useNavigate();
@@ -44,7 +50,7 @@ const DashHeader = () => {
   const title    = getPageTitle(pathname);
 
   return (
-    <header className="h-16 bg-white border-b border-slate-100 flex items-center px-4 md:px-6 gap-4 flex-shrink-0">
+    <header className="h-16 bg-white border-b border-slate-400 flex items-center px-4 md:px-6 gap-4 flex-shrink-0 px-10">
 
       {/* Page title + date */}
       <div className="flex-1 min-w-0">
@@ -59,10 +65,24 @@ const DashHeader = () => {
       {/* Bell + user chip */}
       <div className="flex items-center gap-2 flex-shrink-0">
 
-        {/* Bell */}
-        <button className="relative w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:bg-violet-50 hover:border-violet-200 hover:text-violet-700 transition-all">
+        {/* Bell
+        <button
+          onClick={() => navigate("/dashboard/messages")}
+          className="relative w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:bg-violet-50 hover:border-violet-200 hover:text-violet-700 transition-all">
           <MdNotificationsNone size={20} />
           <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
+        </button> */}
+        {/* Bell */}
+        <button
+          onClick={() => navigate("/dashboard/messages")}
+          className="relative w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:bg-violet-50 hover:border-violet-200 hover:text-violet-700 transition-all">
+          <MdNotificationsNone size={20} />
+
+          {unreadCount > 0 && (
+          <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-rose-500 border-2 border-white text-white text-[10px] font-bold leading-none">
+            {unreadCount > 99 ? "99+" : unreadCount}
+          </span>
+          )}
         </button>
 
         {/* User chip → profile page */}

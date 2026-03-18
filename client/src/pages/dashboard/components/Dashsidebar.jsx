@@ -130,7 +130,7 @@ const NAV_ITEMS = [
   { id: "myProperties", label: "My Properties", path: "/dashboard/myProperties", Icon: MdOutlineHome,          badge: null },
   { id: "addProperty",  label: "Add Property",  path: "/dashboard/addProperty",  Icon: MdAddCircleOutline,     badge: null },
   { id: "favorites",    label: "Saved Posts",   path: "/dashboard/favorites",    Icon: MdFavoriteBorder,       badge: null },
-  { id: "messages",     label: "Messages",      path: "/dashboard/messages",     Icon: MdOutlineMessage,       badge: 2    },
+  { id: "messages",     label: "Messages",      path: "/dashboard/messages",     Icon: MdOutlineMessage,       badge: 12 },
   { id: "profile",      label: "Profile",       path: "/dashboard/profile",      Icon: MdOutlinePersonOutline, badge: null },
 ];
 
@@ -238,12 +238,12 @@ const DashSidebar = ({ panelRef, expanded, setExpanded, onNavigate }) => {
         >
           {/* Logo full */}
           <div className="h-16 flex items-center px-5 border-b border-slate-100 flex-shrink-0">
-            <Link to="/" onClick={onNavigate} className="flex items-center gap-2.5 no-underline">
+            <Link to="/dashboard/overview" onClick={onNavigate} className="flex items-center gap-2.5 no-underline">
               <div className="w-[34px] h-[34px] rounded-[10px] bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-md shadow-violet-200">
                 <MdOutlineHome size={17} color="white" />
               </div>
               <span className="font-extrabold text-[16px] text-slate-900 tracking-tight whitespace-nowrap">
-                Prop<span className="text-violet-700">Hive</span>
+                Dash<span className="text-violet-700">board</span>
               </span>
             </Link>
           </div>
