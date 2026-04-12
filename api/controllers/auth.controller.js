@@ -1,21 +1,20 @@
-//==================================================================================================
-//              You are editing the auth.controller.js [ auth.controller.js]
-//==================================================================================================
-
 import bcrypt from "bcrypt";
 import prisma from "../lib/prisma.js";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import resend from "../lib/resend.js"; 
 
-//--------------------------------------[REGISTER USER]--------------------------------------------------------
-/**
- * Registers a new user after checking for duplicate username/email.
- * Hashes the password and stores the user with default role "USER".
- */
+// OTP STORE (TEMP MEMORY)
+const otpStore = new Map();
+
+
+// ======================================================
+// REGISTER
+// ======================================================
 export const register = async (req, res) => {
   const { username, email, password } = req.body;
 
   try {
-    // Reject if username or email already exists
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [{ username }, { email }],
@@ -23,14 +22,12 @@ export const register = async (req, res) => {
     });
 
     if (existingUser) {
-      return res
-        .status(400)
-        .json({ message: "Username or email already exists" });
+      return res.status(400).json({ message: "User already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = await prisma.user.create({
+    await prisma.user.create({
       data: {
         username,
         email,
@@ -39,92 +36,171 @@ export const register = async (req, res) => {
       },
     });
 
-    res.status(201).json({
-      message: "User registered successfully",
-    });
+    res.status(201).json({ message: "User registered successfully" });
 
   } catch (error) {
-    console.error("Error registering user:", error);
-    res
-      .status(500)
-      .json({ message: "Error registering user", error: error.message });
+    console.error(error);
+    res.status(500).json({ message: "Register error" });
   }
 };
 
-//--------------------------------------[LOGIN USER]--------------------------------------------------------
-/**
- * Authenticates a user by email and password.
- * Issues a signed JWT stored as an HTTP-only cookie on success.
- */
+
+// ======================================================
+// LOGIN
+// ======================================================
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
     const user = await prisma.user.findUnique({ where: { email } });
 
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isValid = await bcrypt.compare(password, user.password);
 
-    if (!isMatch)
+    if (!isValid) {
       return res.status(401).json({ message: "Invalid credentials" });
-
-    // Token expiry: 7 days in milliseconds
-    const Age = 1000 * 60 * 24 * 7;
+    }
 
     const token = jwt.sign(
-      { 
+      {
         id: user.id,
         isAdmin: user.role === "ADMIN",
       },
       process.env.JWT_SECRET_KEY,
-      { expiresIn: Age }
+      { expiresIn: "7d" }
     );
 
+    const { password: _, ...userData } = user;
 
-    const {password:userPassword, ...userData} = user;
+    res.cookie("token", token, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
-    res.cookie("token", token, { httpOnly: true, maxAge: Age }).status(200).json({ userData });
+    res.status(200).json({ userData });
 
   } catch (error) {
-    console.error("Error logging in:", error);
-    res.status(500).json({ message: "Error logging in", error: error.message });
+    console.error(error);
+    res.status(500).json({ message: "Login error" });
   }
 };
 
-//--------------------------------------[LOGOUT USER]--------------------------------------------------------
-/** Logs out the user by clearing the JWT cookie. */
 
-export const logout = async (req, res) => {
+// ======================================================
+// LOGOUT
+// ======================================================
+export const logout = (req, res) => {
+  res.clearCookie("token").json({ message: "Logged out" });
+};
+
+
+// ======================================================
+// FORGOT PASSWORD (SEND OTP - RESEND)
+// ======================================================
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
   try {
-    res.clearCookie("token").status(200).json({ message: "Logout successful" });
-  
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      return res.status(404).json({ message: "Email not found" });
+    }
+
+    // Generate OTP
+    const otp = crypto.randomInt(100000, 999999).toString();
+
+    otpStore.set(email, {
+      otp,
+      expiresAt: Date.now() + 10 * 60 * 1000,
+      verified: false,
+    });
+
+    // ✅ SEND EMAIL USING RESEND
+    await resend.emails.send({
+      from: "FindHome <onboarding@resend.dev>",
+      to: email,
+      subject: "Your OTP Code",
+      html: `
+        <div style="font-family: Arial; padding: 20px;">
+          <h2>Password Reset OTP</h2>
+          <h1 style="letter-spacing: 5px;">${otp}</h1>
+          <p>This code expires in 10 minutes.</p>
+        </div>
+      `,
+    });
+
+    res.status(200).json({ message: "OTP sent successfully" });
+
   } catch (error) {
-    console.error("Error logging out:", error);
-    res.status(500).json({ message: "Error logging out", error: error.message });
+    console.error("Email error:", error);
+    res.status(500).json({ message: "Failed to send OTP" });
   }
 };
 
-//--------------------------------------[PROTECT ROUTES MIDDLEWARE]------------------------------------------
 
-// export const authMiddleware = (requiredRole) => {
-//   return (req, res, next) => {
-//     try {
-//       const token = req.headers.authorization?.split(" ")[1]; // Bearer token
-//       if (!token) return res.status(401).json({ message: "Unauthorized" });
+// ======================================================
+// VERIFY OTP
+// ======================================================
+export const verifyOtp = (req, res) => {
+  const { email, otp } = req.body;
 
-//       const decoded = jwt.verify(token, JWT_SECRET);
-//       req.user = decoded; // Attach user info to request
+  const record = otpStore.get(email);
 
-//       // Check role if required
-//       if (requiredRole && req.user.role !== requiredRole) {
-//         return res.status(403).json({ message: "Access denied" });
-//       }
+  if (!record) {
+    return res.status(400).json({ message: "OTP not found" });
+  }
 
-//       next();
-//     } catch (error) {
-//       console.error("Auth error:", error);
-//       res.status(401).json({ message: "Invalid or expired token" });
-//     }
-//   };
-// };
+  if (Date.now() > record.expiresAt) {
+    otpStore.delete(email);
+    return res.status(400).json({ message: "OTP expired" });
+  }
+
+  if (record.otp !== otp) {
+    return res.status(400).json({ message: "Invalid OTP" });
+  }
+
+  record.verified = true;
+  otpStore.set(email, record);
+
+  res.json({ message: "OTP verified" });
+};
+
+
+// ======================================================
+// RESET PASSWORD
+// ======================================================
+export const resetPassword = async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  try {
+    const record = otpStore.get(email);
+
+    if (!record || !record.verified) {
+      return res.status(403).json({ message: "OTP not verified" });
+    }
+
+    if (Date.now() > record.expiresAt) {
+      otpStore.delete(email);
+      return res.status(403).json({ message: "Session expired" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { email },
+      data: { password: hashedPassword },
+    });
+
+    otpStore.delete(email);
+
+    res.json({ message: "Password reset successful" });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Reset failed" });
+  }
+};

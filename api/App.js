@@ -13,6 +13,7 @@ app.use(cors({
   origin: process.env.CLIENT_URL, // Adjust this to your frontend URL
   credentials: true, // Allow cookies to be sent
 }));
+
 // Middleware to parse JSON bodies
 app.use(express.json());
 dotenv.config();

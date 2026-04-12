@@ -1,45 +1,8 @@
 // pages/auth/ForgotPassword.jsx
 import React, { useRef, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import {
-  MdOutlineEmail,
-  MdOutlineLock,
-  MdCheckCircle,
-  MdWarning,
-  MdArrowBack,
-  MdVisibility,
-  MdVisibilityOff,
-  MdRefresh,
-} from "react-icons/md";
-
-/* ─────────────────────────────────────────────────────────────────
-   MOCK API HELPERS — replace these with your real API calls
-───────────────────────────────────────────────────────────────── */
-const mockCheckEmail = (email) =>
-  new Promise((resolve) =>
-    setTimeout(() => {
-      // Simulate: "ahmad@example.com" exists in DB
-      resolve({ exists: email.toLowerCase() === "ahmad@example.com" });
-    }, 1200)
-  );
-
-const mockSendOtp = (email) =>
-  new Promise((resolve) =>
-    setTimeout(() => resolve({ success: true }), 900)
-  );
-
-const mockVerifyOtp = (email, otp) =>
-  new Promise((resolve) =>
-    setTimeout(() => {
-      // Simulate correct OTP = "123456"
-      resolve({ valid: otp === "123456" });
-    }, 900)
-  );
-
-const mockResetPassword = (email, password) =>
-  new Promise((resolve) =>
-    setTimeout(() => resolve({ success: true }), 1000)
-  );
+import { Link, useNavigate } from "react-router-dom";
+import { MdOutlineEmail, MdOutlineLock, MdCheckCircle, MdWarning, MdArrowBack, MdVisibility, MdVisibilityOff, MdRefresh, } from "react-icons/md";
+import apiRequest from "../../lib/apiRequest";
 
 /* ─────────────────────────────────────────────────────────────────
    STEP INDICATOR
@@ -70,7 +33,11 @@ function StepBar({ current }) {
               <span
                 className={[
                   "text-[10px] font-semibold uppercase tracking-wide",
-                  active ? "text-violet-600" : done ? "text-violet-400" : "text-slate-400",
+                  active
+                    ? "text-violet-600"
+                    : done
+                    ? "text-violet-400"
+                    : "text-slate-400",
                 ].join(" ")}
               >
                 {label}
@@ -94,7 +61,8 @@ function StepBar({ current }) {
 /* ─────────────────────────────────────────────────────────────────
    FIELD
 ───────────────────────────────────────────────────────────────── */
-function Field({ label, type = "text", value, onChange, placeholder, disabled, icon: Icon, error, showToggle, isVisible, onToggleShow, inputRef, maxLength }) {
+function Field({ label, type = "text", value, onChange, placeholder, disabled, icon: Icon, error, showToggle, isVisible, onToggleShow, inputRef, maxLength, }) {
+
   const [focused, setFocused] = useState(false);
   const inputType = showToggle ? (isVisible ? "text" : "password") : type;
 
@@ -141,7 +109,11 @@ function Field({ label, type = "text", value, onChange, placeholder, disabled, i
             tabIndex={-1}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors"
           >
-            {isVisible ? <MdVisibilityOff size={17} /> : <MdVisibility size={17} />}
+            {isVisible ? (
+              <MdVisibilityOff size={17} />
+            ) : (
+              <MdVisibility size={17} />
+            )}
           </button>
         )}
       </div>
@@ -175,8 +147,14 @@ function OtpInput({ value, onChange, error, disabled }) {
       }
       return;
     }
-    if (e.key === "ArrowLeft" && i > 0) { inputs.current[i - 1]?.focus(); return; }
-    if (e.key === "ArrowRight" && i < 5) { inputs.current[i + 1]?.focus(); return; }
+    if (e.key === "ArrowLeft" && i > 0) {
+      inputs.current[i - 1]?.focus();
+      return;
+    }
+    if (e.key === "ArrowRight" && i < 5) {
+      inputs.current[i + 1]?.focus();
+      return;
+    }
   };
 
   const handleChange = (i, e) => {
@@ -189,7 +167,10 @@ function OtpInput({ value, onChange, error, disabled }) {
   };
 
   const handlePaste = (e) => {
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    const pasted = e.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, 6);
     if (pasted) {
       onChange(pasted.padEnd(6, "").slice(0, 6).trimEnd());
       inputs.current[Math.min(pasted.length, 5)]?.focus();
@@ -213,10 +194,13 @@ function OtpInput({ value, onChange, error, disabled }) {
             onKeyDown={(e) => handleKey(i, e)}
             className={[
               "w-11 h-12 sm:w-12 sm:h-13 text-center text-[18px] font-bold rounded-xl border-2 outline-none transition-all",
-              disabled ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed" :
-              error ? "bg-red-50 border-red-300 text-slate-800" :
-              d ? "bg-violet-50 border-violet-500 text-violet-700" :
-              "bg-slate-50 border-slate-200 text-slate-800 focus:border-violet-400 focus:ring-2 focus:ring-violet-100",
+              disabled
+                ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed"
+                : error
+                ? "bg-red-50 border-red-300 text-slate-800"
+                : d
+                ? "bg-violet-50 border-violet-500 text-violet-700"
+                : "bg-slate-50 border-slate-200 text-slate-800 focus:border-violet-400 focus:ring-2 focus:ring-violet-100",
             ].join(" ")}
           />
         ))}
@@ -234,19 +218,21 @@ function OtpInput({ value, onChange, error, disabled }) {
    MAIN COMPONENT
 ───────────────────────────────────────────────────────────────── */
 export default function ForgotPassword() {
+  const navigate = useNavigate();
+
   // ── Step: 0=email, 1=otp, 2=newpass, 3=done
   const [step, setStep] = useState(0);
 
   // ── Fields
-  const [email, setEmail]       = useState("");
-  const [otp, setOtp]           = useState("");
-  const [newPass, setNewPass]   = useState("");
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [newPass, setNewPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
 
   // ── UI state
-  const [loading, setLoading]         = useState(false);
-  const [errors, setErrors]           = useState({});
-  const [showNew, setShowNew]         = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
 
@@ -255,32 +241,39 @@ export default function ForgotPassword() {
   // ── Resend countdown
   useEffect(() => {
     if (resendTimer <= 0) return;
-    const t = setTimeout(() => setResendTimer(v => v - 1), 1000);
+    const t = setTimeout(() => setResendTimer((v) => v - 1), 1000);
     return () => clearTimeout(t);
   }, [resendTimer]);
 
-  /* ── STEP 0: Check email in DB then send OTP ── */
+  /* ── STEP 0: Send OTP (checks email existence on backend) ── */
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     const errs = {};
     if (!email.trim()) errs.email = "Email is required.";
-    else if (!/\S+@\S+\.\S+/.test(email)) errs.email = "Enter a valid email address.";
-    if (Object.keys(errs).length) { setErrors(errs); emailRef.current?.focus(); return; }
+    else if (!/\S+@\S+\.\S+/.test(email))
+      errs.email = "Enter a valid email address.";
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      emailRef.current?.focus();
+      return;
+    }
 
     setLoading(true);
     setErrors({});
     try {
-      const { exists } = await mockCheckEmail(email);
-      if (!exists) {
-        setErrors({ email: "No account found with this email address." });
-        setLoading(false);
-        return;
-      }
-      await mockSendOtp(email);
+      // Backend checks existence + sends OTP in one step
+      await apiRequest.post("/auth/forgot-password", { email });
       setStep(1);
       setResendTimer(60);
-    } catch {
-      setErrors({ email: "Something went wrong. Please try again." });
+    } catch (err) {
+      // If email not found, backend returns 404
+      const msg = err?.response?.data?.message;
+      setErrors({
+        email:
+          err?.response?.status === 404
+            ? "No account found with this email address."
+            : msg || "Something went wrong. Please try again.",
+      });
     }
     setLoading(false);
   };
@@ -289,16 +282,24 @@ export default function ForgotPassword() {
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
     const filled = otp.replace(/\D/g, "");
-    if (filled.length < 6) { setErrors({ otp: "Enter the complete 6-digit code." }); return; }
+    if (filled.length < 6) {
+      setErrors({ otp: "Enter the complete 6-digit code." });
+      return;
+    }
 
     setLoading(true);
     setErrors({});
     try {
-      const { valid } = await mockVerifyOtp(email, filled);
-      if (!valid) { setErrors({ otp: "Incorrect code. Please try again." }); setLoading(false); return; }
+      await apiRequest.post("/auth/verify-otp", { email, otp: filled });
       setStep(2);
-    } catch {
-      setErrors({ otp: "Something went wrong. Please try again." });
+    } catch (err) {
+      const msg = err?.response?.data?.message;
+      setErrors({
+        otp:
+          err?.response?.status === 400
+            ? msg || "Incorrect or expired code. Please try again."
+            : "Something went wrong. Please try again.",
+      });
     }
     setLoading(false);
   };
@@ -309,8 +310,12 @@ export default function ForgotPassword() {
     setLoading(true);
     setOtp("");
     setErrors({});
-    await mockSendOtp(email);
-    setResendTimer(60);
+    try {
+      await apiRequest.post("/auth/forgot-password", { email });
+      setResendTimer(60);
+    } catch (err) {
+      setErrors({ otp: "Failed to resend code. Please try again." });
+    }
     setLoading(false);
   };
 
@@ -319,24 +324,34 @@ export default function ForgotPassword() {
     e.preventDefault();
     const errs = {};
     if (!newPass) errs.newPass = "New password is required.";
-    else if (newPass.length < 6) errs.newPass = "Password must be at least 6 characters.";
+    else if (newPass.length < 6)
+      errs.newPass = "Password must be at least 6 characters.";
     if (!confirmPass) errs.confirmPass = "Please confirm your password.";
-    else if (newPass && newPass !== confirmPass) errs.confirmPass = "Passwords do not match.";
-    if (Object.keys(errs).length) { setErrors(errs); return; }
+    else if (newPass && newPass !== confirmPass)
+      errs.confirmPass = "Passwords do not match.";
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      return;
+    }
 
     setLoading(true);
     setErrors({});
     try {
-      await mockResetPassword(email, newPass);
+      await apiRequest.post("/auth/reset-password", {
+        email,
+        newPassword: newPass,
+      });
       setStep(3);
-    } catch {
-      setErrors({ newPass: "Something went wrong. Please try again." });
+    } catch (err) {
+      const msg = err?.response?.data?.message;
+      setErrors({ newPass: msg || "Something went wrong. Please try again." });
     }
     setLoading(false);
   };
 
   /* ── Shared button classes ── */
-  const btnBase = "w-full py-3 rounded-xl text-[14px] font-bold text-white border-none cursor-pointer transition-all hover:opacity-90 hover:-translate-y-px active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0";
+  const btnBase =
+    "w-full py-3 rounded-xl text-[14px] font-bold text-white border-none cursor-pointer transition-all hover:opacity-90 hover:-translate-y-px active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0";
   const btnPrimary = `${btnBase} bg-gradient-to-r from-violet-600 to-purple-600 shadow-md shadow-violet-200`;
 
   return (
@@ -345,7 +360,6 @@ export default function ForgotPassword() {
 
         {/* ── Header ── */}
         <div className="text-center mb-6">
-          {/* Icon */}
           <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-200 mb-4">
             <MdOutlineLock size={26} color="white" />
           </div>
@@ -354,7 +368,12 @@ export default function ForgotPassword() {
           </h2>
           <p className="text-[13px] text-slate-500 mt-1.5 leading-relaxed">
             {step === 0 && "Enter your email and we'll send a verification code."}
-            {step === 1 && <>We sent a 6-digit code to <span className="font-semibold text-slate-700">{email}</span></>}
+            {step === 1 && (
+              <>
+                We sent a 6-digit code to{" "}
+                <span className="font-semibold text-slate-700">{email}</span>
+              </>
+            )}
             {step === 2 && "Create a strong new password for your account."}
             {step === 3 && "Your password has been updated successfully."}
           </p>
@@ -372,15 +391,18 @@ export default function ForgotPassword() {
               label="Email Address"
               type="email"
               value={email}
-              onChange={(e) => { setEmail(e.target.value); setErrors({}); }}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setErrors({});
+              }}
               placeholder="ahmad@example.com"
               icon={MdOutlineEmail}
               error={errors.email}
               inputRef={emailRef}
             />
             <button type="submit" disabled={loading} className={btnPrimary}>
-              {loading ? <Spinner /> : null}
-              {loading ? "Checking…" : "Send Reset Code"}
+              {loading && <Spinner />}
+              {loading ? "Sending Code…" : "Send Reset Code"}
             </button>
           </form>
         )}
@@ -390,7 +412,6 @@ export default function ForgotPassword() {
         ════════════════════════════ */}
         {step === 1 && (
           <form onSubmit={handleOtpSubmit} className="flex flex-col gap-5">
-
             {/* Email display (locked) */}
             <Field
               label="Email Address"
@@ -406,7 +427,10 @@ export default function ForgotPassword() {
               </label>
               <OtpInput
                 value={otp}
-                onChange={(v) => { setOtp(v); setErrors({}); }}
+                onChange={(v) => {
+                  setOtp(v);
+                  setErrors({});
+                }}
                 error={errors.otp}
                 disabled={loading}
               />
@@ -431,14 +455,22 @@ export default function ForgotPassword() {
               )}
             </div>
 
-            <button type="submit" disabled={loading || otp.length < 6} className={btnPrimary}>
-              {loading ? <Spinner /> : null}
+            <button
+              type="submit"
+              disabled={loading || otp.replace(/\D/g, "").length < 6}
+              className={btnPrimary}
+            >
+              {loading && <Spinner />}
               {loading ? "Verifying…" : "Verify Code"}
             </button>
 
             <button
               type="button"
-              onClick={() => { setStep(0); setOtp(""); setErrors({}); }}
+              onClick={() => {
+                setStep(0);
+                setOtp("");
+                setErrors({});
+              }}
               className="flex items-center justify-center gap-1.5 text-[12.5px] text-slate-400 hover:text-slate-600 transition-colors mx-auto"
             >
               <MdArrowBack size={14} /> Back to email
@@ -454,31 +486,37 @@ export default function ForgotPassword() {
             <Field
               label="New Password"
               value={newPass}
-              onChange={(e) => { setNewPass(e.target.value); setErrors(prev => ({ ...prev, newPass: "" })); }}
+              onChange={(e) => {
+                setNewPass(e.target.value);
+                setErrors((prev) => ({ ...prev, newPass: "" }));
+              }}
               placeholder="Minimum 6 characters"
               icon={MdOutlineLock}
               error={errors.newPass}
               showToggle
               isVisible={showNew}
-              onToggleShow={() => setShowNew(v => !v)}
+              onToggleShow={() => setShowNew((v) => !v)}
             />
             <Field
               label="Confirm New Password"
               value={confirmPass}
-              onChange={(e) => { setConfirmPass(e.target.value); setErrors(prev => ({ ...prev, confirmPass: "" })); }}
+              onChange={(e) => {
+                setConfirmPass(e.target.value);
+                setErrors((prev) => ({ ...prev, confirmPass: "" }));
+              }}
               placeholder="Repeat new password"
               icon={MdOutlineLock}
               error={errors.confirmPass}
               showToggle
               isVisible={showConfirm}
-              onToggleShow={() => setShowConfirm(v => !v)}
+              onToggleShow={() => setShowConfirm((v) => !v)}
             />
 
             {/* Password strength hint */}
             {newPass && <PasswordStrength password={newPass} />}
 
             <button type="submit" disabled={loading} className={btnPrimary}>
-              {loading ? <Spinner /> : null}
+              {loading && <Spinner />}
               {loading ? "Saving…" : "Reset Password"}
             </button>
           </form>
@@ -508,7 +546,10 @@ export default function ForgotPassword() {
         {step < 3 && (
           <p className="text-center text-slate-400 mt-5 text-[12.5px]">
             Remember your password?{" "}
-            <Link to="/login" className="text-violet-600 font-semibold hover:text-violet-800 transition-colors">
+            <Link
+              to="/login"
+              className="text-violet-600 font-semibold hover:text-violet-800 transition-colors"
+            >
               Sign in
             </Link>
           </p>
@@ -528,15 +569,20 @@ function PasswordStrength({ password }) {
     { label: "Number", pass: /[0-9]/.test(password) },
     { label: "Special character", pass: /[^A-Za-z0-9]/.test(password) },
   ];
-  const score = checks.filter(c => c.pass).length;
-  const colors = ["bg-red-400", "bg-orange-400", "bg-yellow-400", "bg-emerald-400", "bg-emerald-500"];
+  const score = checks.filter((c) => c.pass).length;
+  const colors = [
+    "bg-red-400",
+    "bg-orange-400",
+    "bg-yellow-400",
+    "bg-emerald-400",
+    "bg-emerald-500",
+  ];
   const labels = ["", "Weak", "Fair", "Good", "Strong"];
 
   return (
     <div className="flex flex-col gap-2 -mt-1">
-      {/* Bar */}
       <div className="flex gap-1">
-        {[0, 1, 2, 3].map(i => (
+        {[0, 1, 2, 3].map((i) => (
           <div
             key={i}
             className={[
@@ -548,7 +594,7 @@ function PasswordStrength({ password }) {
       </div>
       <div className="flex items-center justify-between">
         <div className="flex flex-wrap gap-x-3 gap-y-1">
-          {checks.map(c => (
+          {checks.map((c) => (
             <span
               key={c.label}
               className={[
@@ -561,7 +607,16 @@ function PasswordStrength({ password }) {
           ))}
         </div>
         {score > 0 && (
-          <span className={["text-[11px] font-bold flex-shrink-0", score >= 3 ? "text-emerald-600" : score === 2 ? "text-yellow-500" : "text-red-500"].join(" ")}>
+          <span
+            className={[
+              "text-[11px] font-bold flex-shrink-0",
+              score >= 3
+                ? "text-emerald-600"
+                : score === 2
+                ? "text-yellow-500"
+                : "text-red-500",
+            ].join(" ")}
+          >
             {labels[score]}
           </span>
         )}
@@ -569,15 +624,30 @@ function PasswordStrength({ password }) {
     </div>
   );
 }
-
 /* ─────────────────────────────────────────────────────────────────
    SPINNER
 ───────────────────────────────────────────────────────────────── */
 function Spinner() {
   return (
-    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+    <svg
+      className="animate-spin h-4 w-4 text-white"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+      />
     </svg>
   );
 }
