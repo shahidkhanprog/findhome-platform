@@ -1,7 +1,17 @@
 import { useState, useRef, useContext } from "react";
-import {MdOutlineModeEdit, MdOutlineEmail, MdOutlinePerson, MdOutlineLock, MdCheckCircle, MdError, MdWarning, MdVisibility, MdVisibilityOff,} from "react-icons/md";
+import {
+  MdOutlineEmail,
+  MdOutlinePerson,
+  MdOutlineLock,
+  MdCheckCircle,
+  MdError,
+  MdWarning,
+  MdVisibility,
+  MdVisibilityOff,
+} from "react-icons/md";
 import { AuthContext } from "../../../context/AuthContext";
 import apiRequest from "../../../lib/apiRequest";
+import UploadWidget from "../../../components/uploadWidgets/UploadWidget";
 
 /* ─── Avatar ─────────────────────────────────────────────────────── */
 function Avatar({ src, name = "", size = 80 }) {
@@ -13,7 +23,9 @@ function Avatar({ src, name = "", size = 80 }) {
         alt={name}
         className="rounded-full object-cover border-[3px] border-violet-100 flex-shrink-0"
         style={{ width: size, height: size }}
-        onError={(e) => { e.currentTarget.style.display = "none"; }}
+        onError={(e) => {
+          e.currentTarget.style.display = "none";
+        }}
       />
     );
   }
@@ -28,7 +40,19 @@ function Avatar({ src, name = "", size = 80 }) {
 }
 
 /* ─── Field ──────────────────────────────────────────────────────── */
-function Field({ label, type = "text", value, onChange, placeholder, disabled, icon: Icon, error, showToggle, onToggleShow, isVisible }) {
+function Field({
+  label,
+  type = "text",
+  value,
+  onChange,
+  placeholder,
+  disabled,
+  icon: Icon,
+  error,
+  showToggle,
+  onToggleShow,
+  isVisible,
+}) {
   const [focused, setFocused] = useState(false);
   const inputType = showToggle ? (isVisible ? "text" : "password") : type;
 
@@ -58,10 +82,10 @@ function Field({ label, type = "text", value, onChange, placeholder, disabled, i
             disabled
               ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed"
               : error
-              ? "bg-red-50 text-slate-800 border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100"
-              : focused
-              ? "bg-violet-50/50 text-slate-800 border-violet-400 ring-2 ring-violet-100"
-              : "bg-slate-50 text-slate-800 border-slate-200 hover:border-slate-300",
+                ? "bg-red-50 text-slate-800 border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100"
+                : focused
+                  ? "bg-violet-50/50 text-slate-800 border-violet-400 ring-2 ring-violet-100"
+                  : "bg-slate-50 text-slate-800 border-slate-200 hover:border-slate-300",
           ].join(" ")}
         />
         {showToggle && !disabled && (
@@ -71,7 +95,11 @@ function Field({ label, type = "text", value, onChange, placeholder, disabled, i
             tabIndex={-1}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors"
           >
-            {isVisible ? <MdVisibilityOff size={17} /> : <MdVisibility size={17} />}
+            {isVisible ? (
+              <MdVisibilityOff size={17} />
+            ) : (
+              <MdVisibility size={17} />
+            )}
           </button>
         )}
       </div>
@@ -104,23 +132,30 @@ function Card({ title, children, headerRight }) {
 export default function Profile() {
   const { currentUser, UpdateUser } = useContext(AuthContext);
 
+  // Initialize avatar state with current user's avatar
+  const [avatar, setAvatar] = useState(currentUser?.userData?.avatar);
+
   // Mirror the exact same unwrap pattern used in Navbar:
   // currentUser = { userData: { _id, username, email, avatar, role, createdAt, ... } }
   const user = currentUser?.userData ?? {};
 
   const [username, setUsername] = useState(user.username ?? "");
   const [password, setPassword] = useState("");
-  const [confirm,  setConfirm]  = useState("");
-  const [preview,  setPreview]  = useState(user.avatar ?? null);
+  const [confirm, setConfirm] = useState("");
+  const [preview, setPreview] = useState(user.avatar ?? null);
 
-  const [status,   setStatus]   = useState("idle"); // "idle" | "loading" | "saved" | "error"
+  const [status, setStatus] = useState("idle"); // "idle" | "loading" | "saved" | "error"
   const [apiError, setApiError] = useState("");
 
   const [changePassword, setChangePassword] = useState(false);
-  const [showPassword,   setShowPassword]   = useState(false);
-  const [showConfirm,    setShowConfirm]    = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  const [errors, setErrors] = useState({ username: "", password: "", confirm: "" });
+  const [errors, setErrors] = useState({
+    username: "",
+    password: "",
+    confirm: "",
+  });
 
   const fileRef = useRef();
 
@@ -149,7 +184,8 @@ export default function Profile() {
       newErrors.username = "Username must be at least 3 characters.";
       valid = false;
     } else if (!/^[a-zA-Z0-9_ ]+$/.test(username.trim())) {
-      newErrors.username = "Only letters, numbers, spaces, and underscores allowed.";
+      newErrors.username =
+        "Only letters, numbers, spaces, and underscores allowed.";
       valid = false;
     }
 
@@ -181,7 +217,7 @@ export default function Profile() {
     setPreview(URL.createObjectURL(file));
   };
 
- const handleSave = async () => {
+  const handleSave = async () => {
     setApiError("");
     if (!validate()) {
       setStatus("error");
@@ -189,9 +225,9 @@ export default function Profile() {
       return;
     }
 
-    const payload = {
+    const updateUserData = {
       username: username.trim(),
-      avatar: preview,
+      avatar,
       ...(changePassword && password ? { password } : {}),
     };
 
@@ -207,9 +243,9 @@ export default function Profile() {
     }
 
     try {
-      const res = await apiRequest.put(`/users/${userId}`, payload);
+      const res = await apiRequest.put(`/users/${userId}`, updateUserData);
 
-      const updatedUser = res.data; // ✅ axios — no res.ok, no res.json()
+      const updatedUser = res.data;
 
       UpdateUser({
         ...currentUser,
@@ -227,11 +263,13 @@ export default function Profile() {
     } catch (err) {
       console.log("Error status:", err.response?.status);
       console.log("Error message:", err.response?.data);
-      setApiError(err.response?.data?.message || err.message || "Something went wrong.");
+      setApiError(
+        err.response?.data?.message || err.message || "Something went wrong.",
+      );
       setStatus("error");
       setTimeout(() => setStatus("idle"), 3000);
     }
-};
+  };
 
   /* ── Clear field errors on change ── */
   const handleUsernameChange = (e) => {
@@ -253,20 +291,25 @@ export default function Profile() {
 
   return (
     <div className="flex flex-col gap-3 sm:gap-4 w-full max-w-[560px] px-0">
-
       {/* ── Avatar card ──────────────────────────────────────── */}
       <Card>
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-4">
           <div className="relative flex-shrink-0">
-            <Avatar src={preview} name={username} size={72} />
-            <button
+            <Avatar src={avatar} name={username} size={72} />
+            {/* <button
               onClick={() => fileRef.current?.click()}
               title="Change photo"
               className="absolute bottom-0.5 right-0.5 w-6 h-6 rounded-full bg-gradient-to-br from-violet-600 to-purple-600 border-2 border-white flex items-center justify-center cursor-pointer shadow-md shadow-violet-300 hover:scale-110 transition-transform"
             >
               <MdOutlineModeEdit size={12} color="white" />
-            </button>
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+            </button> */}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageChange}
+            />
           </div>
 
           <div className="flex-1 min-w-0 flex flex-col items-center sm:items-start">
@@ -281,12 +324,19 @@ export default function Profile() {
             <p className="text-[12px] text-slate-400 mt-0.5 text-center sm:text-left">
               Member since {memberYear}
             </p>
-            <button
-              onClick={() => fileRef.current?.click()}
-              className="mt-2 text-[12px] text-violet-600 font-semibold bg-transparent border-none cursor-pointer p-0 hover:text-violet-800 transition-colors"
-            >
-              Change profile picture →
-            </button>
+            <UploadWidget
+              uwConfig={{
+                cloudName: "droah7qf8",
+                uploadPreset: "FindHome",
+                multiple: false,
+                cropping: true,
+                folder: "user_avatars",
+                maxFileSize: 2000000, // 2MB
+                clientAllowedFormats: ["jpg", "jpeg", "png"],
+              }}
+              setAvatar={setAvatar}
+              // setPublicId={(id) => console.log("Public ID:", id)}
+            />
           </div>
         </div>
       </Card>
@@ -323,7 +373,9 @@ export default function Profile() {
               onClick={handleToggleChangePassword}
               className={[
                 "relative w-9 h-5 rounded-full transition-colors duration-200 cursor-pointer flex-shrink-0",
-                changePassword ? "bg-gradient-to-r from-violet-600 to-purple-600" : "bg-slate-200",
+                changePassword
+                  ? "bg-gradient-to-r from-violet-600 to-purple-600"
+                  : "bg-slate-200",
               ].join(" ")}
             >
               <div
@@ -342,7 +394,9 @@ export default function Profile() {
               <MdOutlineLock size={16} className="text-slate-400" />
             </div>
             <div>
-              <p className="text-[13px] font-semibold text-slate-700">Password is set</p>
+              <p className="text-[13px] font-semibold text-slate-700">
+                Password is set
+              </p>
               <p className="text-[11.5px] text-slate-400 mt-0.5">
                 Toggle the switch to update your password.
               </p>
@@ -398,8 +452,8 @@ export default function Profile() {
           status === "saved"
             ? "bg-gradient-to-r from-emerald-500 to-green-500 shadow-md shadow-emerald-200"
             : status === "error"
-            ? "bg-gradient-to-r from-red-500 to-rose-500 shadow-md shadow-red-200"
-            : "bg-gradient-to-r from-violet-600 to-purple-600 shadow-md shadow-violet-200",
+              ? "bg-gradient-to-r from-red-500 to-rose-500 shadow-md shadow-red-200"
+              : "bg-gradient-to-r from-violet-600 to-purple-600 shadow-md shadow-violet-200",
         ].join(" ")}
       >
         <span className="flex items-center justify-center gap-2">
@@ -408,13 +462,12 @@ export default function Profile() {
           {status === "loading"
             ? "Saving…"
             : status === "saved"
-            ? "Changes Saved!"
-            : status === "error"
-            ? "Fix errors above"
-            : "Save Changes"}
+              ? "Changes Saved!"
+              : status === "error"
+                ? "Fix errors above"
+                : "Save Changes"}
         </span>
       </button>
-
     </div>
   );
 }
