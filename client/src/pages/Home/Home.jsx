@@ -14,7 +14,7 @@ import { AuthContext } from "../../context/AuthContext";
 const Home = () => {
 
   const { currentUser } = useContext(AuthContext);
-  console.log("Current User:", currentUser);
+  // console.log("Current User:", currentUser);
 
   return (
     <div className="font-sans text-slate-900 bg-white">

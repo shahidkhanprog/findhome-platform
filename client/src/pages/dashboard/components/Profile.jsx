@@ -1,28 +1,7 @@
-// pages/dashboard/components/Profile.jsx
 import { useState, useRef, useContext } from "react";
-import { AuthContext } from "../../../context/AuthContext"; // adjust path if needed
-import {
-  MdOutlineModeEdit,
-  MdOutlineEmail,
-  MdOutlinePerson,
-  MdOutlineLock,
-  MdCheckCircle,
-  MdError,
-  MdWarning,
-  MdVisibility,
-  MdVisibilityOff,
-} from "react-icons/md";
-
-/* ─── Dummy user — remove when real AuthContext is ready ─────────── */
-const DUMMY_USER = {
-  id:        "usr_01",
-  username:  "Ahmad Khan",
-  email:     "ahmad@example.com",
-  password:  "",
-  avatar:    null,
-  role:      "User",
-  createdAt: "2024-03-01T00:00:00.000Z",
-};
+import {MdOutlineModeEdit, MdOutlineEmail, MdOutlinePerson, MdOutlineLock, MdCheckCircle, MdError, MdWarning, MdVisibility, MdVisibilityOff,} from "react-icons/md";
+import { AuthContext } from "../../../context/AuthContext";
+import apiRequest from "../../../lib/apiRequest";
 
 /* ─── Avatar ─────────────────────────────────────────────────────── */
 function Avatar({ src, name = "", size = 80 }) {
@@ -51,8 +30,6 @@ function Avatar({ src, name = "", size = 80 }) {
 /* ─── Field ──────────────────────────────────────────────────────── */
 function Field({ label, type = "text", value, onChange, placeholder, disabled, icon: Icon, error, showToggle, onToggleShow, isVisible }) {
   const [focused, setFocused] = useState(false);
-
-  // If showToggle is true, the actual input type is controlled by isVisible prop
   const inputType = showToggle ? (isVisible ? "text" : "password") : type;
 
   return (
@@ -76,8 +53,7 @@ function Field({ label, type = "text", value, onChange, placeholder, disabled, i
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           className={[
-            "w-full px-3 py-2.5 text-[13.5px] font-medium rounded-xl outline-none transition-all",
-            "border",
+            "w-full px-3 py-2.5 text-[13.5px] font-medium rounded-xl outline-none transition-all border",
             showToggle ? "pr-10" : "",
             disabled
               ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed"
@@ -88,14 +64,12 @@ function Field({ label, type = "text", value, onChange, placeholder, disabled, i
               : "bg-slate-50 text-slate-800 border-slate-200 hover:border-slate-300",
           ].join(" ")}
         />
-        {/* Show/hide toggle button */}
         {showToggle && !disabled && (
           <button
             type="button"
             onClick={onToggleShow}
             tabIndex={-1}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors"
-            title={isVisible ? "Hide password" : "Show password"}
           >
             {isVisible ? <MdVisibilityOff size={17} /> : <MdVisibility size={17} />}
           </button>
@@ -128,31 +102,25 @@ function Card({ title, children, headerRight }) {
 
 /* ─── Profile ────────────────────────────────────────────────────── */
 export default function Profile() {
-  // ── Swap with real data when ready: ────────────────────────────
-  // const { currentUser, updateUser } = useContext(AuthContext);
-  // const source = currentUser;
-  const source = DUMMY_USER;
-  // ───────────────────────────────────────────────────────────────
+  const { currentUser, UpdateUser } = useContext(AuthContext);
 
-  const [username, setUsername] = useState(source?.username ?? "");
+  // Mirror the exact same unwrap pattern used in Navbar:
+  // currentUser = { userData: { _id, username, email, avatar, role, createdAt, ... } }
+  const user = currentUser?.userData ?? {};
+
+  const [username, setUsername] = useState(user.username ?? "");
   const [password, setPassword] = useState("");
   const [confirm,  setConfirm]  = useState("");
-  const [preview,  setPreview]  = useState(source?.avatar ?? null);
-  const [status,   setStatus]   = useState("idle"); // idle | saved | error
+  const [preview,  setPreview]  = useState(user.avatar ?? null);
 
-  // ── Password section toggle ───────────────────────────────────
+  const [status,   setStatus]   = useState("idle"); // "idle" | "loading" | "saved" | "error"
+  const [apiError, setApiError] = useState("");
+
   const [changePassword, setChangePassword] = useState(false);
+  const [showPassword,   setShowPassword]   = useState(false);
+  const [showConfirm,    setShowConfirm]    = useState(false);
 
-  // ── Show/hide password visibility ────────────────────────────
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm,  setShowConfirm]  = useState(false);
-
-  // ── Validation errors ─────────────────────────────────────────
-  const [errors, setErrors] = useState({
-    username: "",
-    password: "",
-    confirm:  "",
-  });
+  const [errors, setErrors] = useState({ username: "", password: "", confirm: "" });
 
   const fileRef = useRef();
 
@@ -160,17 +128,16 @@ export default function Profile() {
   const handleToggleChangePassword = () => {
     const next = !changePassword;
     setChangePassword(next);
-    // Reset fields and errors when hiding
     if (!next) {
       setPassword("");
       setConfirm("");
       setShowPassword(false);
       setShowConfirm(false);
-      setErrors(prev => ({ ...prev, password: "", confirm: "" }));
+      setErrors((prev) => ({ ...prev, password: "", confirm: "" }));
     }
   };
 
-  /* ── Validate all fields, return true if valid ── */
+  /* ── Validation ── */
   const validate = () => {
     const newErrors = { username: "", password: "", confirm: "" };
     let valid = true;
@@ -186,7 +153,6 @@ export default function Profile() {
       valid = false;
     }
 
-    // Password fields are required when changePassword is enabled
     if (changePassword) {
       if (!password) {
         newErrors.password = "New password is required.";
@@ -195,7 +161,6 @@ export default function Profile() {
         newErrors.password = "Password must be at least 6 characters.";
         valid = false;
       }
-
       if (!confirm) {
         newErrors.confirm = "Please confirm your new password.";
         valid = false;
@@ -216,8 +181,8 @@ export default function Profile() {
     setPreview(URL.createObjectURL(file));
   };
 
-  /* ── Save ── */
-  const handleSave = () => {
+ const handleSave = async () => {
+    setApiError("");
     if (!validate()) {
       setStatus("error");
       setTimeout(() => setStatus("idle"), 3000);
@@ -230,36 +195,60 @@ export default function Profile() {
       ...(changePassword && password ? { password } : {}),
     };
 
-    // Replace with real API/context call:
-    // updateUser(payload);
-    console.log("Save profile →", payload);
+    setStatus("loading");
 
-    setPassword("");
-    setConfirm("");
-    setChangePassword(false);
-    setShowPassword(false);
-    setShowConfirm(false);
-    setErrors({ username: "", password: "", confirm: "" });
-    setStatus("saved");
-    setTimeout(() => setStatus("idle"), 2500);
-  };
+    const userId = user.id;
 
-  /* ── Clear field error on change ── */
+    if (!userId) {
+      setApiError("User ID not found. Please log out and log in again.");
+      setStatus("error");
+      setTimeout(() => setStatus("idle"), 3000);
+      return;
+    }
+
+    try {
+      const res = await apiRequest.put(`/users/${userId}`, payload);
+
+      const updatedUser = res.data; // ✅ axios — no res.ok, no res.json()
+
+      UpdateUser({
+        ...currentUser,
+        userData: { ...user, ...updatedUser },
+      });
+
+      setPassword("");
+      setConfirm("");
+      setChangePassword(false);
+      setShowPassword(false);
+      setShowConfirm(false);
+      setErrors({ username: "", password: "", confirm: "" });
+      setStatus("saved");
+      setTimeout(() => setStatus("idle"), 2500);
+    } catch (err) {
+      console.log("Error status:", err.response?.status);
+      console.log("Error message:", err.response?.data);
+      setApiError(err.response?.data?.message || err.message || "Something went wrong.");
+      setStatus("error");
+      setTimeout(() => setStatus("idle"), 3000);
+    }
+};
+
+  /* ── Clear field errors on change ── */
   const handleUsernameChange = (e) => {
     setUsername(e.target.value);
-    if (errors.username) setErrors(prev => ({ ...prev, username: "" }));
+    if (errors.username) setErrors((prev) => ({ ...prev, username: "" }));
   };
   const handlePasswordChange = (e) => {
     setPassword(e.target.value);
-    if (errors.password) setErrors(prev => ({ ...prev, password: "" }));
+    if (errors.password) setErrors((prev) => ({ ...prev, password: "" }));
   };
   const handleConfirmChange = (e) => {
     setConfirm(e.target.value);
-    if (errors.confirm) setErrors(prev => ({ ...prev, confirm: "" }));
+    if (errors.confirm) setErrors((prev) => ({ ...prev, confirm: "" }));
   };
 
-  const memberYear = source?.createdAt
-    ? new Date(source.createdAt).getFullYear()
+  const memberYear = user.createdAt
+    ? new Date(user.createdAt).getFullYear()
     : new Date().getFullYear();
 
   return (
@@ -267,10 +256,7 @@ export default function Profile() {
 
       {/* ── Avatar card ──────────────────────────────────────── */}
       <Card>
-        {/* On mobile: centered column. On sm+: row */}
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-4">
-
-          {/* Photo + edit button */}
           <div className="relative flex-shrink-0">
             <Avatar src={preview} name={username} size={72} />
             <button
@@ -280,27 +266,19 @@ export default function Profile() {
             >
               <MdOutlineModeEdit size={12} color="white" />
             </button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleImageChange}
-            />
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
           </div>
 
-          {/* Name + meta — centered on mobile, left-aligned on sm+ */}
           <div className="flex-1 min-w-0 flex flex-col items-center sm:items-start">
             <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
               <p className="text-[15px] font-bold text-slate-800 leading-tight">
                 {username.trim() || "Your Name"}
               </p>
-              {/* Role badge — inline on mobile, right-floated on sm+ */}
               <span className="bg-violet-50 text-violet-700 text-[11px] font-bold rounded-full px-2.5 py-0.5 capitalize">
-                {source?.role ?? "Member"}
+                {user.role ?? "Member"}
               </span>
             </div>
-            <p className="text-[12px] text-slate-400 mt-0.5 capitalize text-center sm:text-left">
+            <p className="text-[12px] text-slate-400 mt-0.5 text-center sm:text-left">
               Member since {memberYear}
             </p>
             <button
@@ -310,7 +288,6 @@ export default function Profile() {
               Change profile picture →
             </button>
           </div>
-
         </div>
       </Card>
 
@@ -319,7 +296,7 @@ export default function Profile() {
         <Field
           label="Email Address"
           type="email"
-          value={source?.email ?? ""}
+          value={user.email ?? ""}
           disabled
           icon={MdOutlineEmail}
           placeholder="email@example.com"
@@ -342,14 +319,11 @@ export default function Profile() {
             <span className="text-[12px] font-semibold text-slate-500">
               {changePassword ? "Cancel" : "Change password"}
             </span>
-            {/* Toggle switch */}
             <div
               onClick={handleToggleChangePassword}
               className={[
                 "relative w-9 h-5 rounded-full transition-colors duration-200 cursor-pointer flex-shrink-0",
-                changePassword
-                  ? "bg-gradient-to-r from-violet-600 to-purple-600"
-                  : "bg-slate-200",
+                changePassword ? "bg-gradient-to-r from-violet-600 to-purple-600" : "bg-slate-200",
               ].join(" ")}
             >
               <div
@@ -363,7 +337,6 @@ export default function Profile() {
         }
       >
         {!changePassword ? (
-          /* Placeholder row when collapsed */
           <div className="flex items-center gap-3 py-1">
             <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
               <MdOutlineLock size={16} className="text-slate-400" />
@@ -376,7 +349,6 @@ export default function Profile() {
             </div>
           </div>
         ) : (
-          /* Password fields — required when visible */
           <>
             <Field
               label="New Password *"
@@ -387,7 +359,7 @@ export default function Profile() {
               error={errors.password}
               showToggle
               isVisible={showPassword}
-              onToggleShow={() => setShowPassword(v => !v)}
+              onToggleShow={() => setShowPassword((v) => !v)}
             />
             <Field
               label="Confirm New Password *"
@@ -398,7 +370,7 @@ export default function Profile() {
               error={errors.confirm}
               showToggle
               isVisible={showConfirm}
-              onToggleShow={() => setShowConfirm(v => !v)}
+              onToggleShow={() => setShowConfirm((v) => !v)}
             />
             <p className="text-[11.5px] text-slate-400 -mt-1">
               * Both fields are required to update your password.
@@ -407,23 +379,39 @@ export default function Profile() {
         )}
       </Card>
 
+      {/* ── API error banner ─────────────────────────────────── */}
+      {apiError && (
+        <p className="flex items-center gap-2 text-[12.5px] text-red-500 font-medium bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
+          <MdError size={15} />
+          {apiError}
+        </p>
+      )}
+
       {/* ── Save button ──────────────────────────────────────── */}
       <button
         onClick={handleSave}
+        disabled={status === "loading"}
         className={[
           "w-full py-3 rounded-xl text-[14px] font-bold text-white border-none cursor-pointer transition-all",
           "hover:opacity-90 hover:-translate-y-px active:translate-y-0",
-          status === "saved" ? "bg-gradient-to-r from-emerald-500 to-green-500 shadow-md shadow-emerald-200"
-          : status === "error" ? "bg-gradient-to-r from-red-500 to-rose-500 shadow-md shadow-red-200"
-          : "bg-gradient-to-r from-violet-600 to-purple-600 shadow-md shadow-violet-200",
+          "disabled:opacity-70 disabled:cursor-not-allowed disabled:translate-y-0",
+          status === "saved"
+            ? "bg-gradient-to-r from-emerald-500 to-green-500 shadow-md shadow-emerald-200"
+            : status === "error"
+            ? "bg-gradient-to-r from-red-500 to-rose-500 shadow-md shadow-red-200"
+            : "bg-gradient-to-r from-violet-600 to-purple-600 shadow-md shadow-violet-200",
         ].join(" ")}
       >
         <span className="flex items-center justify-center gap-2">
           {status === "saved" && <MdCheckCircle size={17} />}
           {status === "error" && <MdError size={17} />}
-          {status === "saved" ? "Changes Saved!"
-          : status === "error" ? "Fix errors above"
-          : "Save Changes"}
+          {status === "loading"
+            ? "Saving…"
+            : status === "saved"
+            ? "Changes Saved!"
+            : status === "error"
+            ? "Fix errors above"
+            : "Save Changes"}
         </span>
       </button>
 

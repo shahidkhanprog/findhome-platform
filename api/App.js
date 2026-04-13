@@ -5,6 +5,7 @@ import authRoute from './routes/auth.route.js';
 import testRoute from "./routes/test.route.js";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
+import userRoute from "./routes/user.route.js";
 
 const app = express();
 const PORT = 3000;
@@ -20,6 +21,7 @@ dotenv.config();
 app.use(cookieParser());
 
 app.use('/api/auth', authRoute);
+app.use('/api/users', userRoute);
 app.use('/api/test', testRoute);
 
 
