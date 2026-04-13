@@ -512,8 +512,8 @@ export default function ForgotPassword() {
               onToggleShow={() => setShowConfirm((v) => !v)}
             />
 
-            {/* Password strength hint */}
-            {newPass && <PasswordStrength password={newPass} />}
+            {/* Password strength hint
+            {newPass && <PasswordStrength password={newPass} />} */}
 
             <button type="submit" disabled={loading} className={btnPrimary}>
               {loading && <Spinner />}
@@ -562,68 +562,68 @@ export default function ForgotPassword() {
 /* ─────────────────────────────────────────────────────────────────
    PASSWORD STRENGTH INDICATOR
 ───────────────────────────────────────────────────────────────── */
-function PasswordStrength({ password }) {
-  const checks = [
-    { label: "6+ characters", pass: password.length >= 6 },
-    { label: "Uppercase letter", pass: /[A-Z]/.test(password) },
-    { label: "Number", pass: /[0-9]/.test(password) },
-    { label: "Special character", pass: /[^A-Za-z0-9]/.test(password) },
-  ];
-  const score = checks.filter((c) => c.pass).length;
-  const colors = [
-    "bg-red-400",
-    "bg-orange-400",
-    "bg-yellow-400",
-    "bg-emerald-400",
-    "bg-emerald-500",
-  ];
-  const labels = ["", "Weak", "Fair", "Good", "Strong"];
+// function PasswordStrength({ password }) {
+//   const checks = [
+//     { label: "6+ characters", pass: password.length >= 6 },
+//     { label: "Uppercase letter", pass: /[A-Z]/.test(password) },
+//     { label: "Number", pass: /[0-9]/.test(password) },
+//     { label: "Special character", pass: /[^A-Za-z0-9]/.test(password) },
+//   ];
+//   const score = checks.filter((c) => c.pass).length;
+//   const colors = [
+//     "bg-red-400",
+//     "bg-orange-400",
+//     "bg-yellow-400",
+//     "bg-emerald-400",
+//     "bg-emerald-500",
+//   ];
+//   const labels = ["", "Weak", "Fair", "Good", "Strong"];
 
-  return (
-    <div className="flex flex-col gap-2 -mt-1">
-      <div className="flex gap-1">
-        {[0, 1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className={[
-              "h-1.5 flex-1 rounded-full transition-all duration-300",
-              i < score ? colors[score] : "bg-slate-200",
-            ].join(" ")}
-          />
-        ))}
-      </div>
-      <div className="flex items-center justify-between">
-        <div className="flex flex-wrap gap-x-3 gap-y-1">
-          {checks.map((c) => (
-            <span
-              key={c.label}
-              className={[
-                "text-[10.5px] font-medium flex items-center gap-1",
-                c.pass ? "text-emerald-600" : "text-slate-400",
-              ].join(" ")}
-            >
-              {c.pass ? "✓" : "○"} {c.label}
-            </span>
-          ))}
-        </div>
-        {score > 0 && (
-          <span
-            className={[
-              "text-[11px] font-bold flex-shrink-0",
-              score >= 3
-                ? "text-emerald-600"
-                : score === 2
-                ? "text-yellow-500"
-                : "text-red-500",
-            ].join(" ")}
-          >
-            {labels[score]}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
+//   return (
+//     <div className="flex flex-col gap-2 -mt-1">
+//       <div className="flex gap-1">
+//         {[0, 1, 2, 3].map((i) => (
+//           <div
+//             key={i}
+//             className={[
+//               "h-1.5 flex-1 rounded-full transition-all duration-300",
+//               i < score ? colors[score] : "bg-slate-200",
+//             ].join(" ")}
+//           />
+//         ))}
+//       </div>
+//       <div className="flex items-center justify-between">
+//         <div className="flex flex-wrap gap-x-3 gap-y-1">
+//           {checks.map((c) => (
+//             <span
+//               key={c.label}
+//               className={[
+//                 "text-[10.5px] font-medium flex items-center gap-1",
+//                 c.pass ? "text-emerald-600" : "text-slate-400",
+//               ].join(" ")}
+//             >
+//               {c.pass ? "✓" : "○"} {c.label}
+//             </span>
+//           ))}
+//         </div>
+//         {score > 0 && (
+//           <span
+//             className={[
+//               "text-[11px] font-bold flex-shrink-0",
+//               score >= 3
+//                 ? "text-emerald-600"
+//                 : score === 2
+//                 ? "text-yellow-500"
+//                 : "text-red-500",
+//             ].join(" ")}
+//           >
+//             {labels[score]}
+//           </span>
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
 /* ─────────────────────────────────────────────────────────────────
    SPINNER
 ───────────────────────────────────────────────────────────────── */
