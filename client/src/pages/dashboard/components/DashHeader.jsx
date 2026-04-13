@@ -1,17 +1,16 @@
-// src/pages/dashboard/components/DashHeader.jsx
-import { useContext , useState } from "react";
+import { useContext, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { AuthContext } from "../../../context/AuthContext"; 
+import { AuthContext } from "../../../context/AuthContext";
 import { MdNotificationsNone } from "react-icons/md";
 
 /* ─── Page titles ────────────────────────────────────────────────── */
 const PAGE_META = {
-  "/dashboard/overview":     "Overview",
+  "/dashboard/overview": "Overview",
   "/dashboard/myProperties": "My Properties",
-  "/dashboard/addProperty":  "Add Property",
-  "/dashboard/favorites":    "Saved Posts",
-  "/dashboard/messages":     "Messages",
-  "/dashboard/profile":      "Profile",
+  "/dashboard/addProperty": "Add Property",
+  "/dashboard/favorites": "Saved Posts",
+  "/dashboard/messages": "Messages",
+  "/dashboard/profile": "Profile",
 };
 
 const getPageTitle = (pathname) => {
@@ -27,27 +26,28 @@ const getInitials = (name) => {
 
 const todayString = () =>
   new Date().toLocaleDateString("en-US", {
-    weekday: "long", year: "numeric", month: "long", day: "numeric",
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
-/* ─── DashHeader ─────────────────────────────────────────────────── */
 const DashHeader = () => {
-  // From context / props / API
-// const { unreadCount } = useContext(MessagesContext);
-
-// or local state
-const [unreadCount, setUnreadCount] = useState(12);
+  const [unreadCount] = useState(12);
 
   const { currentUser } = useContext(AuthContext);
-  const { pathname }    = useLocation();
-  const navigate        = useNavigate();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
 
-  // ✅ Safe — never reads .avatar, .username, .role directly on undefined
-  const avatar   = currentUser?.avatar   ?? null;
-  const username = currentUser?.username ?? "User";
-  const role     = currentUser?.role     ?? "Member";
+  // ✅ FIX: correct structure from your system
+  const user = currentUser?.userData ?? {};
+
+  const avatar = user.avatar ?? null;
+  const username = user.username ?? "User";
+  const role = user.role ?? "Member";
   const initials = getInitials(username);
-  const title    = getPageTitle(pathname);
+
+  const title = getPageTitle(pathname);
 
   return (
     <header className="h-16 bg-white border-b border-slate-400 flex items-center px-4 md:px-6 gap-4 flex-shrink-0 px-10">
@@ -65,38 +65,32 @@ const [unreadCount, setUnreadCount] = useState(12);
       {/* Bell + user chip */}
       <div className="flex items-center gap-2 flex-shrink-0">
 
-        {/* Bell
         <button
           onClick={() => navigate("/dashboard/messages")}
-          className="relative w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:bg-violet-50 hover:border-violet-200 hover:text-violet-700 transition-all">
-          <MdNotificationsNone size={20} />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
-        </button> */}
-        {/* Bell */}
-        <button
-          onClick={() => navigate("/dashboard/messages")}
-          className="relative w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:bg-violet-50 hover:border-violet-200 hover:text-violet-700 transition-all">
+          className="relative w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:bg-violet-50 hover:border-violet-200 hover:text-violet-700 transition-all"
+        >
           <MdNotificationsNone size={20} />
 
           {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-rose-500 border-2 border-white text-white text-[10px] font-bold leading-none">
-            {unreadCount > 99 ? "99+" : unreadCount}
-          </span>
+            <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-rose-500 border-2 border-white text-white text-[10px] font-bold leading-none">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
           )}
         </button>
 
-        {/* User chip → profile page */}
+        {/* User chip */}
         <button
           onClick={() => navigate("/dashboard/profile")}
           className="flex items-center gap-2 bg-slate-50 border border-slate-200 hover:bg-violet-50 hover:border-violet-200 rounded-xl pl-1.5 pr-3 py-1.5 transition-all group"
         >
-          {/* Avatar: photo if set, else first letter of name */}
           {avatar ? (
             <img
               src={avatar}
               alt={username}
               className="w-7 h-7 rounded-full object-cover flex-shrink-0 border border-violet-200"
-              onError={(e) => { e.currentTarget.style.display = "none"; }}
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
             />
           ) : (
             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 select-none">

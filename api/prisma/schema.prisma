@@ -9,10 +9,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 enum Role {
   USER
   ADMIN
+}
+
+enum ListingType {
+  Rent
+  Buy
+}
+
+enum PropertyType {
+  Apartments
+  Commercial
+  Land
+  Home
 }
 
 model user {
@@ -24,4 +35,79 @@ model user {
   avatar    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  posts      post[]
+  savedPosts savePost[]
+  chats      chat[]     @relation(fields: [chatIDs], references: [id])
+  chatIDs    String[]   @db.ObjectId
+  messages   message[]
+}
+
+model post {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String       @db.ObjectId
+  title       String
+  price       Int
+  images      String[]
+  address     String
+  city        String
+  bedroom     Int
+  bathroom    Int
+  latitude    String
+  longitude   String
+  property    String
+  listingType String
+  status      String       @default("available")
+  createdAt   DateTime     @default(now())
+
+  user        user        @relation(fields: [userId], references: [id])
+  postDetails postDetail?
+  savedPosts  savePost[]
+}
+
+model postDetail {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  postId     String @unique @db.ObjectId
+  desc       String
+  utilities  String
+  pet        String
+  income     String
+  size       Int
+  school     Int    @default(0)
+  bus        Int    @default(0)
+  restaurant Int    @default(0)
+
+  post post @relation(fields: [postId], references: [id])
+}
+
+model savePost {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  postId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+
+  user user @relation(fields: [userId], references: [id])
+  post post @relation(fields: [postId], references: [id])
+}
+
+model chat {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userIDs     String[] @db.ObjectId
+  seenBy      String[] @db.ObjectId
+  lastMessage String?
+  createdAt   DateTime @default(now())
+
+  users    user[]    @relation(fields: [userIDs], references: [id])
+  messages message[]
+}
+
+model message {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  chatId    String   @db.ObjectId
+  userId    String   @db.ObjectId
+  text      String
+  createdAt DateTime @default(now())
+
+  chat chat @relation(fields: [chatId], references: [id])
+  user user @relation(fields: [userId], references: [id])
 }

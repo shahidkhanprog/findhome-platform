@@ -6,6 +6,7 @@ import testRoute from "./routes/test.route.js";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import userRoute from "./routes/user.route.js";
+import postRoute from "./routes/post.route.js";
 
 const app = express();
 const PORT = 3000;
@@ -23,6 +24,7 @@ app.use(cookieParser());
 app.use('/api/auth', authRoute);
 app.use('/api/users', userRoute);
 app.use('/api/test', testRoute);
+app.use('/api/posts', postRoute);
 
 
 app.listen(PORT, () => {
