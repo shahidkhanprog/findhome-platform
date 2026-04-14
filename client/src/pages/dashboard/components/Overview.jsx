@@ -457,7 +457,7 @@ export default function Overview() {
             <p className="text-base md:text-[17px] font-bold text-slate-800 truncate">
               Welcome back, {user?.username ?? "User"} 👋
             </p>
-            <p className="text-xs md:text-[13px] text-slate-400 capitalize mt-0.5 truncate">
+            <p className="text-xs md:text-[13px] text-slate-400 mt-0.5 truncate">
               {user?.role ?? "Member"}
               {user?.email ? ` · ${user.email}` : ""}
             </p>
