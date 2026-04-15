@@ -65,7 +65,7 @@ const UploadWidget = ({ uwConfig, setPublicId, setAvatar }) => {
       className="mt-2 text-[12px] text-violet-600 font-semibold bg-transparent border-none cursor-pointer p-0 hover:text-violet-800 transition-colors"
       style={{ cursor: 'pointer' }} // optional visual confirmation
     >
-      Change profile picture →
+      upload picture →
     </button>
   );
 };

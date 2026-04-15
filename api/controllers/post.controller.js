@@ -89,7 +89,7 @@ export const createPost = async (req, res) => {
     } = req.body;
 
     // Basic required field check
-    if (!title || !price || !address || !city || !bedroom || !bathroom ||
+    if (!title || !price || !address || !city ||
         !latitude || !longitude || !listingType || !property) {
         return res.status(400).json({ message: "Missing required post fields" });
     }
@@ -143,7 +143,7 @@ export const createPostDetails = async (req, res) => {
 
     const { postId, desc, utilities, pet, income, size, school, bus, restaurant } = req.body;
 
-    if (!postId || !desc || !utilities || !pet || !income || !size) {
+    if (!postId || !desc || !size) {
         return res.status(400).json({ message: "Missing required postDetails fields" });
     }
 
@@ -163,7 +163,7 @@ export const createPostDetails = async (req, res) => {
                 desc:       desc.trim(),
                 utilities,
                 pet,
-                income:     income.trim(),
+                income:     (income || "").trim(),
                 size:       parseInt(size, 10),
                 school:     school ? parseInt(school, 10) : 0,
                 bus:        bus    ? parseInt(bus, 10)    : 0,
@@ -174,7 +174,7 @@ export const createPostDetails = async (req, res) => {
         res.status(201).json(details);
     } catch (error) {
         console.error("Error creating post details:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: "Internal server error ss" });
     }
 };
 

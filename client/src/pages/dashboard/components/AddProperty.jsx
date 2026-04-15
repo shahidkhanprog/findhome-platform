@@ -1,4 +1,6 @@
-// import { useState, useRef, useCallback, useEffect, useContext } from "react";
+// // src/pages/property/AddProperty.jsx
+
+// import { useState, useRef, useCallback, useContext } from "react";
 // import { useNavigate } from "react-router-dom";
 // import { AuthContext } from "../../../context/AuthContext";
 // import apiRequest from "../../../lib/apiRequest";
@@ -14,9 +16,9 @@
 //   { label: "Nearby", desc: "Nearby facilities" },
 // ];
 
-// const S_BG = ["bg-white", "bg-slate-50/60", "bg-blue-50/25", "bg-amber-50/25"];
+// const S_BG     = ["bg-white", "bg-slate-50/60", "bg-blue-50/25", "bg-amber-50/25"];
 // const S_ACCENT = ["bg-indigo-500", "bg-violet-500", "bg-teal-500", "bg-amber-500"];
-// const S_PAL = [
+// const S_PAL    = [
 //   { ring: "ring-indigo-200", icon: "bg-indigo-100 text-indigo-600", num: "bg-indigo-600" },
 //   { ring: "ring-violet-200", icon: "bg-violet-100 text-violet-600", num: "bg-violet-600" },
 //   { ring: "ring-teal-200",   icon: "bg-teal-100   text-teal-600",   num: "bg-teal-600"   },
@@ -77,12 +79,12 @@
 //   return (
 //     <div className="flex items-center bg-white border border-slate-200 rounded-2xl p-3 mb-6 overflow-x-auto">
 //       {STEPS.map((s, i) => {
-//         const done = completed.has(i);
-//         const hasFailed = failed.has(i) && !done;
+//         const done       = completed.has(i);
+//         const hasFailed  = failed.has(i) && !done;
 //         const wasVisited = visited.has(i) && !done;
-//         const active = current === i;
-//         const Icon = STEP_ICONS[i];
-//         const p = S_PAL[i];
+//         const active     = current === i;
+//         const Icon       = STEP_ICONS[i];
+//         const p          = S_PAL[i];
 //         return (
 //           <div key={i} className="flex items-center flex-1 min-w-0">
 //             <button
@@ -91,26 +93,26 @@
 //               className={[
 //                 "flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium",
 //                 "transition-all duration-200 w-full justify-center sm:justify-start cursor-pointer",
-//                 active && done ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-//                   : active ? "bg-slate-50 text-slate-700 ring-1 ring-slate-200"
-//                   : done ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-//                   : hasFailed ? "bg-red-50 text-red-600 hover:bg-red-100"
-//                   : wasVisited ? "bg-slate-50 text-slate-500 hover:bg-slate-100"
-//                   : "text-slate-400 hover:bg-slate-50",
+//                 active && done  ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+//                   : active      ? "bg-slate-50 text-slate-700 ring-1 ring-slate-200"
+//                   : done        ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+//                   : hasFailed   ? "bg-red-50 text-red-600 hover:bg-red-100"
+//                   : wasVisited  ? "bg-slate-50 text-slate-500 hover:bg-slate-100"
+//                   :               "text-slate-400 hover:bg-slate-50",
 //               ].join(" ")}
 //             >
 //               <div className={[
 //                 "w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all",
-//                 active && done ? "bg-emerald-500 text-white"
-//                   : active ? `${p.num} text-white`
-//                   : done ? "bg-emerald-500 text-white"
-//                   : hasFailed ? "bg-red-400 text-white"
-//                   : wasVisited ? "bg-slate-300 text-white"
-//                   : "bg-slate-100 text-slate-300",
+//                 active && done  ? "bg-emerald-500 text-white"
+//                   : active      ? `${p.num} text-white`
+//                   : done        ? "bg-emerald-500 text-white"
+//                   : hasFailed   ? "bg-red-400 text-white"
+//                   : wasVisited  ? "bg-slate-300 text-white"
+//                   :               "bg-slate-100 text-slate-300",
 //               ].join(" ")}>
-//                 {done ? <IC.Check className="w-3 h-3" />
-//                   : hasFailed && !active ? <IC.X className="w-3 h-3" />
-//                   : wasVisited && !active ? <IC.X className="w-3 h-3" />
+//                 {done                                    ? <IC.Check  className="w-3 h-3" />
+//                   : hasFailed  && !active               ? <IC.X      className="w-3 h-3" />
+//                   : wasVisited && !active               ? <IC.X      className="w-3 h-3" />
 //                   : !done && !hasFailed && !wasVisited && !active ? <IC.Lock className="w-3 h-3" />
 //                   : <Icon className="w-3.5 h-3.5" />}
 //               </div>
@@ -216,13 +218,11 @@
 // }
 
 // /* ─────────────────────────────────────────────────────────────────────────────
-//    PHOTO UPLOAD ZONE — uses UploadWidget (Cloudinary)
-//    Shows uploaded thumbnails + remove button; requires min 4
+//    PHOTO UPLOAD ZONE
 // ───────────────────────────────────────────────────────────────────────────── */
 // function PhotoUploadZone({ images, onAdd, onRemove, error }) {
 //   return (
 //     <div>
-//       {/* Requirement banner */}
 //       <div className="flex items-center justify-between mb-3">
 //         <div className="flex items-center gap-2">
 //           <IC.Camera className="w-4 h-4 text-indigo-500" />
@@ -238,7 +238,6 @@
 //         </span>
 //       </div>
 
-//       {/* Info note */}
 //       <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-3.5 py-2.5 mb-4 flex items-start gap-2">
 //         <IC.Alert className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
 //         <p className="text-xs text-indigo-700">
@@ -247,19 +246,15 @@
 //         </p>
 //       </div>
 
-//       {/* Uploaded thumbnails */}
 //       {images.length > 0 && (
 //         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4">
 //           {images.map((url, i) => (
-//             <div key={i} className="relative group aspect-video rounded-xl overflow-hidden border-2 border-slate-200 shadow-sm">
+//             <div key={`${url}-${i}`} className="relative group aspect-video rounded-xl overflow-hidden border-2 border-slate-200 shadow-sm">
 //               <img src={url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
-//               {/* Overlay on hover */}
 //               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
-//               {/* Index badge */}
 //               <span className="absolute bottom-1 left-1.5 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-md font-medium">
 //                 {i < 4 ? `★ ${i + 1}` : `${i + 1}`}
 //               </span>
-//               {/* Remove button */}
 //               <button
 //                 type="button"
 //                 onClick={() => onRemove(i)}
@@ -267,7 +262,6 @@
 //               >
 //                 <IC.X className="w-3 h-3" />
 //               </button>
-//               {/* Required badge */}
 //               {i < 4 && (
 //                 <span className="absolute top-1 left-1.5 bg-indigo-600 text-white text-[9px] px-1.5 py-0.5 rounded-md font-bold opacity-80">
 //                   REQ
@@ -278,7 +272,6 @@
 //         </div>
 //       )}
 
-//       {/* Upload button via UploadWidget */}
 //       {images.length < 10 && (
 //         <UploadWidget
 //           uwConfig={{
@@ -291,7 +284,7 @@
 //             maxFileSize: 8000000,
 //             clientAllowedFormats: ["jpg", "jpeg", "png", "webp"],
 //           }}
-//           setAvatar={(url) => onAdd(url)}
+//           setAvatar={onAdd}
 //           buttonLabel={
 //             images.length === 0
 //               ? "Upload Property Photos"
@@ -301,7 +294,6 @@
 //         />
 //       )}
 
-//       {/* Minimum 4 chips */}
 //       <div className="flex items-center gap-1.5 mt-3 flex-wrap">
 //         {[0, 1, 2, 3].map((i) => (
 //           <span key={i} className={`inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full border ${
@@ -310,7 +302,7 @@
 //               : "bg-slate-50 text-slate-400 border-slate-200"
 //           }`}>
 //             {images[i] ? <IC.Check className="w-3 h-3" /> : <IC.Camera className="w-3 h-3" />}
-//             Photo {i + 1} {i < 4 ? "★" : ""}
+//             Photo {i + 1} ★
 //           </span>
 //         ))}
 //         {images.length > 4 && (
@@ -318,7 +310,6 @@
 //         )}
 //       </div>
 
-//       {/* Error */}
 //       {error && (
 //         <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-3.5 py-2.5 mt-3">
 //           <IC.Alert className="w-3.5 h-3.5 text-red-500 shrink-0" />
@@ -333,19 +324,17 @@
 //    MAIN COMPONENT
 // ═════════════════════════════════════════════════════════════════════════════ */
 // export default function AddProperty({ post, postDetails, onCancel }) {
-//   const navigate = useNavigate();
+//   const navigate      = useNavigate();
 //   const { currentUser } = useContext(AuthContext);
 
-//   const [current, setCurrent] = useState(0);
+//   const [current, setCurrent]     = useState(0);
 //   const [completed, setCompleted] = useState(new Set());
-//   const [failed, setFailed] = useState(new Set());
-//   const [visited, setVisited] = useState(new Set([0]));
+//   const [failed, setFailed]       = useState(new Set());
+//   const [visited, setVisited]     = useState(new Set([0]));
 
-//   /* ── API state ──────────────────────────────────────────────────────────── */
-//   const [submitStatus, setSubmitStatus] = useState("idle"); // idle | loading | success | error
-//   const [submitError, setSubmitError] = useState("");
+//   const [submitStatus, setSubmitStatus] = useState("idle");
+//   const [submitError, setSubmitError]   = useState("");
 
-//   /* ── form state ─────────────────────────────────────────────────────────── */
 //   const [form, setForm] = useState({
 //     title:       post?.title       ?? "",
 //     price:       post?.price       ?? "",
@@ -359,30 +348,39 @@
 //     property:    post?.property    ?? "",
 //     status:      post?.status      ?? "",
 //   });
+
 //   const [det, setDet] = useState({
-//     desc:       postDetails?.desc       ?? "",
-//     utilities:  postDetails?.utilities  ?? "",
-//     pet:        postDetails?.pet        ?? "",
-//     income:     postDetails?.income     ?? "",
-//     size:       postDetails?.size       ?? "",
-//     school:     postDetails?.school     ?? 0,
-//     bus:        postDetails?.bus        ?? 0,
-//     restaurant: postDetails?.restaurant ?? 0,
+//     desc:       postDetails?.desc       ?? post?.postDetails?.desc       ?? "",
+//     utilities:  postDetails?.utilities  ?? post?.postDetails?.utilities  ?? "",
+//     pet:        postDetails?.pet        ?? post?.postDetails?.pet        ?? "",
+//     income:     postDetails?.income     ?? post?.postDetails?.income     ?? "",
+//     size:       postDetails?.size       ?? post?.postDetails?.size       ?? "",
+//     school:     postDetails?.school     ?? post?.postDetails?.school     ?? 0,
+//     bus:        postDetails?.bus        ?? post?.postDetails?.bus        ?? 0,
+//     restaurant: postDetails?.restaurant ?? post?.postDetails?.restaurant ?? 0,
 //   });
 
-//   /* ── images — array of Cloudinary URLs ─────────────────────────────────── */
 //   const [images, setImages] = useState(post?.images ?? []);
 
-//   const addImage = (url) => setImages((prev) => [...prev, url]);
-//   const removeImage = (index) => setImages((prev) => prev.filter((_, i) => i !== index));
+//   // ── KEY FIX: deduplicate on add — safety net against any double-fire ──────
+//   const addImage = useCallback((url) => {
+//     setImages((prev) => {
+//       if (prev.includes(url)) return prev;       // already in list — ignore
+//       if (prev.length >= 10)  return prev;       // cap at 10
+//       return [...prev, url];
+//     });
+//   }, []);
 
-//   /* ── errors ─────────────────────────────────────────────────────────────── */
+//   const removeImage = useCallback((index) => {
+//     setImages((prev) => prev.filter((_, i) => i !== index));
+//   }, []);
+//   // ──────────────────────────────────────────────────────────────────────────
+
 //   const [errors, setErrors] = useState({});
 //   const clr = (k) => setErrors((e) => { if (!e[k]) return e; const n = { ...e }; delete n[k]; return n; });
-//   const sf = (k, v) => { setForm((f) => ({ ...f, [k]: v })); clr(k); };
-//   const sd = (k, v) => { setDet((d) => ({ ...d, [k]: v })); clr(k); };
+//   const sf  = (k, v) => { setForm((f) => ({ ...f, [k]: v })); clr(k); };
+//   const sd  = (k, v) => { setDet((d)  => ({ ...d, [k]: v })); clr(k); };
 
-//   /* ── refs ───────────────────────────────────────────────────────────────── */
 //   const R = {
 //     images: useRef(null), title: useRef(null), price: useRef(null),
 //     city: useRef(null), address: useRef(null), listingType: useRef(null),
@@ -391,6 +389,7 @@
 //     desc: useRef(null), size: useRef(null), utilities: useRef(null),
 //     pet: useRef(null), income: useRef(null),
 //   };
+
 //   const focusFirst = useCallback((errs, keys) => {
 //     for (const k of keys) {
 //       if (errs[k] && R[k]?.current) {
@@ -401,31 +400,30 @@
 //     }
 //   }, []);
 
-//   /* ── validation ─────────────────────────────────────────────────────────── */
 //   const validate = useCallback((s) => {
 //     const e = {};
 //     if (s === 0) {
 //       if (images.length < 4) e.images = `${images.length} of 4 required photos uploaded — please upload at least 4`;
 //     }
 //     if (s === 1) {
-//       if (!form.title.trim())    e.title       = "Property title is required";
-//       if (!form.price)           e.price       = "Price is required";
-//       if (!form.city.trim())     e.city        = "City is required";
-//       if (!form.address.trim())  e.address     = "Address is required";
-//       if (!form.listingType)     e.listingType = "Select a listing type";
-//       if (!form.property)        e.property    = "Select a property type";
-//       if (!form.status)          e.status      = "Select a listing status";
-//       if (!form.bedroom)         e.bedroom     = "Number of bedrooms is required";
-//       if (!form.bathroom)        e.bathroom    = "Number of bathrooms is required";
-//       if (!form.latitude.trim()) e.latitude    = "Latitude is required";
-//       if (!form.longitude.trim())e.longitude   = "Longitude is required";
+//       if (!form.title.trim())     e.title       = "Property title is required";
+//       if (!form.price)            e.price       = "Price is required";
+//       if (!form.city.trim())      e.city        = "City is required";
+//       if (!form.address.trim())   e.address     = "Address is required";
+//       if (!form.listingType)      e.listingType = "Select a listing type";
+//       if (!form.property)         e.property    = "Select a property type";
+//       if (!form.status)           e.status      = "Select a listing status";
+//       if (!form.bedroom)          e.bedroom     = "Number of bedrooms is required";
+//       if (!form.bathroom)         e.bathroom    = "Number of bathrooms is required";
+//       if (!form.latitude.trim())  e.latitude    = "Latitude is required";
+//       if (!form.longitude.trim()) e.longitude   = "Longitude is required";
 //     }
 //     if (s === 2) {
-//       if (!det.desc.trim())     e.desc       = "Description is required";
-//       if (!det.size)            e.size       = "Size is required";
-//       if (!det.utilities)       e.utilities  = "Select a utilities policy";
-//       if (!det.pet)             e.pet        = "Select a pet policy";
-//       if (!det.income.trim())   e.income     = "Income requirement is required";
+//       if (!det.desc.trim())    e.desc      = "Description is required";
+//       if (!det.size)           e.size      = "Size is required";
+//       if (!det.utilities)      e.utilities = "Select a utilities policy";
+//       if (!det.pet)            e.pet       = "Select a pet policy";
+//       if (!det.income.trim())  e.income    = "Income requirement is required";
 //     }
 //     return e;
 //   }, [form, det, images]);
@@ -437,7 +435,6 @@
 //     3: [],
 //   };
 
-//   /* ── navigation ─────────────────────────────────────────────────────────── */
 //   const handleNext = () => {
 //     const e = validate(current);
 //     setErrors(e);
@@ -469,13 +466,10 @@
 //     window.scrollTo({ top: 0, behavior: "smooth" });
 //   };
 
-//   /* ── PUBLISH — sends data to API ─────────────────────────────────────────── */
 //   const handlePublish = async () => {
 //     setSubmitError("");
 //     setSubmitStatus("loading");
-
 //     try {
-//       // 1. Create post
 //       const postRes = await apiRequest.post("/posts", {
 //         title:       form.title.trim(),
 //         price:       parseInt(form.price, 10),
@@ -488,14 +482,11 @@
 //         listingType: form.listingType,
 //         property:    form.property,
 //         status:      form.status,
-//         images:      images,  // array of Cloudinary URLs
+//         images,
 //       });
 
-//       const postId = postRes.data.id;
-
-//       // 2. Create postDetails linked to post
 //       await apiRequest.post("/posts/details", {
-//         postId,
+//         postId:     postRes.data.id,
 //         desc:       det.desc.trim(),
 //         utilities:  det.utilities,
 //         pet:        det.pet,
@@ -508,24 +499,20 @@
 
 //       setSubmitStatus("success");
 //       setCompleted((prev) => new Set([...prev, 3]));
-
-//       // Redirect after short delay
-//       setTimeout(() => navigate("/"), 1200);
+//       setTimeout(() => navigate("/dashboard/myProperties"), 1200);
 //     } catch (err) {
 //       setSubmitError(err.response?.data?.message || "Failed to publish listing. Please try again.");
 //       setSubmitStatus("error");
 //     }
 //   };
 
-//   const iCls = (k) => (isLocked ? CLS_DIS : errors[k] ? ERR : OK);
+//   const iCls     = (k) => (isLocked ? CLS_DIS : errors[k] ? ERR : OK);
 //   const fieldErr = (k) => (isLocked ? undefined : errors[k]);
 //   const isLocked = current > 0 && !completed.has(current - 1);
 
-//   /* ─────────────────────────────────────────────────────────────────────────── */
 //   return (
 //     <div className="w-full max-w-3xl mx-auto pb-10">
 
-//       {/* Heading */}
 //       <div className="mb-5 px-1">
 //         <h2 className="text-xl font-bold text-slate-800">
 //           {post ? "Edit Property" : "Add New Property"}
@@ -536,28 +523,16 @@
 //         </p>
 //       </div>
 
-//       {/* Progress bar */}
-//       <ProgressBar
-//         current={current}
-//         completed={completed}
-//         failed={failed}
-//         visited={visited}
-//         onNav={handleNav}
-//       />
+//       <ProgressBar current={current} completed={completed} failed={failed} visited={visited} onNav={handleNav} />
 
-//       {/* ── STEP 0 — PHOTOS ─────────────────────────────────────────────────── */}
+//       {/* ── STEP 0 — PHOTOS ── */}
 //       {current === 0 && (
 //         <StepCard stepIndex={0}>
-//           <PhotoUploadZone
-//             images={images}
-//             onAdd={addImage}
-//             onRemove={removeImage}
-//             error={errors.images}
-//           />
+//           <PhotoUploadZone images={images} onAdd={addImage} onRemove={removeImage} error={errors.images} />
 //         </StepCard>
 //       )}
 
-//       {/* ── STEP 1 — BASIC INFO ─────────────────────────────────────────────── */}
+//       {/* ── STEP 1 — BASIC INFO ── */}
 //       {current === 1 && (
 //         <StepCard stepIndex={1}>
 //           {isLocked && (
@@ -568,6 +543,7 @@
 //           )}
 //           <fieldset disabled={isLocked} className="contents">
 //             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
 //               <div className="sm:col-span-2">
 //                 <Field label="Property Title" required error={fieldErr("title")} icon={IC.Tag}>
 //                   <input ref={R.title} type="text" value={form.title} onChange={(e) => sf("title", e.target.value)}
@@ -582,9 +558,7 @@
 
 //               <Field label="City" required error={fieldErr("city")}>
 //                 <div className="relative">
-//                   <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2">
-//                     <IC.Pin className="w-4 h-4 text-slate-400" />
-//                   </span>
+//                   <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"><IC.Pin className="w-4 h-4 text-slate-400" /></span>
 //                   <input ref={R.city} type="text" value={form.city} onChange={(e) => sf("city", e.target.value)}
 //                     placeholder="e.g. Islamabad" className={`${iCls("city")} pl-9 scroll-mt-4`} />
 //                 </div>
@@ -593,9 +567,7 @@
 //               <div className="sm:col-span-2">
 //                 <Field label="Full Address" required error={fieldErr("address")}>
 //                   <div className="relative">
-//                     <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2">
-//                       <IC.Pin className="w-4 h-4 text-slate-400" />
-//                     </span>
+//                     <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"><IC.Pin className="w-4 h-4 text-slate-400" /></span>
 //                     <input ref={R.address} type="text" value={form.address} onChange={(e) => sf("address", e.target.value)}
 //                       placeholder="e.g. House 12, Street 5, Blue Area" className={`${iCls("address")} pl-9 scroll-mt-4`} />
 //                   </div>
@@ -619,8 +591,6 @@
 //               <Sel label="Listing Status" required error={fieldErr("status")} fieldRef={R.status}
 //                 value={form.status} onChange={(e) => sf("status", e.target.value)} placeholder="Select status…">
 //                 <option value="available">Available</option>
-//                 <option value="sold">Sold</option>
-//                 <option value="rented">Rented</option>
 //                 <option value="pending">Pending</option>
 //               </Sel>
 
@@ -656,7 +626,7 @@
 //         </StepCard>
 //       )}
 
-//       {/* ── STEP 2 — PROPERTY DETAILS ───────────────────────────────────────── */}
+//       {/* ── STEP 2 — PROPERTY DETAILS ── */}
 //       {current === 2 && (
 //         <StepCard stepIndex={2}>
 //           {isLocked && (
@@ -704,7 +674,7 @@
 //         </StepCard>
 //       )}
 
-//       {/* ── STEP 3 — NEARBY ─────────────────────────────────────────────────── */}
+//       {/* ── STEP 3 — NEARBY ── */}
 //       {current === 3 && (
 //         <StepCard stepIndex={3}>
 //           {isLocked && (
@@ -765,7 +735,6 @@
 //               </div>
 //             )}
 
-//             {/* API submit error */}
 //             {submitError && (
 //               <div className="mt-4 flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-3.5 py-2.5">
 //                 <IC.Alert className="w-3.5 h-3.5 text-red-500 shrink-0" />
@@ -773,7 +742,6 @@
 //               </div>
 //             )}
 
-//             {/* API success */}
 //             {submitStatus === "success" && (
 //               <div className="mt-4 flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-3.5 py-2.5">
 //                 <IC.Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
@@ -784,7 +752,7 @@
 //         </StepCard>
 //       )}
 
-//       {/* ── Navigation buttons ──────────────────────────────────────────────── */}
+//       {/* ── Navigation ── */}
 //       <div className="flex items-center gap-3 mt-5">
 //         {current === 0 ? (
 //           <button onClick={onCancel}
@@ -798,7 +766,6 @@
 //           </button>
 //         )}
 
-//         {/* Step dots */}
 //         <div className="flex-1 flex items-center justify-center gap-1.5">
 //           {STEPS.map((_, i) => (
 //             <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${
@@ -812,7 +779,7 @@
 //             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm ${
 //               isLocked ? "bg-slate-100 text-slate-300 cursor-not-allowed" : "bg-indigo-600 text-white hover:bg-indigo-700 active:scale-[.98]"
 //             }`}>
-//             {isLocked ? <IC.Lock className="w-4 h-4" /> : null}
+//             {isLocked && <IC.Lock className="w-4 h-4" />}
 //             Next {!isLocked && <IC.ArrR className="w-4 h-4" />}
 //           </button>
 //         ) : (
@@ -820,17 +787,15 @@
 //             onClick={!isLocked && submitStatus !== "loading" && submitStatus !== "success" ? handlePublish : undefined}
 //             disabled={isLocked || submitStatus === "loading" || submitStatus === "success"}
 //             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm ${
-//               isLocked ? "bg-slate-100 text-slate-300 cursor-not-allowed"
+//               isLocked                    ? "bg-slate-100 text-slate-300 cursor-not-allowed"
 //               : submitStatus === "loading" ? "bg-indigo-400 text-white cursor-not-allowed"
 //               : submitStatus === "success" ? "bg-emerald-500 text-white"
 //               : "bg-indigo-600 text-white hover:bg-indigo-700 active:scale-[.98]"
 //             }`}>
-//             {submitStatus === "loading" && (
-//               <IC.Spinner className="w-4 h-4 animate-spin" />
-//             )}
-//             {submitStatus === "loading" ? "Publishing…"
+//             {submitStatus === "loading" && <IC.Spinner className="w-4 h-4 animate-spin" />}
+//             {submitStatus === "loading"  ? "Publishing…"
 //               : submitStatus === "success" ? <><IC.Check className="w-4 h-4" /> Published!</>
-//               : isLocked ? <IC.Lock className="w-4 h-4" />
+//               : isLocked                   ? <IC.Lock className="w-4 h-4" />
 //               : <>{post ? "Save Changes" : "Publish Listing"} <IC.Save className="w-4 h-4" /></>
 //             }
 //           </button>
@@ -866,6 +831,13 @@ const S_PAL    = [
   { ring: "ring-teal-200",   icon: "bg-teal-100   text-teal-600",   num: "bg-teal-600"   },
   { ring: "ring-amber-200",  icon: "bg-amber-100  text-amber-600",  num: "bg-amber-600"  },
 ];
+
+// FIX 2 & 3: Property types that have bedrooms/bathrooms
+const PROPERTY_HAS_ROOMS = ["house", "apartment", "commercial"];
+// Property types that need rooms (commercial still may have rooms but no bedrooms per se — adjust if needed)
+const PROPERTY_HAS_BEDROOMS = ["house", "apartment"];
+// Listing types that show rental-specific fields (pet policy, utilities)
+const LISTING_IS_RENT = ["rent"];
 
 const OK      = "w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all placeholder:text-slate-300";
 const ERR     = "w-full border border-red-300   rounded-xl px-3 py-2.5 text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-red-200   focus:border-red-400   transition-all placeholder:text-slate-300";
@@ -1061,6 +1033,7 @@ function Counter({ value, onChange, btnCls }) {
 
 /* ─────────────────────────────────────────────────────────────────────────────
    PHOTO UPLOAD ZONE
+   FIX 1: X button is now always visible (not just on hover)
 ───────────────────────────────────────────────────────────────────────────── */
 function PhotoUploadZone({ images, onAdd, onRemove, error }) {
   return (
@@ -1093,19 +1066,20 @@ function PhotoUploadZone({ images, onAdd, onRemove, error }) {
           {images.map((url, i) => (
             <div key={`${url}-${i}`} className="relative group aspect-video rounded-xl overflow-hidden border-2 border-slate-200 shadow-sm">
               <img src={url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
-              <span className="absolute bottom-1 left-1.5 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-md font-medium">
-                {i < 4 ? `★ ${i + 1}` : `${i + 1}`}
-              </span>
+              {/* FIX 1: Removed opacity-0 / group-hover:opacity-100 — button is now always visible */}
               <button
                 type="button"
                 onClick={() => onRemove(i)}
-                className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow hover:bg-red-600"
+                className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:bg-red-600 active:scale-95 transition-all z-10"
+                title="Remove photo"
               >
-                <IC.X className="w-3 h-3" />
+                <IC.X className="w-3.5 h-3.5" />
               </button>
+              <span className="absolute bottom-1 left-1.5 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-md font-medium">
+                {i < 4 ? `★ ${i + 1}` : `${i + 1}`}
+              </span>
               {i < 4 && (
-                <span className="absolute top-1 left-1.5 bg-indigo-600 text-white text-[9px] px-1.5 py-0.5 rounded-md font-bold opacity-80">
+                <span className="absolute top-1.5 left-1.5 bg-indigo-600 text-white text-[9px] px-1.5 py-0.5 rounded-md font-bold opacity-80">
                   REQ
                 </span>
               )}
@@ -1195,20 +1169,19 @@ export default function AddProperty({ post, postDetails, onCancel }) {
     desc:       postDetails?.desc       ?? post?.postDetails?.desc       ?? "",
     utilities:  postDetails?.utilities  ?? post?.postDetails?.utilities  ?? "",
     pet:        postDetails?.pet        ?? post?.postDetails?.pet        ?? "",
-    income:     postDetails?.income     ?? post?.postDetails?.income     ?? "",
     size:       postDetails?.size       ?? post?.postDetails?.size       ?? "",
     school:     postDetails?.school     ?? post?.postDetails?.school     ?? 0,
     bus:        postDetails?.bus        ?? post?.postDetails?.bus        ?? 0,
     restaurant: postDetails?.restaurant ?? post?.postDetails?.restaurant ?? 0,
   });
+  // FIX 4: Removed `income` from det state entirely
 
   const [images, setImages] = useState(post?.images ?? []);
 
-  // ── KEY FIX: deduplicate on add — safety net against any double-fire ──────
   const addImage = useCallback((url) => {
     setImages((prev) => {
-      if (prev.includes(url)) return prev;       // already in list — ignore
-      if (prev.length >= 10)  return prev;       // cap at 10
+      if (prev.includes(url)) return prev;
+      if (prev.length >= 10)  return prev;
       return [...prev, url];
     });
   }, []);
@@ -1216,12 +1189,16 @@ export default function AddProperty({ post, postDetails, onCancel }) {
   const removeImage = useCallback((index) => {
     setImages((prev) => prev.filter((_, i) => i !== index));
   }, []);
-  // ──────────────────────────────────────────────────────────────────────────
 
   const [errors, setErrors] = useState({});
   const clr = (k) => setErrors((e) => { if (!e[k]) return e; const n = { ...e }; delete n[k]; return n; });
   const sf  = (k, v) => { setForm((f) => ({ ...f, [k]: v })); clr(k); };
   const sd  = (k, v) => { setDet((d)  => ({ ...d, [k]: v })); clr(k); };
+
+  // FIX 2 & 3: Derived booleans for conditional field display
+  const showBedrooms  = PROPERTY_HAS_BEDROOMS.includes(form.property);
+  const showBathrooms = PROPERTY_HAS_ROOMS.includes(form.property);
+  const showRentFields = LISTING_IS_RENT.includes(form.listingType);
 
   const R = {
     images: useRef(null), title: useRef(null), price: useRef(null),
@@ -1229,7 +1206,8 @@ export default function AddProperty({ post, postDetails, onCancel }) {
     property: useRef(null), status: useRef(null), bedroom: useRef(null),
     bathroom: useRef(null), latitude: useRef(null), longitude: useRef(null),
     desc: useRef(null), size: useRef(null), utilities: useRef(null),
-    pet: useRef(null), income: useRef(null),
+    pet: useRef(null),
+    // FIX 4: removed income ref
   };
 
   const focusFirst = useCallback((errs, keys) => {
@@ -1255,25 +1233,28 @@ export default function AddProperty({ post, postDetails, onCancel }) {
       if (!form.listingType)      e.listingType = "Select a listing type";
       if (!form.property)         e.property    = "Select a property type";
       if (!form.status)           e.status      = "Select a listing status";
-      if (!form.bedroom)          e.bedroom     = "Number of bedrooms is required";
-      if (!form.bathroom)         e.bathroom    = "Number of bathrooms is required";
+      // FIX 2: Only validate bedroom/bathroom if the property type requires them
+      if (showBedrooms  && !form.bedroom)  e.bedroom  = "Number of bedrooms is required";
+      if (showBathrooms && !form.bathroom) e.bathroom = "Number of bathrooms is required";
       if (!form.latitude.trim())  e.latitude    = "Latitude is required";
       if (!form.longitude.trim()) e.longitude   = "Longitude is required";
     }
     if (s === 2) {
-      if (!det.desc.trim())    e.desc      = "Description is required";
-      if (!det.size)           e.size      = "Size is required";
-      if (!det.utilities)      e.utilities = "Select a utilities policy";
-      if (!det.pet)            e.pet       = "Select a pet policy";
-      if (!det.income.trim())  e.income    = "Income requirement is required";
+      if (!det.desc.trim())  e.desc = "Description is required";
+      if (!det.size)         e.size = "Size is required";
+      // FIX 3: Only validate rent-specific fields when listing type is rent
+      if (showRentFields && !det.utilities) e.utilities = "Select a utilities policy";
+      if (showRentFields && !det.pet)       e.pet       = "Select a pet policy";
+      // FIX 4: income validation removed entirely
     }
     return e;
-  }, [form, det, images]);
+  }, [form, det, images, showBedrooms, showBathrooms, showRentFields]);
 
   const ORDER = {
     0: ["images"],
     1: ["title","price","city","address","listingType","property","status","bedroom","bathroom","latitude","longitude"],
-    2: ["desc","size","utilities","pet","income"],
+    2: ["desc","size","utilities","pet"],
+    // FIX 4: removed income from ORDER
     3: [],
   };
 
@@ -1317,8 +1298,9 @@ export default function AddProperty({ post, postDetails, onCancel }) {
         price:       parseInt(form.price, 10),
         address:     form.address.trim(),
         city:        form.city.trim(),
-        bedroom:     parseInt(form.bedroom, 10),
-        bathroom:    parseInt(form.bathroom, 10),
+        // FIX 2: Send null/0 for bedroom/bathroom when property type doesn't need them
+        bedroom:     showBedrooms  ? parseInt(form.bedroom,  10) : 0,
+        bathroom:    showBathrooms ? parseInt(form.bathroom, 10) : 0,
         latitude:    form.latitude.trim(),
         longitude:   form.longitude.trim(),
         listingType: form.listingType,
@@ -1330,9 +1312,10 @@ export default function AddProperty({ post, postDetails, onCancel }) {
       await apiRequest.post("/posts/details", {
         postId:     postRes.data.id,
         desc:       det.desc.trim(),
-        utilities:  det.utilities,
-        pet:        det.pet,
-        income:     det.income.trim(),
+        // FIX 3: Send null for rent-only fields when listing is sale
+        utilities:  showRentFields ? det.utilities : null,
+        pet:        showRentFields ? det.pet       : null,
+        // FIX 4: income removed from payload
         size:       parseInt(det.size, 10),
         school:     det.school,
         bus:        det.bus,
@@ -1423,7 +1406,12 @@ export default function AddProperty({ post, postDetails, onCancel }) {
               </Sel>
 
               <Sel label="Property Type" required icon={IC.Build} error={fieldErr("property")} fieldRef={R.property}
-                value={form.property} onChange={(e) => sf("property", e.target.value)} placeholder="Select property type…">
+                value={form.property} onChange={(e) => {
+                  sf("property", e.target.value);
+                  // FIX 2: Clear bedroom/bathroom values when switching to a type that doesn't use them
+                  if (!PROPERTY_HAS_BEDROOMS.includes(e.target.value)) sf("bedroom", "");
+                  if (!PROPERTY_HAS_ROOMS.includes(e.target.value))    sf("bathroom", "");
+                }} placeholder="Select property type…">
                 <option value="house">House</option>
                 <option value="apartment">Apartment</option>
                 <option value="commercial">Commercial</option>
@@ -1433,20 +1421,32 @@ export default function AddProperty({ post, postDetails, onCancel }) {
               <Sel label="Listing Status" required error={fieldErr("status")} fieldRef={R.status}
                 value={form.status} onChange={(e) => sf("status", e.target.value)} placeholder="Select status…">
                 <option value="available">Available</option>
-                <option value="sold">Sold</option>
-                <option value="rented">Rented</option>
                 <option value="pending">Pending</option>
               </Sel>
 
-              <Field label="Bedrooms" required error={fieldErr("bedroom")} icon={IC.Bed}>
-                <input ref={R.bedroom} type="number" min="0" value={form.bedroom} onChange={(e) => sf("bedroom", e.target.value)}
-                  placeholder="e.g. 3" className={`${iCls("bedroom")} scroll-mt-4`} />
-              </Field>
+              {/* FIX 2: Conditional bedroom field — hidden for land */}
+              {showBedrooms && (
+                <Field label="Bedrooms" required error={fieldErr("bedroom")} icon={IC.Bed}>
+                  <input ref={R.bedroom} type="number" min="0" value={form.bedroom} onChange={(e) => sf("bedroom", e.target.value)}
+                    placeholder="e.g. 3" className={`${iCls("bedroom")} scroll-mt-4`} />
+                </Field>
+              )}
 
-              <Field label="Bathrooms" required error={fieldErr("bathroom")} icon={IC.Drop}>
-                <input ref={R.bathroom} type="number" min="0" value={form.bathroom} onChange={(e) => sf("bathroom", e.target.value)}
-                  placeholder="e.g. 2" className={`${iCls("bathroom")} scroll-mt-4`} />
-              </Field>
+              {/* FIX 2: Conditional bathroom field — hidden for land; commercial keeps bathrooms */}
+              {showBathrooms && (
+                <Field label="Bathrooms" required error={fieldErr("bathroom")} icon={IC.Drop}>
+                  <input ref={R.bathroom} type="number" min="0" value={form.bathroom} onChange={(e) => sf("bathroom", e.target.value)}
+                    placeholder="e.g. 2" className={`${iCls("bathroom")} scroll-mt-4`} />
+                </Field>
+              )}
+
+              {/* Info badge when land is selected */}
+              {form.property === "land" && (
+                <div className="sm:col-span-2 flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5">
+                  <IC.Alert className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <p className="text-xs text-amber-700">Land listings don't require some details. Like bedroom and bathroom counts.</p>
+                </div>
+              )}
 
               <div className="sm:col-span-2 flex items-center gap-3 mt-1">
                 <hr className="flex-1 border-slate-200" />
@@ -1494,25 +1494,30 @@ export default function AddProperty({ post, postDetails, onCancel }) {
                   placeholder="e.g. 1800" className={`${isLocked ? CLS_DIS : errors.size ? ERR : OK} scroll-mt-4`} />
               </Field>
 
-              <Field label="Income Requirement" required error={fieldErr("income")} icon={IC.Wallet}>
-                <input ref={R.income} type="text" value={det.income} onChange={(e) => sd("income", e.target.value)}
-                  placeholder="e.g. 3× monthly rent" className={`${isLocked ? CLS_DIS : errors.income ? ERR : OK} scroll-mt-4`} />
-              </Field>
+              {/* FIX 3 & 4: Only show Utilities and Pet Policy for rent listings; Income Requirement removed entirely */}
+              {showRentFields ? (
+                <>
+                  <Sel label="Utilities Included" required icon={IC.Zap} error={fieldErr("utilities")} fieldRef={R.utilities}
+                    value={det.utilities} onChange={(e) => sd("utilities", e.target.value)} placeholder="Select utilities policy…">
+                    <option value="owner">Owner pays</option>
+                    <option value="tenant">Tenant pays</option>
+                    <option value="shared">Shared</option>
+                  </Sel>
 
-              <Sel label="Utilities Included" required icon={IC.Zap} error={fieldErr("utilities")} fieldRef={R.utilities}
-                value={det.utilities} onChange={(e) => sd("utilities", e.target.value)} placeholder="Select utilities policy…">
-                <option value="owner">Owner pays</option>
-                <option value="tenant">Tenant pays</option>
-                <option value="shared">Shared</option>
-              </Sel>
-
-              <Sel label="Pet Policy" required icon={IC.Paw} error={fieldErr("pet")} fieldRef={R.pet}
-                value={det.pet} onChange={(e) => sd("pet", e.target.value)} placeholder="Select pet policy…">
-                <option value="allowed">Allowed</option>
-                <option value="not-allowed">Not Allowed</option>
-                <option value="cats-only">Cats Only</option>
-                <option value="negotiable">Negotiable</option>
-              </Sel>
+                  <Sel label="Pet Policy" required icon={IC.Paw} error={fieldErr("pet")} fieldRef={R.pet}
+                    value={det.pet} onChange={(e) => sd("pet", e.target.value)} placeholder="Select pet policy…">
+                    <option value="allowed">Allowed</option>
+                    <option value="not-allowed">Not Allowed</option>
+                    <option value="cats-only">Cats Only</option>
+                    <option value="negotiable">Negotiable</option>
+                  </Sel>
+                </>
+              ) : form.listingType === "sale" ? (
+                <div className="sm:col-span-2 flex items-center gap-2 bg-teal-50 border border-teal-200 rounded-xl px-3.5 py-2.5">
+                  <IC.Alert className="w-3.5 h-3.5 text-teal-500 shrink-0" />
+                  <p className="text-xs text-teal-700">Utilities and pet policy fields are not applicable for sale listings — the buyer decides.</p>
+                </div>
+              ) : null}
             </div>
           </fieldset>
         </StepCard>

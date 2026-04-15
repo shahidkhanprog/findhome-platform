@@ -51,8 +51,8 @@ model post {
   images      String[]
   address     String
   city        String
-  bedroom     Int
-  bathroom    Int
+  bedroom     Int?
+  bathroom    Int?
   latitude    String
   longitude   String
   property    String
@@ -69,9 +69,9 @@ model postDetail {
   id         String @id @default(auto()) @map("_id") @db.ObjectId
   postId     String @unique @db.ObjectId
   desc       String
-  utilities  String
-  pet        String
-  income     String
+  utilities  String?
+  pet        String?
+  income     String?
   size       Int
   school     Int    @default(0)
   bus        Int    @default(0)
