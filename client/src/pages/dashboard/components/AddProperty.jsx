@@ -1049,7 +1049,7 @@ function PhotoUploadZone({ images, onAdd, onRemove, error }) {
             ? "bg-emerald-50 text-emerald-700 border-emerald-200"
             : "bg-red-50 text-red-600 border-red-200"
         }`}>
-          {images.length} / min 4 required
+          {images.length} / 4 photos
         </span>
       </div>
 
@@ -1440,13 +1440,13 @@ export default function AddProperty({ post, postDetails, onCancel }) {
                 </Field>
               )}
 
-              {/* Info badge when land is selected */}
+              {/* Info badge when land is selected
               {form.property === "land" && (
                 <div className="sm:col-span-2 flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5">
                   <IC.Alert className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                   <p className="text-xs text-amber-700">Land listings don't require some details. Like bedroom and bathroom counts.</p>
                 </div>
-              )}
+              )} */}
 
               <div className="sm:col-span-2 flex items-center gap-3 mt-1">
                 <hr className="flex-1 border-slate-200" />
