@@ -23,6 +23,7 @@ import AddProperty     from "../pages/dashboard/components/AddProperty";
 import SavedPosts      from "../pages/dashboard/components/SavedPosts";
 import Messages        from "../pages/dashboard/components/Messages";
 import Profile         from "../pages/dashboard/components/Profile";
+import Users           from "../pages/dashboard/components/Users";
 import PropertyDetail  from "../pages/dashboard/components/Propertydetail";
 
 const router = createBrowserRouter([
@@ -58,6 +59,7 @@ const router = createBrowserRouter([
       { path: "favorites",        element: <SavedPosts />     },
       { path: "messages",         element: <Messages />       },
       { path: "profile",          element: <Profile />        },
+      { path: "users",            element: <Users />          },
       { path: "property/:id",     element: <PropertyDetail /> }, // single property detail
     ],
   },

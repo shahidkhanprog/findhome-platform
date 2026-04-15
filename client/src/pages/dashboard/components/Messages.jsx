@@ -8,9 +8,6 @@
 //   );
 // }
 
-// export default Messages;
-
-
 import { useState, useRef, useEffect } from "react";
 import {
   MdSearch, MdMoreVert, MdSend, MdAttachFile, MdEmojiEmotions,
