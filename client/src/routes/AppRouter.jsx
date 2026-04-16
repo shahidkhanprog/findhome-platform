@@ -25,6 +25,7 @@ import Messages        from "../pages/dashboard/components/Messages";
 import Profile         from "../pages/dashboard/components/Profile";
 import Users           from "../pages/dashboard/components/Users";
 import PropertyDetail  from "../pages/dashboard/components/Propertydetail";
+import EditProperty from "../pages/dashboard/components/EditProperty";
 
 const router = createBrowserRouter([
 
@@ -56,6 +57,7 @@ const router = createBrowserRouter([
       { path: "overview",         element: <Overview />       },
       { path: "myProperties",     element: <MyProperties />   },
       { path: "addProperty",      element: <AddProperty />    },
+      { path: "edit/:postId",     element: <EditProperty />   }, // edit property page with dynamic postId
       { path: "favorites",        element: <SavedPosts />     },
       { path: "messages",         element: <Messages />       },
       { path: "profile",          element: <Profile />        },

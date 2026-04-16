@@ -1,4 +1,12 @@
-import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn, FaMapMarkerAlt, FaPhone, FaEnvelope,} from "react-icons/fa";
+import {
+  FaFacebookF,
+  FaTwitter,
+  FaInstagram,
+  FaLinkedinIn,
+  FaMapMarkerAlt,
+  FaPhone,
+  FaEnvelope,
+} from "react-icons/fa";
 import { NavLink } from "react-router-dom";
 
 const Footer = () => {
@@ -6,7 +14,6 @@ const Footer = () => {
     <footer className="bg-gray-900 text-gray-300">
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-
         {/* Brand */}
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-white">
@@ -66,16 +73,12 @@ const Footer = () => {
             Property Types
           </h3>
           <ul className="space-y-2 text-sm">
-            {[
-              "Apartments",
-              "Commercial",
-              "Homes",
-              "Land",
-            ].map((type) => (
+            {["Apartments", "Commercial", "Homes", "Land"].map((type) => (
               <li key={type}>
                 {/* Update 'to' when you create these pages */}
                 <NavLink
-                  to={`/properties/${type.toLowerCase()}`}
+                  // to={`/properties/${type.toLowerCase()}`}
+                  to={`#`}
                   className="hover:text-blue-400 transition-colors duration-300"
                 >
                   → {type}

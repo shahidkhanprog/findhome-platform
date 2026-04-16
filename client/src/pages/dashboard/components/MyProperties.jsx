@@ -30,7 +30,6 @@ import apiRequest from "../../../lib/apiRequest";
    CONSTANTS & HELPERS
 ───────────────────────────────────────────────────────────────────────────── */
 
-// Property categories that have no bedrooms / bathrooms
 const TYPES_WITHOUT_ROOMS = new Set([
   "land",
   "plot",
@@ -49,6 +48,8 @@ export function formatPrice(n) {
   if (n >= 100_000) return `PKR ${(n / 100_000).toFixed(0)}L`;
   return `PKR ${Number(n).toLocaleString()}`;
 }
+
+const PAGE_SIZE_OPTIONS = [6, 12, 18, 24];
 
 /* ─────────────────────────────────────────────────────────────────────────────
    STATUS CONFIG
@@ -86,9 +87,7 @@ export const STATUS_CONFIG = {
 const STATUS_KEYS = ["all", "available", "sold", "rented", "pending"];
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   LISTING TYPE CONFIG  (For Sale / For Rent)
-   Matches against post.type from the DB — case-insensitive, whitespace-stripped.
-   Add / rename keys to match exactly what your DB stores.
+   LISTING TYPE CONFIG
 ───────────────────────────────────────────────────────────────────────────── */
 const LISTING_TYPE_MAP = {
   buy: { label: "For Sale", bg: "bg-violet-600", text: "text-white" },
@@ -112,7 +111,6 @@ function ListingTypeBadge({ type }) {
   );
 }
 
-/* ─── StatusBadge ────────────────────────────────────────────────── */
 export function StatusBadge({ status }) {
   const s = STATUS_CONFIG[status] ?? STATUS_CONFIG.available;
   return (
@@ -197,7 +195,7 @@ function SaveButton({ postId }) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   IMAGE CAROUSEL  (manual only — no auto-scroll)
+   IMAGE CAROUSEL
 ───────────────────────────────────────────────────────────────────────────── */
 function ImageCarousel({ images, title }) {
   const [current, setCurrent] = useState(0);
@@ -298,9 +296,6 @@ function ImageCarousel({ images, title }) {
               />
             ))}
           </div>
-          {/* <span className="absolute top-2.5 left-3 bg-black/50 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm z-10">
-            {current + 1}/{total}
-          </span> */}
         </>
       )}
     </div>
@@ -348,15 +343,6 @@ function DeleteModal({ post, onConfirm, onCancel, loading }) {
 
 /* ─────────────────────────────────────────────────────────────────────────────
    PROPERTY CARD
-   
-   Image overlay layout:
-   ┌──────────────────────────────────┐
-   │ [❤]                  [● Status] │  top row
-   │                                  │
-   │ [PropCategory]    [For Sale/Rent]│  bottom row
-   └──────────────────────────────────┘
-   
-   Body: "Added by" (admin) · Title · City · Stats · Price
 ───────────────────────────────────────────────────────────────────────────── */
 function PropertyCard({
   post,
@@ -372,8 +358,8 @@ function PropertyCard({
   const bedroom = post.bedroom ?? post.bedrooms ?? 0;
   const bathroom = post.bathroom ?? post.bathrooms ?? 0;
   const area = post.postDetails?.size ?? post.area ?? 0;
-  const property = post.property ?? post.category ?? "property"; // physical type
-  const listingType = post.type ?? post.listingType ?? null; // for sale / rent
+  const property = post.property ?? post.category ?? "property";
+  const listingType = post.type ?? post.listingType ?? null;
   const images = post.images ?? [];
   const ownerName =
     post.user?.username ?? post.user?.name ?? post.ownerName ?? null;
@@ -381,21 +367,14 @@ function PropertyCard({
 
   return (
     <div className="bg-white rounded-2xl overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-1 shadow-inner shadow-black/30 border border-slate-400">
-      {/* ── Image + overlays ──────────────────────────────────────── */}
       <div className="relative">
         <ImageCarousel images={images} title={post.title} />
-
-        {/* Top-left: save heart */}
         <div className="absolute top-3 left-3 z-10">
           <SaveButton postId={post.id} />
         </div>
-
-        {/* Top-right: status */}
         <div className="absolute top-3 right-3 z-10">
           <StatusBadge status={post.status} />
         </div>
-
-        {/* Bottom: property category chip + listing type badge */}
         <div className="absolute bottom-3 left-3 right-3 z-10 flex items-center justify-between gap-1.5">
           <span className="text-[10.5px] font-semibold capitalize bg-white/85 backdrop-blur-sm text-slate-700 rounded-lg px-2 py-0.5 border border-white/60 truncate max-w-[55%]">
             {property}
@@ -404,9 +383,7 @@ function PropertyCard({
         </div>
       </div>
 
-      {/* ── Body ──────────────────────────────────────────────────── */}
       <div className="p-4 flex-1 flex flex-col gap-1.5">
-        {/* Admin: "Added by" */}
         {isAdmin && ownerName && (
           <div className="inline-flex items-center gap-1 self-start bg-violet-50 border border-violet-100 rounded-lg px-2 py-0.5 mb-0.5">
             <MdPerson size={11} className="text-violet-400 flex-shrink-0" />
@@ -415,19 +392,13 @@ function PropertyCard({
             </span>
           </div>
         )}
-
-        {/* Title */}
         <h3 className="text-[13.5px] font-bold text-slate-800 leading-snug line-clamp-2">
           {post.title}
         </h3>
-
-        {/* City */}
         <div className="flex items-center gap-1 text-[11.5px] text-slate-400">
           <MdLocationOn size={13} className="text-violet-400 flex-shrink-0" />
           <span className="truncate">{post.city}</span>
         </div>
-
-        {/* Key stats — rendered only if there's something to show */}
         {(area > 0 || (canShowRooms && (bedroom > 0 || bathroom > 0))) && (
           <div className="flex items-center gap-3 pt-0.5 flex-wrap border-t border-gray-200 mt-2">
             {area > 0 && (
@@ -450,17 +421,13 @@ function PropertyCard({
             )}
           </div>
         )}
-
-        {/* Price */}
         <p className="text-base font-extrabold text-violet-600 mt-auto pt-1.5 border-t border-gray-200">
           {formatPrice(post.price)}
         </p>
       </div>
 
-      {/* ── Divider ───────────────────────────────────────────────── */}
       <div className="mx-4 border-t border-dashed border-slate-200" />
 
-      {/* ── Actions ───────────────────────────────────────────────── */}
       <div className="p-3 flex items-center gap-2">
         <button
           onClick={() => onDetails?.(post.id)}
@@ -469,7 +436,6 @@ function PropertyCard({
           <MdOpenInNew size={14} />
           Details
         </button>
-
         <button
           onClick={() => onEdit?.(post)}
           className="flex items-center justify-center gap-1 py-2 px-3 text-[12px] font-semibold bg-violet-50 text-violet-600 hover:bg-violet-100 rounded-xl border-none cursor-pointer transition-colors"
@@ -478,7 +444,6 @@ function PropertyCard({
           Edit
         </button>
 
-        {/* Status dropdown */}
         <div className="relative">
           <button
             onClick={() => setMenuOpen((v) => !v)}
@@ -561,13 +526,6 @@ function SkeletonCard() {
 
 /* ─────────────────────────────────────────────────────────────────────────────
    FILTER BAR
-   
-   Admin — Row 1:  [View] [All Users ▪ 12 listings] [Mine Only]
-           Row 2:  [All] [Available] [Sold] [Rented] [Pending]
-   
-   User  — Row 1:  [All] [Available] [Sold] [Rented] [Pending]
-   
-   Both rows scroll horizontally on xs screens (no line-wrap clipping).
 ───────────────────────────────────────────────────────────────────────────── */
 function FilterBar({
   allPosts,
@@ -578,7 +536,6 @@ function FilterBar({
   setAdminScope,
   userId,
 }) {
-  // Posts after scope is applied (used for status counts)
   const scopedPosts =
     isAdmin && adminScope === "mine"
       ? allPosts.filter((p) => p.userId === userId || p.user?.id === userId)
@@ -591,14 +548,11 @@ function FilterBar({
 
   return (
     <div className="flex flex-col gap-2.5">
-      {/* ── Row 1: Admin scope toggle ──────────────────────────── */}
       {isAdmin && (
         <div className="mp-pills flex items-center gap-2 overflow-x-auto pb-0.5">
           <span className="flex-shrink-0 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
             View
           </span>
-
-          {/* All Users */}
           <button
             onClick={() => {
               setAdminScope("all");
@@ -624,8 +578,6 @@ function FilterBar({
               {allPosts.length}
             </span>
           </button>
-
-          {/* Mine Only */}
           <button
             onClick={() => {
               setAdminScope("mine");
@@ -658,7 +610,6 @@ function FilterBar({
         </div>
       )}
 
-      {/* ── Row 2 (or Row 1 for users): Status pills ───────────── */}
       {allPosts.length > 0 && (
         <div className="mp-pills flex items-center gap-2 overflow-x-auto pb-0.5">
           {STATUS_KEYS.map((s) => {
@@ -701,11 +652,178 @@ function FilterBar({
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   PAGINATION BAR
+───────────────────────────────────────────────────────────────────────────── */
+function PaginationBar({
+  currentPage,
+  totalPages,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+  totalItems,
+}) {
+  if (totalItems === 0) return null;
+
+  const startItem = (currentPage - 1) * pageSize + 1;
+  const endItem = Math.min(currentPage * pageSize, totalItems);
+
+  // Generate page numbers to show (max 5 visible)
+  const getPageNumbers = () => {
+    if (totalPages <= 5)
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    if (currentPage <= 3) return [1, 2, 3, 4, 5];
+    if (currentPage >= totalPages - 2)
+      return [
+        totalPages - 4,
+        totalPages - 3,
+        totalPages - 2,
+        totalPages - 1,
+        totalPages,
+      ];
+    return [
+      currentPage - 2,
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+      currentPage + 2,
+    ];
+  };
+
+  const pageNumbers = getPageNumbers();
+
+  return (
+    // FIX: removed duplicate border-t, py-3, px-1, justify-between from the inner left div
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white border border-slate-200 rounded-2xl px-4 py-3 mt-2">
+      {/* Left: Items info + page size selector */}
+      <div className="flex flex-col sm:flex-row items-center gap-4">
+        {/* Results Counter */}
+        <div className="flex items-center text-sm text-slate-600">
+          <span>
+            Showing{" "}
+            <span className="font-semibold text-slate-900">{startItem}</span>
+            <span className="mx-1 text-slate-400">–</span>
+            <span className="font-semibold text-slate-900">{endItem}</span>
+            <span className="ml-1 text-slate-500 text-xs uppercase tracking-wider">
+              of
+            </span>
+            <span className="ml-1 font-semibold text-slate-900">
+              {totalItems}
+            </span>
+          </span>
+        </div>
+
+        {/* Page Size Selector */}
+        <div className="flex items-center gap-3">
+          <label
+            htmlFor="page-size"
+            className="text-xs font-semibold text-slate-500 uppercase tracking-tight"
+          >
+            Items per page
+          </label>
+
+          <div className="relative group">
+            <select
+              id="page-size"
+              name="page-size"
+              value={pageSize}
+              onChange={(e) => onPageSizeChange(Number(e.target.value))}
+              className="appearance-none bg-white border border-slate-200 text-slate-700 text-sm rounded-md focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 block w-full pl-3 pr-8 py-1.5 transition-all cursor-pointer hover:border-slate-300"
+            >
+              {PAGE_SIZE_OPTIONS.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+
+            {/* Custom Chevron */}
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+              <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
+                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right: Prev / page numbers / Next */}
+      <div className="flex items-center gap-1">
+        {/* Previous */}
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          aria-label="Previous page"
+          className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[12px] font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+        >
+          <MdChevronLeft size={16} />
+          <span className="hidden sm:inline">Prev</span>
+        </button>
+
+        {/* Page numbers */}
+        <div className="flex items-center gap-1 mx-1">
+          {/* First page if not in range */}
+          {pageNumbers[0] > 1 && (
+            <>
+              <button
+                onClick={() => onPageChange(1)}
+                className="w-8 h-8 rounded-xl text-[12px] font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all cursor-pointer"
+              >
+                1
+              </button>
+              {pageNumbers[0] > 2 && (
+                <span className="text-slate-400 text-[12px] px-0.5">…</span>
+              )}
+            </>
+          )}
+
+          {pageNumbers.map((num) => (
+            <button
+              key={num}
+              onClick={() => onPageChange(num)}
+              className={[
+                "w-8 h-8 rounded-xl text-[12px] font-semibold border transition-all cursor-pointer",
+                num === currentPage
+                  ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white border-transparent shadow-sm shadow-violet-200"
+                  : "bg-white text-slate-600 border-slate-200 hover:border-violet-300 hover:text-violet-600",
+              ].join(" ")}
+            >
+              {num}
+            </button>
+          ))}
+
+          {/* Last page if not in range */}
+          {pageNumbers[pageNumbers.length - 1] < totalPages && (
+            <>
+              {pageNumbers[pageNumbers.length - 1] < totalPages - 1 && (
+                <span className="text-slate-400 text-[12px] px-0.5">…</span>
+              )}
+              <button
+                onClick={() => onPageChange(totalPages)}
+                className="w-8 h-8 rounded-xl text-[12px] font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all cursor-pointer"
+              >
+                {totalPages}
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Next */}
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          aria-label="Next page"
+          className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[12px] font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+        >
+          <span className="hidden sm:inline">Next</span>
+          <MdChevronRight size={16} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
    MY PROPERTIES PAGE
-   
-   Role logic:
-   • ADMIN → GET /posts         (all; backend should include user relation)
-   • USER  → GET /posts/user/:id (own only)
 ───────────────────────────────────────────────────────────────────────────── */
 export default function MyProperties() {
   const navigate = useNavigate();
@@ -716,12 +834,16 @@ export default function MyProperties() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Admin scope switcher: "all" | "mine"
   const [adminScope, setAdminScope] = useState("all");
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [statusUpdating, setStatusUpdating] = useState(null);
+
+  // Pagination state
+  // FIX 1: Changed default pageSize from 10 to 6 to match PAGE_SIZE_OPTIONS[0]
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(6);
 
   const userId = currentUser?.userData?.id;
   const role = currentUser?.userData?.role ?? currentUser?.role ?? "user";
@@ -749,7 +871,12 @@ export default function MyProperties() {
     fetchPosts();
   }, [userId, isAdmin]);
 
-  /* ── Derived: scope → status ────────────────────────────────────── */
+  /* ── Reset page when filter/scope/pageSize changes ─────────────── */
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, adminScope, pageSize]);
+
+  /* ── Derived: scope → status → paginate ────────────────────────── */
   const scopedPosts =
     isAdmin && adminScope === "mine"
       ? posts.filter((p) => p.userId === userId || p.user?.id === userId)
@@ -760,9 +887,18 @@ export default function MyProperties() {
       ? scopedPosts
       : scopedPosts.filter((p) => p.status === filter);
 
+  const totalItems = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginated = filtered.slice(
+    (safePage - 1) * pageSize,
+    safePage * pageSize,
+  );
+
   /* ── Handlers ───────────────────────────────────────────────────── */
   const handleEdit = (post) =>
-    navigate("/dashboard/addProperty", { state: { post } });
+    navigate(`/dashboard/edit/${post.id}`);
+
   const handleDetails = (id) => navigate(`/dashboard/property/${id}`);
 
   const handleDeleteConfirm = async () => {
@@ -789,6 +925,18 @@ export default function MyProperties() {
     } finally {
       setStatusUpdating(null);
     }
+  };
+
+  const handlePageChange = (page) => {
+    const clamped = Math.max(1, Math.min(page, totalPages));
+    setCurrentPage(clamped);
+    // Scroll to top of list smoothly
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handlePageSizeChange = (size) => {
+    setPageSize(size);
+    setCurrentPage(1);
   };
 
   /* ── Empty state copy ───────────────────────────────────────────── */
@@ -933,20 +1081,33 @@ export default function MyProperties() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map((post) => (
-              <PropertyCard
-                key={post.id}
-                post={post}
-                onEdit={handleEdit}
-                onDelete={setDeleteTarget}
-                onStatusChange={handleStatusChange}
-                onDetails={handleDetails}
-                statusUpdating={statusUpdating}
-                isAdmin={isAdmin}
-              />
-            ))}
-          </div>
+          <>
+            {/* Cards grid — only the current page slice */}
+            <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 gap-4">
+              {paginated.map((post) => (
+                <PropertyCard
+                  key={post.id}
+                  post={post}
+                  onEdit={handleEdit}
+                  onDelete={setDeleteTarget}
+                  onStatusChange={handleStatusChange}
+                  onDetails={handleDetails}
+                  statusUpdating={statusUpdating}
+                  isAdmin={isAdmin}
+                />
+              ))}
+            </div>
+
+            {/* Pagination bar */}
+            <PaginationBar
+              currentPage={safePage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              totalItems={totalItems}
+            />
+          </>
         ))}
     </div>
   );

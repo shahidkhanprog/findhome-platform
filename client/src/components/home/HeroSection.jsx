@@ -1,4 +1,3 @@
-// HeroSection.jsx - Full-screen hero with background image and headline
 import React from "react";
 
 const HeroSection = () => {

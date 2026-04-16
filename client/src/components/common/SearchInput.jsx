@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { FaSearch, FaChevronDown, FaTag } from "react-icons/fa";
 import { HiHome } from "react-icons/hi";
 
-const CATEGORIES = ["All Types", "Apartment", "House", "Villa", "Townhouse"];
-const LISTING_TYPES = ["All", "sale", "rent"]; // Use lowercase keys to match PROPERTIES
+const CATEGORIES = ["All Types", "House", "Land", "Apartment", "Commercial"];
+const LISTING_TYPES = ["All", "sale", "rent"];
 
 const SearchInput = ({ onSearch }) => {
   const [value, setValue] = useState("");
@@ -14,7 +14,7 @@ const SearchInput = ({ onSearch }) => {
     onSearch({
       query,
       category: cat,
-      listingType: type, // this will now match your property data
+      listingType: type,
     });
   };
 

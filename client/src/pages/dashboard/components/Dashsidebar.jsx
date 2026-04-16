@@ -10,6 +10,8 @@ import {
   MdChevronRight,
   MdChevronLeft,
 } from "react-icons/md";
+import { useContext } from "react";
+import { AuthContext } from "../../../context/AuthContext";
 
 /* ─── Constants ──────────────────────────────────────────────────── */
 const W_STRIP = 64;
@@ -62,18 +64,30 @@ const NAV_ITEMS = [
   },
 ];
 
-/* ─── NavList ────────────────────────────────────────────────────── */
 function NavList({ showLabels, onNavigate }) {
   const { pathname } = useLocation();
+  const { currentUser } = useContext(AuthContext);
 
-  // Keep "My Properties" highlighted when on a single property detail page
+  //  Get user role (same pattern as header)
+  const user = currentUser?.userData ?? {};
+  const role = user.role ?? "Visitor";
+
+  // Filter items (only admin can see users)
+  const filteredNavItems = NAV_ITEMS.filter((item) => {
+    if (item.id === "users" && role !== "ADMIN") return false;
+    return true;
+  });
+
+  // Keep "My Properties" highlighted when on property detail page
   const isPropertyDetail = pathname.startsWith("/dashboard/property/");
 
   return (
     <nav
-      className={`flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide ${showLabels ? "px-2.5 py-3" : "px-2 py-3"}`}
+      className={`flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide ${
+        showLabels ? "px-2.5 py-3" : "px-2 py-3"
+      }`}
     >
-      {NAV_ITEMS.map(({ id, label, path, Icon, badge }) => {
+      {filteredNavItems.map(({ id, label, path, Icon, badge }) => {
         const forceActive = id === "myProperties" && isPropertyDetail;
 
         return (
@@ -97,20 +111,26 @@ function NavList({ showLabels, onNavigate }) {
           >
             {({ isActive }) => {
               const active = isActive || forceActive;
+
               return (
                 <>
                   {active && (
                     <span className="absolute left-0 top-[20%] h-[60%] w-[3px] rounded-r-full bg-violet-700" />
                   )}
+
                   <Icon
                     size={20}
-                    className={`flex-shrink-0 ${active ? "text-violet-700" : "text-slate-400"}`}
+                    className={`flex-shrink-0 ${
+                      active ? "text-violet-700" : "text-slate-400"
+                    }`}
                   />
+
                   {showLabels && (
                     <>
                       <span className="flex-1 text-[13.5px] whitespace-nowrap">
                         {label}
                       </span>
+
                       {badge && (
                         <span className="text-[10px] font-bold bg-violet-700 text-white rounded-full px-[7px] py-[2px] leading-none">
                           {badge}
@@ -118,6 +138,7 @@ function NavList({ showLabels, onNavigate }) {
                       )}
                     </>
                   )}
+
                   {!showLabels && badge && (
                     <span className="absolute top-1.5 right-2 w-2 h-2 rounded-full bg-violet-700 border-2 border-white" />
                   )}
