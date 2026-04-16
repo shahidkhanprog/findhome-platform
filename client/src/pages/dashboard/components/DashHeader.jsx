@@ -50,8 +50,7 @@ const DashHeader = () => {
   const title = getPageTitle(pathname);
 
   return (
-    <header className="h-16 bg-white border-b border-slate-400 flex items-center px-4 md:px-6 gap-4 flex-shrink-0 px-10">
-
+    <header className="h-16 flex items-center md:px-6 gap-4 flex-shrink-0 w-full max-w-[1280px] mx-auto shadow-[0_4px_2px_-2px_rgba(0,0,0,0.1)]">
       {/* Page title + date */}
       <div className="flex-1 min-w-0">
         <h1 className="text-[15px] font-bold text-slate-800 leading-tight truncate capitalize">
