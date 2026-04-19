@@ -26,6 +26,7 @@ import Profile         from "../pages/dashboard/components/Profile";
 import Users           from "../pages/dashboard/components/Users";
 import PropertyDetail  from "../pages/dashboard/components/Propertydetail";
 import EditProperty from "../pages/dashboard/components/EditProperty";
+import Queries from "../pages/dashboard/components/Queries";
 
 const router = createBrowserRouter([
 
@@ -63,6 +64,7 @@ const router = createBrowserRouter([
       { path: "profile",          element: <Profile />        },
       { path: "users",            element: <Users />          },
       { path: "property/:id",     element: <PropertyDetail /> }, // single property detail
+      { path: "queries",     element: <Queries /> }, // Queries
     ],
   },
 

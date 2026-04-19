@@ -1,9 +1,11 @@
+// pages/Contact.jsx
 import React, { useState } from "react";
 import {
   FaPhoneAlt, FaEnvelope, FaMapMarkerAlt,
   FaFacebook, FaTwitter, FaLinkedin, FaInstagram,
   FaCheckCircle, FaWhatsapp,
 } from "react-icons/fa";
+import apiRequest from "../../lib/apiRequest";
 
 // ── Contact info data ─────────────────────────────────────────
 const CONTACT_INFO = [
@@ -62,7 +64,7 @@ const SUBJECTS = [
   "General Inquiry",
 ];
 
-// ── Helper: Contact Info Card ─────────────────────────────────
+// ── Contact Info Card ─────────────────────────────────────────
 const ContactInfoCard = ({ icon, title, detail, sub, link, linkLabel, color }) => (
   <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex gap-4 items-start hover:shadow-md transition-all duration-300">
     <div className={`p-3 rounded-xl shrink-0 ${color}`}>
@@ -76,8 +78,7 @@ const ContactInfoCard = ({ icon, title, detail, sub, link, linkLabel, color }) =
         {detail}
       </p>
       <p className="text-slate-400 text-xs mt-0.5 mb-2">{sub}</p>
-      
-        <a
+      <a
         href={link}
         target={link.startsWith("http") ? "_blank" : undefined}
         rel="noreferrer"
@@ -89,10 +90,9 @@ const ContactInfoCard = ({ icon, title, detail, sub, link, linkLabel, color }) =
   </div>
 );
 
-// ── Helper: Social Icon ───────────────────────────────────────
+// ── Social Icon ───────────────────────────────────────────────
 const SocialIcon = ({ icon, label, color, href }) => (
-  
-   <a
+  <a
     href={href}
     aria-label={label}
     className={`relative group w-11 h-11 bg-white border border-slate-100 flex items-center justify-center rounded-xl text-slate-500 transition-all duration-300 shadow-sm hover:text-white hover:shadow-xl hover:-translate-y-1 ${color}`}
@@ -106,6 +106,23 @@ const SocialIcon = ({ icon, label, color, href }) => (
   </a>
 );
 
+// ── Field wrapper with label, input slot, and error ───────────
+const FormField = ({ label, required, optional, error, children }) => (
+  <div className="space-y-1.5">
+    <label className="text-xs sm:text-sm font-bold text-slate-700">
+      {label}{" "}
+      {required && <span className="text-rose-400">*</span>}
+      {optional && (
+        <span className="text-slate-400 font-normal ml-1">(optional)</span>
+      )}
+    </label>
+    {children}
+    {error && (
+      <p className="text-red-500 text-xs font-semibold">{error}</p>
+    )}
+  </div>
+);
+
 // ── Main Contact Page ─────────────────────────────────────────
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -116,44 +133,97 @@ const Contact = () => {
     message:  "",
   });
   const [errors,    setErrors]    = useState({});
+  const [apiError,  setApiError]  = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading,   setLoading]   = useState(false);
 
+  // ── Input handler with dynamic trimming ──────────────────────
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    let cleaned = value;
+
+    // Strip leading spaces dynamically on all text fields
+    if (name !== "subject") {
+      cleaned = value.replace(/^\s+/, "");
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: cleaned }));
+
+    // Clear the field error as user types
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
+    setApiError("");
   };
 
-  const validateForm = () => {
+  // ── Client-side validation ────────────────────────────────────
+  const validate = () => {
     const newErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!formData.fullName.trim())
       newErrors.fullName = "Full name is required";
+
     if (!formData.email.trim())
       newErrors.email = "Email address is required";
-    else if (!emailRegex.test(formData.email))
+    else if (!emailRegex.test(formData.email.trim()))
       newErrors.email = "Please enter a valid email address";
+
     if (!formData.message.trim())
       newErrors.message = "Message cannot be empty";
-    else if (formData.message.length < 10)
+    else if (formData.message.trim().length < 10)
       newErrors.message = "Message must be at least 10 characters";
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  // ── Submit ────────────────────────────────────────────────────
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+
+    // Trim all values before sending
+    const trimmed = {
+      fullName: formData.fullName.trim(),
+      email:    formData.email.trim().toLowerCase(),
+      phone:    formData.phone.trim(),
+      subject:  formData.subject,
+      message:  formData.message.trim(),
+    };
+
+    // Sync trimmed values back to state
+    setFormData((prev) => ({ ...prev, ...trimmed }));
+
+    if (!validate()) return;
+
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    setApiError("");
+
+    try {
+      await apiRequest.post("/contact", trimmed);
       setSubmitted(true);
       setFormData({
-        fullName: "", email: "", phone: "",
-        subject: "Buy a Property", message: "",
+        fullName: "",
+        email:    "",
+        phone:    "",
+        subject:  "Buy a Property",
+        message:  "",
       });
-    }, 1200);
+      setErrors({});
+    } catch (err) {
+      const { status, data } = err.response ?? {};
+      const msg = data?.message || "Failed to send message. Please try again.";
+
+      // ✅ Field-specific errors from backend
+      if (status === 400 && data?.field) {
+        setErrors((prev) => ({ ...prev, [data.field]: msg }));
+        return;
+      }
+
+      // General error banner for anything else
+      setApiError(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -195,9 +265,8 @@ const Contact = () => {
       <section className="py-12 sm:py-16 lg:py-20 px-5 sm:px-8 lg:px-20">
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-10 lg:gap-16">
 
-          {/* ── Left: Info + social ── */}
+          {/* ── Left: Info + social ────────────────────────────── */}
           <div className="lg:w-5/12 space-y-8">
-
             <div>
               <p className="text-xs sm:text-sm font-bold uppercase tracking-widest text-[#f36c3a] mb-2">
                 Contact Us
@@ -273,12 +342,12 @@ const Contact = () => {
             </div>
           </div>
 
-          {/* ── Right: Form ── */}
+          {/* ── Right: Form ────────────────────────────────────── */}
           <div className="lg:w-7/12">
             <div className="bg-[#fef7f6] p-6 sm:p-8 md:p-10 rounded-3xl shadow-sm border border-slate-100">
 
               {submitted ? (
-                /* Success state */
+                /* ── Success state ── */
                 <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
                   <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center">
                     <FaCheckCircle className="text-emerald-500 text-3xl" />
@@ -306,13 +375,13 @@ const Contact = () => {
                     How Can We Help You?
                   </h3>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-
+                  <form
+                    onSubmit={handleSubmit}
+                    noValidate
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5"
+                  >
                     {/* Full Name */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs sm:text-sm font-bold text-slate-700">
-                        Full Name <span className="text-rose-400">*</span>
-                      </label>
+                    <FormField label="Full Name" required error={errors.fullName}>
                       <input
                         name="fullName"
                         value={formData.fullName}
@@ -325,18 +394,10 @@ const Contact = () => {
                             : "border-slate-200 bg-white focus:border-[#f36c3a]"
                         }`}
                       />
-                      {errors.fullName && (
-                        <p className="text-red-500 text-xs font-semibold">
-                          {errors.fullName}
-                        </p>
-                      )}
-                    </div>
+                    </FormField>
 
                     {/* Email */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs sm:text-sm font-bold text-slate-700">
-                        Email Address <span className="text-rose-400">*</span>
-                      </label>
+                    <FormField label="Email Address" required error={errors.email}>
                       <input
                         name="email"
                         value={formData.email}
@@ -349,19 +410,10 @@ const Contact = () => {
                             : "border-slate-200 bg-white focus:border-[#f36c3a]"
                         }`}
                       />
-                      {errors.email && (
-                        <p className="text-red-500 text-xs font-semibold">
-                          {errors.email}
-                        </p>
-                      )}
-                    </div>
+                    </FormField>
 
                     {/* Phone */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs sm:text-sm font-bold text-slate-700">
-                        Phone Number
-                        <span className="text-slate-400 font-normal ml-1">(optional)</span>
-                      </label>
+                    <FormField label="Phone Number" optional>
                       <input
                         name="phone"
                         value={formData.phone}
@@ -370,13 +422,10 @@ const Contact = () => {
                         placeholder="+92 300 000 0000"
                         className="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-[#f36c3a] transition-all"
                       />
-                    </div>
+                    </FormField>
 
                     {/* Subject */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs sm:text-sm font-bold text-slate-700">
-                        Subject
-                      </label>
+                    <FormField label="Subject">
                       <select
                         name="subject"
                         value={formData.subject}
@@ -387,7 +436,7 @@ const Contact = () => {
                           <option key={s}>{s}</option>
                         ))}
                       </select>
-                    </div>
+                    </FormField>
 
                     {/* Message */}
                     <div className="space-y-1.5 sm:col-span-2">
@@ -399,6 +448,7 @@ const Contact = () => {
                         value={formData.message}
                         onChange={handleInputChange}
                         rows={5}
+                        maxLength={500}
                         placeholder="Tell us what you're looking for — property type, budget, location, timeline..."
                         className={`w-full px-4 py-3 sm:py-3.5 rounded-xl border text-sm focus:outline-none transition-all resize-none ${
                           errors.message
@@ -414,37 +464,37 @@ const Contact = () => {
                         ) : (
                           <span />
                         )}
-                        <p className="text-xs text-slate-400">
+                        <p className={`text-xs ml-auto ${
+                          formData.message.length >= 480
+                            ? "text-rose-400 font-semibold"
+                            : "text-slate-400"
+                        }`}>
                           {formData.message.length} / 500
                         </p>
                       </div>
                     </div>
 
+                    {/* General API error */}
+                    {apiError && (
+                      <div className="sm:col-span-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                        <p className="text-red-500 text-sm font-semibold text-center">
+                          {apiError}
+                        </p>
+                      </div>
+                    )}
+
                     {/* Submit */}
                     <div className="sm:col-span-2 pt-2">
                       <button
-                        onClick={handleSubmit}
+                        type="submit"
                         disabled={loading}
                         className="w-full sm:w-auto bg-[#f36c3a] hover:bg-orange-600 disabled:bg-orange-300 text-white font-bold px-10 sm:px-14 py-3.5 sm:py-4 rounded-full shadow-lg shadow-orange-200 hover:shadow-xl transition-all active:scale-95 text-sm sm:text-base flex items-center gap-3"
                       >
                         {loading ? (
                           <>
-                            <svg
-                              className="animate-spin w-4 h-4"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <circle
-                                className="opacity-25"
-                                cx="12" cy="12" r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                              />
-                              <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8v8z"
-                              />
+                            <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                             </svg>
                             Sending…
                           </>
@@ -456,7 +506,7 @@ const Contact = () => {
                         By submitting, you agree to our privacy policy. We never share your data.
                       </p>
                     </div>
-                  </div>
+                  </form>
                 </>
               )}
             </div>

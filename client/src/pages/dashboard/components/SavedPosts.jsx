@@ -621,7 +621,7 @@ export default function SavedPosts() {
             </div>
             {posts.length === 0 && (
               <button
-                onClick={() => navigate("/listings")}
+                onClick={() => navigate("/list")}
                 className="mt-1 inline-flex items-center gap-1.5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white border-none rounded-xl px-5 py-2.5 text-[13px] font-semibold cursor-pointer shadow-md shadow-violet-200 transition-all"
               >
                 <MdFavoriteBorder size={16} />

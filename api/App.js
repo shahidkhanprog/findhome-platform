@@ -8,6 +8,7 @@ import dotenv from "dotenv";
 import userRoute from "./routes/user.route.js";
 import postRoute from "./routes/post.route.js";
 import savedPostsRoute from "./routes/savedPosts.route.js";
+import contactRoute from "./routes/contact.route.js";  
 
 const app = express();
 const PORT = 3000;
@@ -27,6 +28,7 @@ app.use('/api/users', userRoute);
 app.use('/api/test', testRoute);
 app.use('/api/posts', postRoute);
 app.use('/api/saved-posts', savedPostsRoute);
+app.use("/api/contact", contactRoute);
 
 
 app.listen(PORT, () => {

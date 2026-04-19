@@ -10,28 +10,68 @@ const otpStore = new Map();
 // ==================================================================================================================================================
 // REGISTER
 // ==================================================================================================================================================
+// export const register = async (req, res) => {
+//   const { username, email, password } = req.body;
+
+//   try {
+//     const existingUser = await prisma.user.findFirst({
+//       where: {
+//         OR: [{ username }, { email }],
+//       },
+//     });
+
+//     if (existingUser) {
+//       return res.status(400).json({ message: "User already exists" });
+//     }
+
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     await prisma.user.create({
+//       data: {
+//         username,
+//         email,
+//         password: hashedPassword,
+//         role: "USER",
+//       },
+//     });
+
+//     res.status(201).json({ message: "User registered successfully" });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Register error" });
+//   }
+// };
 export const register = async (req, res) => {
   const { username, email, password } = req.body;
 
-  try {
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [{ username }, { email }],
-      },
-    });
+  // ✅ Sanitize: trim and lowercase both fields
+  const cleanUsername = username?.trim().toLowerCase();
+  const cleanEmail    = email?.trim().toLowerCase();
 
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+  try {
+    // ✅ Check username and email separately for specific inline errors
+    const existingUsername = await prisma.user.findUnique({
+      where: { username: cleanUsername },
+    });
+    if (existingUsername) {
+      return res.status(409).json({ field: "username", message: "Username is already taken" });
+    }
+
+    const existingEmail = await prisma.user.findUnique({
+      where: { email: cleanEmail },
+    });
+    if (existingEmail) {
+      return res.status(409).json({ field: "email", message: "Email is already registered" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await prisma.user.create({
       data: {
-        username,
-        email,
+        username: cleanUsername,
+        email:    cleanEmail,
         password: hashedPassword,
-        role: "USER",
+        role:     "USER",
       },
     });
 

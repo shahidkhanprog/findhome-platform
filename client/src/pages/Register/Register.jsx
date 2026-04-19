@@ -6,7 +6,6 @@ import apiRequest from "../../lib/apiRequest";
 const Register = () => {
   const navigate = useNavigate();
 
-  // State management
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -21,7 +20,6 @@ const Register = () => {
 
   const [errors, setErrors] = useState({});
 
-  // Refs for focusing errors
   const refs = {
     username: useRef(null),
     email: useRef(null),
@@ -29,38 +27,53 @@ const Register = () => {
     confirmPassword: useRef(null),
   };
 
-  /**
-   * Updates state on keystroke.
-   * This makes the input "normal" and writable.
-   */
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    // Clear errors when user starts typing again
+
+    let cleaned = value;
+
+    if (name === "username") {
+      // Lowercase instantly + strip leading spaces dynamically
+      cleaned = value.toLowerCase().replace(/^\s+/, "");
+    } else if (name === "email") {
+      // Strip leading spaces dynamically
+      cleaned = value.replace(/^\s+/, "");
+    }
+
+    setForm((prev) => ({ ...prev, [name]: cleaned }));
     setErrors((prev) => ({ ...prev, [name]: "" }));
     setApiError("");
   };
 
-  const validate = () => {
+  const validate = (trimmed) => {
     const newErrors = {};
     const emailRegex = /\S+@\S+\.\S+/;
 
-    if (!form.username.trim()) newErrors.username = "Username is required";
-    else if (form.username.trim().length < 3)
+    if (!trimmed.username) {
+      newErrors.username = "Username is required";
+    } else if (trimmed.username.length < 3) {
       newErrors.username = "Min 3 characters required";
+    } else if (trimmed.username.includes(" ")) {
+      newErrors.username = "Username cannot contain spaces";
+    }
 
-    if (!form.email.trim()) newErrors.email = "Email is required";
-    else if (!emailRegex.test(form.email))
+    if (!trimmed.email) {
+      newErrors.email = "Email is required";
+    } else if (!emailRegex.test(trimmed.email)) {
       newErrors.email = "Invalid email format";
+    }
 
-    if (!form.password) newErrors.password = "Password is required";
-    else if (form.password.length < 6)
+    if (!form.password) {
+      newErrors.password = "Password is required";
+    } else if (form.password.length < 6) {
       newErrors.password = "Min 6 characters required";
+    }
 
-    if (!form.confirmPassword)
+    if (!form.confirmPassword) {
       newErrors.confirmPassword = "Confirm your password";
-    else if (form.password !== form.confirmPassword)
+    } else if (form.password !== form.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
+    }
 
     return newErrors;
   };
@@ -68,12 +81,20 @@ const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    const validationErrors = validate();
+    // Trim all values before validating & sending
+    const trimmed = {
+      username: form.username.trim().toLowerCase(),
+      email: form.email.trim(),
+    };
+
+    // Sync trimmed values back to form state so UI reflects clean values
+    setForm((prev) => ({ ...prev, username: trimmed.username, email: trimmed.email }));
+
+    const validationErrors = validate(trimmed);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      // Focus first field with error
       const firstError = Object.keys(validationErrors)[0];
-      refs[firstError].current?.focus();
+      refs[firstError]?.current?.focus();
       return;
     }
 
@@ -81,14 +102,34 @@ const Register = () => {
     setApiError("");
 
     try {
-      const res = await apiRequest.post("/auth/register", {
-        username: form.username,
-        email: form.email,
+      await apiRequest.post("/auth/register", {
+        username: trimmed.username,
+        email: trimmed.email,
         password: form.password,
       });
       navigate("/login");
     } catch (err) {
-      setApiError(err.response.data.message || "Registration failed.");
+      const { status, data } = err.response ?? {};
+      const msg = data?.message || "Registration failed.";
+
+      // ✅ Username taken → show error below username field
+      if (status === 409 && data?.field === "username") {
+        setErrors((prev) => ({ ...prev, username: msg }));
+        refs.username?.current?.focus();
+        setIsLoading(false);
+        return;
+      }
+
+      // ✅ Email taken → show error below email field
+      if (status === 409 && data?.field === "email") {
+        setErrors((prev) => ({ ...prev, email: msg }));
+        refs.email?.current?.focus();
+        setIsLoading(false);
+        return;
+      }
+
+      // Any other error → general banner
+      setApiError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -103,10 +144,11 @@ const Register = () => {
         <p className="text-center text-gray-500 mb-8">Join the community</p>
 
         <form onSubmit={handleRegister} className="space-y-5" noValidate>
-          {/* Username Input */}
+
+          {/* Username */}
           <div>
-            <div
-              className={`flex items-center border-2 rounded-lg px-3 py-2 transition-all ${errors.username ? "border-red-500" : "border-gray-200 focus-within:border-blue-500"}`}
+            <div className={`flex items-center border-2 rounded-lg px-3 py-2 transition-all
+              ${errors.username ? "border-red-500" : "border-gray-200 focus-within:border-blue-500"}`}
             >
               <FaUser className="text-gray-400 mr-2" />
               <input
@@ -119,15 +161,16 @@ const Register = () => {
                 onChange={handleChange}
               />
             </div>
+            {/* ✅ Username error shown here — both validation & API conflict */}
             {errors.username && (
               <p className="text-xs text-red-500 mt-1">{errors.username}</p>
             )}
           </div>
 
-          {/* Email Input */}
+          {/* Email */}
           <div>
-            <div
-              className={`flex items-center border-2 rounded-lg px-3 py-2 transition-all ${errors.email ? "border-red-500" : "border-gray-200 focus-within:border-blue-500"}`}
+            <div className={`flex items-center border-2 rounded-lg px-3 py-2 transition-all
+              ${errors.email ? "border-red-500" : "border-gray-200 focus-within:border-blue-500"}`}
             >
               <FaEnvelope className="text-gray-400 mr-2" />
               <input
@@ -140,15 +183,16 @@ const Register = () => {
                 onChange={handleChange}
               />
             </div>
+            {/* ✅ Email error shown here — both validation & API conflict */}
             {errors.email && (
               <p className="text-xs text-red-500 mt-1">{errors.email}</p>
             )}
           </div>
 
-          {/* Password Input */}
+          {/* Password */}
           <div>
-            <div
-              className={`flex items-center border-2 rounded-lg px-3 py-2 transition-all ${errors.password ? "border-red-500" : "border-gray-200 focus-within:border-blue-500"}`}
+            <div className={`flex items-center border-2 rounded-lg px-3 py-2 transition-all
+              ${errors.password ? "border-red-500" : "border-gray-200 focus-within:border-blue-500"}`}
             >
               <FaLock className="text-gray-400 mr-2" />
               <input
@@ -164,11 +208,9 @@ const Register = () => {
                 type="button"
                 onClick={() => setPasswordVisible(!passwordVisible)}
               >
-                {passwordVisible ? (
-                  <FaEyeSlash className="text-gray-400" />
-                ) : (
-                  <FaEye className="text-gray-400" />
-                )}
+                {passwordVisible
+                  ? <FaEyeSlash className="text-gray-400" />
+                  : <FaEye className="text-gray-400" />}
               </button>
             </div>
             {errors.password && (
@@ -176,10 +218,10 @@ const Register = () => {
             )}
           </div>
 
-          {/* Confirm Password Input */}
+          {/* Confirm Password */}
           <div>
-            <div
-              className={`flex items-center border-2 rounded-lg px-3 py-2 transition-all ${errors.confirmPassword ? "border-red-500" : "border-gray-200 focus-within:border-blue-500"}`}
+            <div className={`flex items-center border-2 rounded-lg px-3 py-2 transition-all
+              ${errors.confirmPassword ? "border-red-500" : "border-gray-200 focus-within:border-blue-500"}`}
             >
               <FaLock className="text-gray-400 mr-2" />
               <input
@@ -193,24 +235,19 @@ const Register = () => {
               />
               <button
                 type="button"
-                onClick={() =>
-                  setConfirmPasswordVisible(!confirmPasswordVisible)
-                }
+                onClick={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
               >
-                {confirmPasswordVisible ? (
-                  <FaEyeSlash className="text-gray-400" />
-                ) : (
-                  <FaEye className="text-gray-400" />
-                )}
+                {confirmPasswordVisible
+                  ? <FaEyeSlash className="text-gray-400" />
+                  : <FaEye className="text-gray-400" />}
               </button>
             </div>
             {errors.confirmPassword && (
-              <p className="text-xs text-red-500 mt-1">
-                {errors.confirmPassword}
-              </p>
+              <p className="text-xs text-red-500 mt-1">{errors.confirmPassword}</p>
             )}
           </div>
 
+          {/* General API error (not a field-specific conflict) */}
           {apiError && (
             <p className="text-sm text-red-500 text-center font-medium">
               {apiError}
@@ -228,10 +265,7 @@ const Register = () => {
 
         <div className="mt-6 text-center text-sm text-gray-600">
           Already have an account?{" "}
-          <Link
-            to="/login"
-            className="text-blue-600 font-semibold hover:underline"
-          >
+          <Link to="/login" className="text-blue-600 font-semibold hover:underline">
             Login
           </Link>
         </div>

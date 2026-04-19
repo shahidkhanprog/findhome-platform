@@ -1,21 +1,38 @@
+// pages/dashboard/Users.jsx
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../../../context/AuthContext";
 import apiRequest from "../../../lib/apiRequest";
 import {
-  MdAdminPanelSettings, MdPerson, MdDelete, MdEdit,
+  MdAdminPanelSettings, MdPerson, MdEdit,
   MdSearch, MdDomain, MdVerified, MdClose, MdCheck,
-  MdChevronLeft, MdChevronRight,
+  MdChevronLeft, MdChevronRight, MdToggleOn, MdToggleOff,
+  MdOutlineHome, MdDeleteForever, MdWarning,
 } from "react-icons/md";
 
 const PAGE_SIZE_OPTIONS = [10, 20, 30];
+
+function getPostCount(u) {
+  if (typeof u._count?.posts === "number") return u._count.posts;
+  if (typeof u.postCount === "number") return u.postCount;
+  if (typeof u._count?.Post === "number") return u._count.Post;
+  if (Array.isArray(u.posts)) return u.posts.length;
+  if (Array.isArray(u.Post)) return u.Post.length;
+  return 0;
+}
 
 function Avatar({ src, name = "", className = "w-9 h-9", textClass = "text-sm" }) {
   const [err, setErr] = useState(false);
   const letter = name.trim().charAt(0).toUpperCase() || "?";
   if (src && !err)
-    return <img src={src} alt={name} className={`${className} rounded-full object-cover flex-shrink-0 border-2 border-violet-100`} onError={() => setErr(true)} />;
+    return (
+      <img
+        src={src} alt={name}
+        className={`${className} rounded-full object-cover flex-shrink-0 border-2 border-violet-100`}
+        onError={() => setErr(true)}
+      />
+    );
   return (
-    <div className={`${className} rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center ${textClass} font-bold text-white flex-shrink-0`}>
+    <div className={`${className} rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center ${textClass} font-bold text-white flex-shrink-0 select-none`}>
       {letter}
     </div>
   );
@@ -24,7 +41,7 @@ function Avatar({ src, name = "", className = "w-9 h-9", textClass = "text-sm" }
 function SkeletonRow() {
   return (
     <tr className="animate-pulse">
-      {[1,2,3,4,5,6].map(i => (
+      {[1, 2, 3, 4, 5, 6, 7].map(i => (
         <td key={i} className="px-4 py-3.5">
           <div className="h-3 bg-slate-100 rounded w-3/4" />
         </td>
@@ -33,27 +50,13 @@ function SkeletonRow() {
   );
 }
 
-function ConfirmModal({ user, onConfirm, onCancel, loading }) {
+function Toast({ toast }) {
+  if (!toast) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-xl border border-rose-100 p-6 w-full max-w-sm mx-4">
-        <div className="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center mb-4">
-          <MdDelete size={24} className="text-rose-500" />
-        </div>
-        <h3 className="text-[15px] font-bold text-slate-800 mb-1">Delete User</h3>
-        <p className="text-[13px] text-slate-500 mb-5">
-          Are you sure you want to delete <span className="font-semibold text-slate-700">{user?.username}</span>? This cannot be undone.
-        </p>
-        <div className="flex gap-2">
-          <button onClick={onCancel} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-[13px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
-            Cancel
-          </button>
-          <button onClick={onConfirm} disabled={loading} className="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-[13px] font-semibold transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5">
-            {loading ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <MdDelete size={15} />}
-            Delete
-          </button>
-        </div>
-      </div>
+    <div className={`fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-[13px] font-semibold transition-all
+      ${toast.type === "error" ? "bg-rose-500 text-white" : "bg-emerald-500 text-white"}`}>
+      {toast.type === "error" ? <MdClose size={15} /> : <MdCheck size={15} />}
+      {toast.msg}
     </div>
   );
 }
@@ -61,8 +64,8 @@ function ConfirmModal({ user, onConfirm, onCancel, loading }) {
 function EditModal({ user, onSave, onCancel, loading }) {
   const [role, setRole] = useState(user?.role ?? "USER");
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-xl border border-violet-100 p-6 w-full max-w-sm mx-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-xl border border-violet-100 p-6 w-full max-w-sm">
         <div className="flex items-center gap-3 mb-5">
           <Avatar src={user?.avatar} name={user?.username} />
           <div>
@@ -70,26 +73,86 @@ function EditModal({ user, onSave, onCancel, loading }) {
             <p className="text-[11px] text-slate-400">{user?.email}</p>
           </div>
         </div>
+
         <label className="block text-[12px] font-semibold text-slate-600 mb-1.5">Role</label>
         <div className="flex gap-2 mb-5">
-          {["USER","ADMIN"].map(r => (
-            <button key={r} onClick={() => setRole(r)}
+          {["USER", "ADMIN"].map(r => (
+            <button
+              key={r}
+              onClick={() => setRole(r)}
               className={`flex-1 py-2.5 rounded-xl border text-[12px] font-semibold transition-all flex items-center justify-center gap-1.5
                 ${role === r
                   ? "bg-violet-600 text-white border-violet-600 shadow-md shadow-violet-200"
-                  : "bg-white text-slate-600 border-slate-200 hover:border-violet-300"}`}>
+                  : "bg-white text-slate-600 border-slate-200 hover:border-violet-300"}`}
+            >
               {r === "ADMIN" ? <MdAdminPanelSettings size={13} /> : <MdPerson size={13} />}
               {r}
             </button>
           ))}
         </div>
+
         <div className="flex gap-2">
-          <button onClick={onCancel} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-[13px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-2.5 rounded-xl border border-slate-200 text-[13px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+          >
             Cancel
           </button>
-          <button onClick={() => onSave({ role })} disabled={loading} className="flex-1 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-[13px] font-semibold transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5">
-            {loading ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <MdCheck size={15} />}
+          <button
+            onClick={() => onSave({ role })}
+            disabled={loading}
+            className="flex-1 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-[13px] font-semibold transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
+          >
+            {loading
+              ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              : <MdCheck size={15} />}
             Save
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ToggleModal({ user, onConfirm, onCancel, loading }) {
+  const willActivate = user?.isActive === false;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
+      <div className={`bg-white rounded-2xl shadow-xl border p-6 w-full max-w-sm
+        ${willActivate ? "border-emerald-100" : "border-amber-100"}`}>
+        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4
+          ${willActivate ? "bg-emerald-50" : "bg-amber-50"}`}>
+          {willActivate
+            ? <MdToggleOn size={26} className="text-emerald-500" />
+            : <MdToggleOff size={26} className="text-amber-500" />}
+        </div>
+
+        <h3 className="text-[15px] font-bold text-slate-800 mb-1">
+          {willActivate ? "Activate User?" : "Deactivate User?"}
+        </h3>
+        <p className="text-[13px] text-slate-500 mb-5">
+          {willActivate
+            ? <><span className="font-semibold text-slate-700">{user?.username}</span>'s access will be restored.</>
+            : <><span className="font-semibold text-slate-700">{user?.username}</span> will be blocked from logging in.</>}
+        </p>
+
+        <div className="flex gap-2">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-2.5 rounded-xl border border-slate-200 text-[13px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className={`flex-1 py-2.5 rounded-xl text-white text-[13px] font-semibold transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5
+              ${willActivate ? "bg-emerald-500 hover:bg-emerald-600" : "bg-amber-500 hover:bg-amber-600"}`}
+          >
+            {loading
+              ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              : willActivate ? <MdToggleOn size={16} /> : <MdToggleOff size={16} />}
+            {willActivate ? "Activate" : "Deactivate"}
           </button>
         </div>
       </div>
@@ -105,8 +168,9 @@ function PaginationBar({ currentPage, totalPages, pageSize, onPageChange, onPage
   const getPageNumbers = () => {
     if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
     if (currentPage <= 3) return [1, 2, 3, 4, 5];
-    if (currentPage >= totalPages - 2) return [totalPages-4, totalPages-3, totalPages-2, totalPages-1, totalPages];
-    return [currentPage-2, currentPage-1, currentPage, currentPage+1, currentPage+2];
+    if (currentPage >= totalPages - 2)
+      return [totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    return [currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2];
   };
   const pageNumbers = getPageNumbers();
 
@@ -140,8 +204,11 @@ function PaginationBar({ currentPage, totalPages, pageSize, onPageChange, onPage
       </div>
 
       <div className="flex items-center gap-1">
-        <button onClick={() => onPageChange(currentPage - 1)} disabled={currentPage === 1}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[12px] font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[12px] font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        >
           <MdChevronLeft size={16} /><span className="hidden sm:inline">Prev</span>
         </button>
 
@@ -153,11 +220,14 @@ function PaginationBar({ currentPage, totalPages, pageSize, onPageChange, onPage
             </>
           )}
           {pageNumbers.map(num => (
-            <button key={num} onClick={() => onPageChange(num)}
+            <button
+              key={num}
+              onClick={() => onPageChange(num)}
               className={`w-8 h-8 rounded-xl text-[12px] font-semibold border transition-all
                 ${num === currentPage
                   ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white border-transparent shadow-sm shadow-violet-200"
-                  : "bg-white text-slate-600 border-slate-200 hover:border-violet-300 hover:text-violet-600"}`}>
+                  : "bg-white text-slate-600 border-slate-200 hover:border-violet-300 hover:text-violet-600"}`}
+            >
               {num}
             </button>
           ))}
@@ -169,8 +239,11 @@ function PaginationBar({ currentPage, totalPages, pageSize, onPageChange, onPage
           )}
         </div>
 
-        <button onClick={() => onPageChange(currentPage + 1)} disabled={currentPage === totalPages}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[12px] font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[12px] font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        >
           <span className="hidden sm:inline">Next</span><MdChevronRight size={16} />
         </button>
       </div>
@@ -178,23 +251,26 @@ function PaginationBar({ currentPage, totalPages, pageSize, onPageChange, onPage
   );
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   MAIN PAGE
+───────────────────────────────────────────────────────────────────────────── */
 export default function Users() {
   const { currentUser } = useContext(AuthContext);
-  const user = currentUser?.userData ?? {};
+  const user    = currentUser?.userData ?? {};
   const isAdmin = user?.role === "ADMIN";
 
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [search, setSearch] = useState("");
-  const [deleteTarget, setDeleteTarget] = useState(null);
-  const [editTarget, setEditTarget] = useState(null);
+  const [users, setUsers]                 = useState([]);
+  const [loading, setLoading]             = useState(true);
+  const [error, setError]                 = useState("");
+  const [search, setSearch]               = useState("");
+  const [toggleTarget, setToggleTarget]   = useState(null);
+  const [editTarget, setEditTarget]       = useState(null);
+  const [deleteTarget, setDeleteTarget]   = useState(null);  // user pending deletion
   const [actionLoading, setActionLoading] = useState(false);
-  const [toast, setToast] = useState(null);
+  const [toast, setToast]                 = useState(null);
 
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize]       = useState(10);
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -207,8 +283,9 @@ export default function Users() {
       setLoading(true);
       setError("");
       try {
-        const res = await apiRequest.get("/users");
-        setUsers(res.data);
+        const res  = await apiRequest.get("/users");
+        const data = Array.isArray(res.data) ? res.data : (res.data.users ?? []);
+        setUsers(data);
       } catch (err) {
         setError(err.response?.data?.message || "Failed to load users.");
       } finally {
@@ -217,28 +294,35 @@ export default function Users() {
     })();
   }, [isAdmin]);
 
-  // Reset to page 1 on search/pageSize change
   useEffect(() => { setCurrentPage(1); }, [search, pageSize]);
 
-  const handleDelete = async () => {
+  /* ── Toggle active / inactive ──────────────────────────────────── */
+  const handleToggle = async () => {
+    if (!toggleTarget) return;
     setActionLoading(true);
+    const willActivate = toggleTarget.isActive === false;
     try {
-      await apiRequest.delete(`/users/${deleteTarget.id}`);
-      setUsers(prev => prev.filter(u => u.id !== deleteTarget.id));
-      showToast(`${deleteTarget.username} deleted.`);
+      await apiRequest.put(`/users/${toggleTarget.id}`, { isActive: willActivate });
+      setUsers(prev =>
+        prev.map(u => u.id === toggleTarget.id ? { ...u, isActive: willActivate } : u)
+      );
+      showToast(`${toggleTarget.username} ${willActivate ? "activated" : "deactivated"}.`);
     } catch {
-      showToast("Delete failed.", "error");
+      showToast("Action failed.", "error");
     } finally {
       setActionLoading(false);
-      setDeleteTarget(null);
+      setToggleTarget(null);
     }
   };
 
+  /* ── Edit role ──────────────────────────────────────────────────── */
   const handleEdit = async (data) => {
     setActionLoading(true);
     try {
       const res = await apiRequest.put(`/users/${editTarget.id}`, data);
-      setUsers(prev => prev.map(u => u.id === editTarget.id ? { ...u, ...res.data } : u));
+      setUsers(prev =>
+        prev.map(u => u.id === editTarget.id ? { ...u, ...res.data } : u)
+      );
       showToast(`${editTarget.username} updated.`);
     } catch {
       showToast("Update failed.", "error");
@@ -248,6 +332,23 @@ export default function Users() {
     }
   };
 
+  /* ── Delete user ────────────────────────────────────────────────── */
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setActionLoading(true);
+    try {
+      await apiRequest.delete(`/users/${deleteTarget.id}`);
+      setUsers(prev => prev.filter(u => u.id !== deleteTarget.id));
+      showToast(`${deleteTarget.username} deleted successfully.`);
+    } catch (err) {
+      showToast(err.response?.data?.message || "Delete failed.", "error");
+    } finally {
+      setActionLoading(false);
+      setDeleteTarget(null);
+    }
+  };
+
+  /* ── Access guard ───────────────────────────────────────────────── */
   if (!isAdmin) {
     return (
       <div className="p-6 bg-white rounded-2xl border border-rose-100 shadow-sm flex flex-col items-center justify-center py-16 gap-3">
@@ -260,15 +361,14 @@ export default function Users() {
     );
   }
 
-  // Filter then paginate
-  const filtered = users.filter(u =>
+  const filtered   = users.filter(u =>
     u.username?.toLowerCase().includes(search.toLowerCase()) ||
     u.email?.toLowerCase().includes(search.toLowerCase())
   );
   const totalItems = filtered.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const safePage = Math.min(currentPage, totalPages);
-  const paginated = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const safePage   = Math.min(currentPage, totalPages);
+  const paginated  = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   const handlePageChange = (page) => {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
@@ -277,16 +377,10 @@ export default function Users() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Toast */}
-      {toast && (
-        <div className={`fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-[13px] font-semibold
-          ${toast.type === "error" ? "bg-rose-500 text-white" : "bg-emerald-500 text-white"}`}>
-          {toast.type === "error" ? <MdClose size={15} /> : <MdCheck size={15} />}
-          {toast.msg}
-        </div>
-      )}
 
-      {/* Header */}
+      <Toast toast={toast} />
+
+      {/* ── Header ───────────────────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-violet-100 shadow-md shadow-violet-50 overflow-hidden">
         <div className="h-1 w-full bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-400" />
         <div className="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
@@ -309,6 +403,7 @@ export default function Users() {
               )}
             </div>
           </div>
+
           <div className="relative sm:w-60">
             <MdSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
             <input
@@ -322,18 +417,19 @@ export default function Users() {
         </div>
       </div>
 
-      {/* Table */}
+      {/* ── Table ────────────────────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-violet-100 shadow-md shadow-violet-50/80 overflow-hidden">
         {error && (
           <div className="px-5 py-4 text-[12px] text-rose-500 flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />{error}
           </div>
         )}
+
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px]">
+          <table className="w-full min-w-[720px]">
             <thead>
               <tr className="bg-gradient-to-r from-violet-50/70 to-transparent border-b border-violet-100">
-                {["#", "User", "Properties", "Email", "Role", "Actions"].map(h => (
+                {["#", "User", "Properties", "Email", "Role", "Status", "Actions"].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wide whitespace-nowrap">
                     {h}
                   </th>
@@ -342,11 +438,11 @@ export default function Users() {
             </thead>
             <tbody>
               {loading
-                ? [1,2,3,4,5].map(i => <SkeletonRow key={i} />)
+                ? [1, 2, 3, 4, 5].map(i => <SkeletonRow key={i} />)
                 : paginated.length === 0
                   ? (
                     <tr>
-                      <td colSpan={6} className="px-4 py-14 text-center">
+                      <td colSpan={7} className="px-4 py-14 text-center">
                         <div className="flex flex-col items-center gap-2">
                           <div className="w-12 h-12 rounded-2xl bg-violet-50 flex items-center justify-center">
                             <MdPerson size={22} className="text-violet-300" />
@@ -357,44 +453,114 @@ export default function Users() {
                     </tr>
                   )
                   : paginated.map((u, i) => {
-                    // Real post count: prefer _count.posts, fallback to postCount, then posts array length
-                    const postCount = u._count?.posts ?? u.postCount ?? u.posts?.length ?? 0;
+                    const postCount   = getPostCount(u);
                     const globalIndex = (safePage - 1) * pageSize + i + 1;
+                    const isActive    = u.isActive !== false;
+                    const isSelf      = u.id === user?.id;
+
                     return (
-                      <tr key={u.id} className={`border-b border-violet-50 hover:bg-violet-50/40 transition-colors ${i === paginated.length - 1 ? "border-none" : ""}`}>
-                        <td className="px-4 py-3.5 text-[12px] font-bold text-slate-300 w-10">{globalIndex}</td>
+                      <tr
+                        key={u.id}
+                        className={`border-b border-violet-50 transition-colors
+                          ${i === paginated.length - 1 ? "border-none" : ""}
+                          ${!isActive ? "bg-slate-50/60" : "hover:bg-violet-50/30"}`}
+                      >
+                        {/* # */}
+                        <td className="px-4 py-3.5 text-[12px] font-bold text-slate-300 w-10">
+                          {globalIndex}
+                        </td>
+
+                        {/* User */}
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-2.5">
-                            <Avatar src={u.avatar} name={u.username} />
-                            <span className="text-[13px] font-semibold text-slate-700 truncate max-w-[120px]">{u.username}</span>
+                            <div className="relative">
+                              <Avatar src={u.avatar} name={u.username} />
+                              <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white
+                                ${isActive ? "bg-emerald-400" : "bg-slate-300"}`}
+                              />
+                            </div>
+                            <span className={`text-[13px] font-semibold truncate max-w-[120px]
+                              ${isActive ? "text-slate-700" : "text-slate-400"}`}>
+                              {u.username}
+                              {isSelf && (
+                                <span className="ml-1.5 text-[9px] font-bold bg-violet-100 text-violet-600 px-1.5 py-0.5 rounded-full border border-violet-200">
+                                  You
+                                </span>
+                              )}
+                            </span>
                           </div>
                         </td>
+
+                        {/* Properties */}
                         <td className="px-4 py-3.5">
                           <span className="inline-flex items-center gap-1 bg-violet-50 text-violet-700 border border-violet-100 text-[11px] font-bold px-2.5 py-1 rounded-full">
-                            <MdDomain size={11} />
+                            <MdOutlineHome size={11} />
                             {postCount}
                           </span>
                         </td>
-                        <td className="px-4 py-3.5 text-[12px] text-slate-500 truncate max-w-[160px]">{u.email}</td>
+
+                        {/* Email */}
+                        <td className="px-4 py-3.5 text-[12px] text-slate-500 truncate max-w-[160px]">
+                          {u.email}
+                        </td>
+
+                        {/* Role */}
                         <td className="px-4 py-3.5">
                           <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border
                             ${u.role === "ADMIN"
                               ? "bg-violet-100 text-violet-700 border-violet-200"
                               : "bg-slate-100 text-slate-500 border-slate-200"}`}>
-                            {u.role === "ADMIN" ? <MdAdminPanelSettings size={11} /> : <MdPerson size={11} />}
+                            {u.role === "ADMIN"
+                              ? <MdAdminPanelSettings size={11} />
+                              : <MdPerson size={11} />}
                             {u.role}
                           </span>
                         </td>
+
+                        {/* Status */}
+                        <td className="px-4 py-3.5">
+                          <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border
+                            ${isActive
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                              : "bg-slate-100 text-slate-400 border-slate-200"}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isActive ? "bg-emerald-400" : "bg-slate-300"}`} />
+                            {isActive ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+
+                        {/* Actions */}
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-1.5">
-                            <button onClick={() => setEditTarget(u)}
-                              className="w-8 h-8 rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-600 flex items-center justify-center transition-colors border border-violet-100 hover:border-violet-300" title="Edit user">
+                            {/* Edit role */}
+                            <button
+                              onClick={() => setEditTarget(u)}
+                              className="w-8 h-8 rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-600 flex items-center justify-center transition-colors border border-violet-100 hover:border-violet-300"
+                              title="Edit role"
+                            >
                               <MdEdit size={15} />
                             </button>
-                            <button onClick={() => setDeleteTarget(u)} disabled={u.id === user?.id}
-                              className="w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-500 flex items-center justify-center transition-colors border border-rose-100 hover:border-rose-300 disabled:opacity-30 disabled:cursor-not-allowed"
-                              title={u.id === user?.id ? "Cannot delete yourself" : "Delete user"}>
-                              <MdDelete size={15} />
+
+                            {/* Toggle active */}
+                            <button
+                              onClick={() => !isSelf && setToggleTarget(u)}
+                              disabled={isSelf}
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors border disabled:opacity-30 disabled:cursor-not-allowed
+                                ${isActive
+                                  ? "bg-amber-50 hover:bg-amber-100 text-amber-500 border-amber-100 hover:border-amber-300"
+                                  : "bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border-emerald-100 hover:border-emerald-300"}`}
+                              title={isSelf ? "Cannot change your own status" : isActive ? "Deactivate" : "Activate"}
+                            >
+                              {isActive ? <MdToggleOff size={17} /> : <MdToggleOn size={17} />}
+                            </button>
+
+                            {/* Delete — disabled for self */}
+                            <button
+                              onClick={() => !isSelf && setDeleteTarget(u)}
+                              disabled={isSelf}
+                              className="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center transition-colors border border-red-100 hover:border-red-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                              title={isSelf ? "Cannot delete your own account here" : "Delete user"}
+                            >
+                              <MdDeleteForever size={16} />
                             </button>
                           </div>
                         </td>
@@ -407,21 +573,79 @@ export default function Users() {
         </div>
       </div>
 
-      {/* Pagination */}
+      {/* ── Pagination ───────────────────────────────────────────── */}
       {!loading && (
         <PaginationBar
           currentPage={safePage}
           totalPages={totalPages}
           pageSize={pageSize}
           onPageChange={handlePageChange}
-          onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }}
+          onPageSizeChange={s => { setPageSize(s); setCurrentPage(1); }}
           totalItems={totalItems}
         />
       )}
 
-      {/* Modals */}
-      {deleteTarget && <ConfirmModal user={deleteTarget} onConfirm={handleDelete} onCancel={() => setDeleteTarget(null)} loading={actionLoading} />}
-      {editTarget && <EditModal user={editTarget} onSave={handleEdit} onCancel={() => setEditTarget(null)} loading={actionLoading} />}
+      {/* ── Toggle Modal ─────────────────────────────────────────── */}
+      {toggleTarget && (
+        <ToggleModal
+          user={toggleTarget}
+          onConfirm={handleToggle}
+          onCancel={() => setToggleTarget(null)}
+          loading={actionLoading}
+        />
+      )}
+
+      {/* ── Edit Modal ───────────────────────────────────────────── */}
+      {editTarget && (
+        <EditModal
+          user={editTarget}
+          onSave={handleEdit}
+          onCancel={() => setEditTarget(null)}
+          loading={actionLoading}
+        />
+      )}
+
+      {/* ── Delete Confirm Modal ─────────────────────────────────── */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl border border-red-100 p-6 w-full max-w-sm">
+            <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
+              <MdWarning size={24} className="text-red-500" />
+            </div>
+
+            <h3 className="text-[15px] font-bold text-slate-800 mb-1">Delete User?</h3>
+            <p className="text-[13px] text-slate-500 mb-1">
+              You are about to permanently delete{" "}
+              <span className="font-semibold text-slate-700">{deleteTarget.username}</span>.
+            </p>
+            <ul className="text-[11px] text-red-500 space-y-1 mb-5 list-disc list-inside">
+              <li>All their property listings will be removed</li>
+              <li>All chats and messages will be erased</li>
+              <li>This action cannot be undone</li>
+            </ul>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                disabled={actionLoading}
+                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-[13px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={actionLoading}
+                className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-[13px] font-semibold transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
+              >
+                {actionLoading
+                  ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  : <MdDeleteForever size={15} />}
+                Delete Forever
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
