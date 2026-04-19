@@ -64,7 +64,7 @@ const router = createBrowserRouter([
       { path: "profile",          element: <Profile />        },
       { path: "users",            element: <Users />          },
       { path: "property/:id",     element: <PropertyDetail /> }, // single property detail
-      { path: "queries",     element: <Queries /> }, // Queries
+      { path: "queries",          element: <Queries />        }, // Queries
     ],
   },
 
