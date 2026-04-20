@@ -6,24 +6,25 @@ import {
   FaCheckCircle, FaWhatsapp,
 } from "react-icons/fa";
 import apiRequest from "../../lib/apiRequest";
+import CollegeMap from "../../components/common/CollegeMap";
 
 // ── Contact info data ─────────────────────────────────────────
 const CONTACT_INFO = [
   {
     icon: <FaPhoneAlt />,
     title: "Call Us Directly",
-    detail: "+92 300 123 4567",
+    detail: "+92 344 988 5555",
     sub: "Mon – Sat, 9 AM – 7 PM PKT",
-    link: "tel:+923001234567",
+    link: "tel:+923449885555",
     linkLabel: "Call Now",
     color: "bg-blue-50 text-blue-500",
   },
   {
     icon: <FaWhatsapp />,
     title: "WhatsApp",
-    detail: "+92 300 123 4567",
+    detail: "+92 344 988 5555",
     sub: "Quick replies within minutes",
-    link: "https://wa.me/923001234567",
+    link: "https://wa.me/923449885555",
     linkLabel: "Chat on WhatsApp",
     color: "bg-emerald-50 text-emerald-500",
   },
@@ -39,7 +40,7 @@ const CONTACT_INFO = [
   {
     icon: <FaMapMarkerAlt />,
     title: "Visit Our Office",
-    detail: "Plot 5, F-10 Markaz, Islamabad",
+    detail: "Teh Kabal Dist Swat, Khyber Pakhtunkhwa, Pakistan",
     sub: "Open Mon – Sat, 9 AM – 6 PM",
     link: "#map",
     linkLabel: "View on Map",
@@ -48,10 +49,10 @@ const CONTACT_INFO = [
 ];
 
 const SOCIAL = [
-  { icon: <FaFacebook />,  label: "Facebook",  color: "hover:bg-blue-600",  href: "#" },
-  { icon: <FaTwitter />,   label: "Twitter",   color: "hover:bg-sky-400",   href: "#" },
-  { icon: <FaLinkedin />,  label: "LinkedIn",  color: "hover:bg-blue-700",  href: "#" },
-  { icon: <FaInstagram />, label: "Instagram", color: "hover:bg-pink-600",  href: "#" },
+  { icon: <FaFacebook />, label: "Facebook", color: "hover:bg-blue-600", href: "https://www.facebook.com/shahidkhanprog" },
+  { icon: <FaTwitter />, label: "Twitter", color: "hover:bg-sky-400", href: "https://twitter.com/shahidkhanprog" },
+  { icon: <FaLinkedin />, label: "LinkedIn", color: "hover:bg-blue-700", href: "https://www.linkedin.com/in/shahidkhanprog" },
+  { icon: <FaInstagram />, label: "Instagram", color: "hover:bg-pink-600", href: "https://www.instagram.com/shahidkhanprog" },
 ];
 
 const SUBJECTS = [
@@ -127,15 +128,15 @@ const FormField = ({ label, required, optional, error, children }) => (
 const Contact = () => {
   const [formData, setFormData] = useState({
     fullName: "",
-    email:    "",
-    phone:    "",
-    subject:  "Buy a Property",
-    message:  "",
+    email: "",
+    phone: "",
+    subject: "Buy a Property",
+    message: "",
   });
-  const [errors,    setErrors]    = useState({});
-  const [apiError,  setApiError]  = useState("");
+  const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState("");
   const [submitted, setSubmitted] = useState(false);
-  const [loading,   setLoading]   = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // ── Input handler with dynamic trimming ──────────────────────
   const handleInputChange = (e) => {
@@ -184,10 +185,10 @@ const Contact = () => {
     // Trim all values before sending
     const trimmed = {
       fullName: formData.fullName.trim(),
-      email:    formData.email.trim().toLowerCase(),
-      phone:    formData.phone.trim(),
-      subject:  formData.subject,
-      message:  formData.message.trim(),
+      email: formData.email.trim().toLowerCase(),
+      phone: formData.phone.trim(),
+      subject: formData.subject,
+      message: formData.message.trim(),
     };
 
     // Sync trimmed values back to state
@@ -203,10 +204,10 @@ const Contact = () => {
       setSubmitted(true);
       setFormData({
         fullName: "",
-        email:    "",
-        phone:    "",
-        subject:  "Buy a Property",
-        message:  "",
+        email: "",
+        phone: "",
+        subject: "Buy a Property",
+        message: "",
       });
       setErrors({});
     } catch (err) {
@@ -308,14 +309,13 @@ const Contact = () => {
               </p>
               {[
                 { day: "Monday – Friday", hours: "9:00 AM – 7:00 PM" },
-                { day: "Saturday",        hours: "10:00 AM – 5:00 PM" },
-                { day: "Sunday",          hours: "Closed" },
+                { day: "Saturday", hours: "10:00 AM – 5:00 PM" },
+                { day: "Sunday", hours: "Closed" },
               ].map((row, i) => (
                 <div
                   key={i}
-                  className={`flex justify-between text-xs sm:text-sm py-2.5 ${
-                    i < 2 ? "border-b border-slate-100" : ""
-                  }`}
+                  className={`flex justify-between text-xs sm:text-sm py-2.5 ${i < 2 ? "border-b border-slate-100" : ""
+                    }`}
                 >
                   <span className="font-bold text-slate-700">{row.day}</span>
                   <span className={
@@ -388,11 +388,10 @@ const Contact = () => {
                         onChange={handleInputChange}
                         type="text"
                         placeholder="e.g. Ahmed Raza"
-                        className={`w-full px-4 py-3 sm:py-3.5 rounded-xl border text-sm focus:outline-none transition-all ${
-                          errors.fullName
+                        className={`w-full px-4 py-3 sm:py-3.5 rounded-xl border text-sm focus:outline-none transition-all ${errors.fullName
                             ? "border-red-400 bg-red-50"
                             : "border-slate-200 bg-white focus:border-[#f36c3a]"
-                        }`}
+                          }`}
                       />
                     </FormField>
 
@@ -404,11 +403,10 @@ const Contact = () => {
                         onChange={handleInputChange}
                         type="email"
                         placeholder="you@example.com"
-                        className={`w-full px-4 py-3 sm:py-3.5 rounded-xl border text-sm focus:outline-none transition-all ${
-                          errors.email
+                        className={`w-full px-4 py-3 sm:py-3.5 rounded-xl border text-sm focus:outline-none transition-all ${errors.email
                             ? "border-red-400 bg-red-50"
                             : "border-slate-200 bg-white focus:border-[#f36c3a]"
-                        }`}
+                          }`}
                       />
                     </FormField>
 
@@ -450,11 +448,10 @@ const Contact = () => {
                         rows={5}
                         maxLength={500}
                         placeholder="Tell us what you're looking for — property type, budget, location, timeline..."
-                        className={`w-full px-4 py-3 sm:py-3.5 rounded-xl border text-sm focus:outline-none transition-all resize-none ${
-                          errors.message
+                        className={`w-full px-4 py-3 sm:py-3.5 rounded-xl border text-sm focus:outline-none transition-all resize-none ${errors.message
                             ? "border-red-400 bg-red-50"
                             : "border-slate-200 bg-white focus:border-[#f36c3a]"
-                        }`}
+                          }`}
                       />
                       <div className="flex items-center justify-between">
                         {errors.message ? (
@@ -464,11 +461,10 @@ const Contact = () => {
                         ) : (
                           <span />
                         )}
-                        <p className={`text-xs ml-auto ${
-                          formData.message.length >= 480
+                        <p className={`text-xs ml-auto ${formData.message.length >= 480
                             ? "text-rose-400 font-semibold"
                             : "text-slate-400"
-                        }`}>
+                          }`}>
                           {formData.message.length} / 500
                         </p>
                       </div>
@@ -517,17 +513,8 @@ const Contact = () => {
       {/* ── Embedded Map ─────────────────────────────────────── */}
       <section
         id="map"
-        className="h-[350px] sm:h-[450px] w-full bg-slate-200 grayscale hover:grayscale-0 transition-all duration-700"
-      >
-        <iframe
-          title="Office Location"
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.215707164965!2d-73.985428!3d40.748817!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDQ0JzU1LjciTiA3M8KwNTknMDcuNSJX!5e0!3m2!1sen!2sus!4v1634567890123!5m2!1sen!2sus"
-          width="100%"
-          height="100%"
-          style={{ border: 0 }}
-          allowFullScreen=""
-          loading="lazy"
-        />
+        className="h-[300px] sm:h-[400px] w-full bg-slate-200 grayscale hover:grayscale-0 transition-all duration-700">
+        <CollegeMap />
       </section>
     </div>
   );

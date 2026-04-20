@@ -432,7 +432,7 @@ const PropertyMap = ({ lat, lng, title }) => {
       <MapContainer
         center={position}
         zoom={15}
-        style={{ height: "100%", width: "100%" }}
+        style={{ height: "100%", width: "100%", zIndex: 0 }}
         scrollWheelZoom={false}
       >
         <TileLayer
@@ -775,9 +775,9 @@ const PropertyDetailPage = () => {
                 {/* Listed by username */}
                 {p.user && (
                   <div className="flex items-center gap-2 text-right">
-                    {p.user.profileImage ? (
+                    {p.user.avatar ? (
                       <img
-                        src={p.user.profileImage}
+                        src={p.user.avatar}
                         alt={p.user.username}
                         className="w-9 h-9 rounded-full object-cover border-2 border-[#f36c3a]"
                       />
@@ -795,13 +795,13 @@ const PropertyDetailPage = () => {
               {/* Contact buttons */}
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link
-                  to="tel:+923001234567"
+                  to="tel:+923449885555"
                   className="flex-1 flex items-center justify-center gap-2 bg-slate-900 hover:bg-[#f36c3a] text-white font-bold text-sm py-3 rounded-xl transition-all active:scale-95"
                 >
-                  <FaPhoneAlt size={12} /> Call Agent
+                  <FaPhoneAlt size={12} /> Call Now
                 </Link>
                 <Link
-                  to="https://wa.me/923001234567"
+                  to="https://wa.me/923449885555"
                   target="_blank"
                   rel="noreferrer"
                   className="flex-1 flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm py-3 rounded-xl transition-all active:scale-95"
@@ -812,7 +812,7 @@ const PropertyDetailPage = () => {
                   onClick={() => setIsChatOpen(true)}
                   className="flex-1 bg-[#f36c3a] hover:bg-orange-600 text-white font-bold text-sm py-3 rounded-xl transition-all active:scale-95"
                 >
-                  Chat
+                  Chat Here
                 </button>
               </div>
             </div>

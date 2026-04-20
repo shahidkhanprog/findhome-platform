@@ -27,10 +27,10 @@ const Footer = () => {
           {/* Socials */}
           <div className="flex space-x-3 pt-2">
             {[
-              { icon: <FaFacebookF />, href: "#" },
-              { icon: <FaTwitter />, href: "#" },
-              { icon: <FaInstagram />, href: "#" },
-              { icon: <FaLinkedinIn />, href: "#" },
+              { icon: <FaFacebookF />, href: "https://www.facebook.com/shahidkhanprog" },
+              { icon: <FaTwitter />, href: "https://twitter.com/shahidkhanprog" },
+              { icon: <FaInstagram />, href: "https://www.instagram.com/shahidkhanprog" },
+              { icon: <FaLinkedinIn />, href: "https://www.linkedin.com/in/shahidkhanprog" },
             ].map((s, i) => (
               <a
                 key={i}
@@ -103,10 +103,10 @@ const Footer = () => {
             <li className="flex items-center gap-3">
               <FaPhone className="text-blue-500 shrink-0" />
               <a
-                href="tel:+11234567890"
+                href="tel:+923449885555"
                 className="hover:text-blue-400 transition-colors duration-300"
               >
-                +92 123 456 7890
+                +92 344 988 5555
               </a>
             </li>
             <li className="flex items-center gap-3">
