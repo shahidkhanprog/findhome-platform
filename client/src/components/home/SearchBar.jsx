@@ -48,11 +48,10 @@ const SearchBar = () => {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-12 py-4 font-bold rounded-t-xl transition-all border-t border-l border-r border-slate-200 capitalize ${
-              activeTab === tab
+            className={`px-12 py-4 font-bold rounded-t-xl transition-all border-t border-l border-r border-slate-200 capitalize ${activeTab === tab
                 ? "bg-white text-slate-900"
                 : "bg-slate-300 text-slate-500 hover:bg-slate-200"
-            }`}
+              }`}
           >
             {tab}
           </button>
@@ -71,9 +70,8 @@ const SearchBar = () => {
               value={searchData.city}
               onChange={handleInputChange}
               placeholder="City"
-              className={`w-full bg-transparent focus:outline-none text-slate-700 font-medium placeholder-slate-400 ${
-                errors.city ? "placeholder-red-400" : ""
-              }`}
+              className={`w-full bg-transparent focus:outline-none text-slate-700 font-medium placeholder-slate-400 ${errors.city ? "placeholder-red-400" : ""
+                }`}
             />
             {errors.city && (
               <p className="text-[10px] text-red-500 font-bold uppercase mt-1">

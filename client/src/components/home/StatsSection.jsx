@@ -1,7 +1,6 @@
 // StatsSection.jsx - Displays company achievement statistics
 import React from "react";
 
-// Stats data — easy to update or fetch from an API later
 const STATS = [
   { label: "Years of Experience", value: "10+" },
   { label: "Awards Gained",       value: "30+" },
