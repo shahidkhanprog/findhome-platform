@@ -68,7 +68,7 @@ const Pagination = ({ page, totalPages, onPageChange }) => {
   // For single page, show disabled buttons + page indicator
   if (totalPages === 1) {
     return (
-      <div className="flex items-center justify-center gap-1.5 sm:gap-2 pt-4 pb-16 flex-wrap">
+      <div className="flex items-center justify-center gap-1.5 sm:gap-2 pt-4 flex-wrap">
         <button
           disabled
           className="px-3 sm:px-4 h-10 rounded-xl font-bold text-sm border border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed transition-all"
@@ -76,7 +76,7 @@ const Pagination = ({ page, totalPages, onPageChange }) => {
           ← Prev
         </button>
         <button
-          className="w-10 h-10 rounded-xl font-bold text-sm bg-[#f36c3a] text-white shadow-md shadow-orange-200"
+          className="w-10 h-10 rounded-xl font-bold text-sm bg-slate-900 text-white shadow-md shadow-slate-700"
         >
           1
         </button>

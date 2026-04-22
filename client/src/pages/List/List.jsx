@@ -200,7 +200,7 @@ function List() {
   }
 
   return (
-    <div className="bg-slate-50 pb-12">   {/* ← removed min-h-screen, added bottom padding */}
+    <div className="bg-slate-50">   {/* ← removed min-h-screen, added bottom padding */}
       <ListHeader
         filtered={filteredProperties}
         favourites={favourites}

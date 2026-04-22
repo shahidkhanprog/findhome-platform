@@ -31,7 +31,7 @@ const SearchBar = () => {
       return;
     }
     const queryParams = new URLSearchParams({
-      type: activeTab,
+      type: activeTab === "buy" ? "sale" : "rent",
       city: searchData.city,
       min: searchData.minPrice,
       max: searchData.maxPrice,

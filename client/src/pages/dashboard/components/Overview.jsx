@@ -24,56 +24,48 @@ import {
 } from "react-icons/md";
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   HELPERS
-───────────────────────────────────────────────────────────────────────────── */
-function formatPrice(n) {
-  if (!n && n !== 0) return "—";
-  if (n >= 10_000_000) return `PKR ${(n / 10_000_000).toFixed(1)}cr`;
-  if (n >= 100_000) return `PKR ${(n / 100_000).toFixed(0)}L`;
-  return `PKR ${Number(n).toLocaleString()}`;
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
    CONSTANTS
 ───────────────────────────────────────────────────────────────────────────── */
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
-const STATUS_CONFIG = {
+export const STATUS_CONFIG = {
   available: {
     label: "Available",
+    bg: "bg-emerald-500",
+    text: "text-white",
     dot: "bg-emerald-400",
-    text: "text-emerald-700",
-    bg: "bg-emerald-50",
     border: "border-emerald-100",
   },
+
   sold: {
     label: "Sold",
-    dot: "bg-slate-400",
-    text: "text-slate-600",
-    bg: "bg-slate-50",
-    border: "border-slate-100",
+    bg: "bg-rose-500",
+    text: "text-white",
+    dot: "bg-rose-400",
+    border: "border-rose-100",
   },
+
   rented: {
     label: "Rented",
-    dot: "bg-amber-400",
-    text: "text-amber-700",
-    bg: "bg-amber-50",
-    border: "border-amber-100",
+    bg: "bg-indigo-500",
+    text: "text-white",
+    dot: "bg-indigo-400",
+    border: "border-indigo-100",
   },
+
   pending: {
     label: "Pending",
-    dot: "bg-blue-400",
-    text: "text-blue-700",
-    bg: "bg-blue-50",
-    border: "border-blue-100",
+    bg: "bg-amber-500",
+    text: "text-white",
+    dot: "bg-amber-400",
+    border: "border-amber-100",
   },
 };
-
 const STAT_STYLES = {
-  violet: {
-    value: "text-violet-600",
-    iconBg: "bg-violet-100",
-    iconText: "text-violet-500",
+  gray: {
+    value: "text-gray-600",
+    iconBg: "bg-gray-100",
+    iconText: "text-gray-500",
   },
   emerald: {
     value: "text-emerald-600",
@@ -99,7 +91,7 @@ function StatusBadge({ status }) {
   const s = STATUS_CONFIG[status] ?? STATUS_CONFIG.available;
   return (
     <span
-      className={`inline-flex items-center gap-1.5 ${s.bg} ${s.text} border ${s.border} text-[11px] font-semibold rounded-full px-2.5 py-1 whitespace-nowrap flex-shrink-0`}
+      className={`inline-flex items-center gap-1.5 ${s.bg} ${s.text} border ${s.border} text-[11px] font-bold rounded-full px-2.5 py-1 whitespace-nowrap flex-shrink-0 w-[100%]`}
     >
       <span className={`w-1.5 h-1.5 rounded-full ${s.dot} flex-shrink-0`} />
       {s.label}
@@ -123,14 +115,14 @@ function Avatar({
       <img
         src={src}
         alt={name}
-        className={`${className} rounded-full object-cover flex-shrink-0 border-2 border-violet-100 shadow-sm`}
+        className={`${className} rounded-full object-cover flex-shrink-0 border-2 border-gray-100 shadow-sm`}
         onError={() => setImgError(true)}
       />
     );
   }
   return (
     <div
-      className={`${className} rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center ${textClass} font-bold text-white flex-shrink-0 select-none shadow-sm`}
+      className={`${className} rounded-full bg-gradient-to-br from-gray-500 to-purple-600 flex items-center justify-center ${textClass} font-bold text-white flex-shrink-0 select-none shadow-sm`}
     >
       {letter}
     </div>
@@ -145,7 +137,7 @@ function StatCard({ label, value, colorKey, Icon, loading, isAdminView }) {
   return (
     <div
       className={`bg-white border rounded-2xl p-4 flex flex-col gap-3 hover:shadow-lg transition-all duration-200
-      ${isAdminView ? "border-violet-100 shadow-sm shadow-violet-50/80 hover:shadow-violet-100" : "border-slate-100 hover:shadow-slate-100"}`}
+      ${isAdminView ? "border-gray-100 shadow-sm shadow-gray-50/80 hover:shadow-gray-100" : "border-slate-100 hover:shadow-slate-100"}`}
     >
       <div className="flex items-center justify-between">
         <span className="text-xs text-slate-400 font-medium leading-tight">
@@ -231,7 +223,7 @@ function UserProfileDialog({ user: initialUser, onClose }) {
     >
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-[fadeInScale_0.18s_ease-out]">
         {/* Decorative header strip */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-400" />
+        <div className="h-1.5 w-full bg-gray-500" />
 
         {/* Close button */}
         <div className="flex justify-end px-4 pt-3">
@@ -260,7 +252,7 @@ function UserProfileDialog({ user: initialUser, onClose }) {
             <p className="text-lg font-bold text-slate-800">
               {fullUser.username}
             </p>
-            <span className="inline-flex items-center gap-1 mt-1 bg-violet-100 text-violet-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-violet-200">
+            <span className="inline-flex items-center gap-1 mt-1 bg-gray-100 text-gray-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-gray-200">
               <MdPerson size={10} />
               {fullUser.role ?? "USER"}
             </span>
@@ -274,9 +266,9 @@ function UserProfileDialog({ user: initialUser, onClose }) {
           ) : fullUser.email ? (
             <a
               href={`mailto:${fullUser.email}`}
-              className="flex items-center gap-2 text-[13px] text-slate-500 hover:text-violet-600 transition-colors mt-1 break-all text-center"
+              className="flex items-center gap-2 text-[13px] text-slate-500 hover:text-gray-600 transition-colors mt-1 break-all text-center"
             >
-              <MdEmail size={15} className="text-violet-400 flex-shrink-0" />
+              <MdEmail size={15} className="text-gray-400 flex-shrink-0" />
               {fullUser.email}
             </a>
           ) : (
@@ -323,7 +315,7 @@ function UserChip({ username, onClick }) {
         e.stopPropagation();
         onClick?.();
       }}
-      className="inline-flex items-center gap-1.5 bg-white border border-violet-200 text-violet-700 text-[10px] font-semibold rounded-full px-2.5 py-1 whitespace-nowrap hover:bg-violet-50 hover:border-violet-400 hover:shadow-sm active:scale-95 transition-all cursor-pointer flex-shrink-0 w-[100%]"
+      className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-gray-700 text-[10px] font-semibold rounded-full px-2.5 py-1 whitespace-nowrap hover:bg-gray-50 hover:border-gray-400 hover:shadow-sm active:scale-95 transition-all cursor-pointer flex-shrink-0 w-[100%]"
       title={`View ${username}'s profile`}
     >
       <MdPerson size={11} />
@@ -411,7 +403,7 @@ function PaginationBar({
               name="page-size"
               value={pageSize}
               onChange={(e) => onPageSizeChange(Number(e.target.value))}
-              className="appearance-none bg-white border border-slate-200 text-slate-700 text-[12px] sm:text-sm rounded-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 pl-2.5 pr-6 py-1.5 transition-all cursor-pointer hover:border-slate-300"
+              className="appearance-none bg-white border border-slate-200 text-slate-700 text-[12px] sm:text-sm rounded-lg focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 pl-2.5 pr-6 py-1.5 transition-all cursor-pointer hover:border-slate-300"
             >
               {PAGE_SIZE_OPTIONS.map((size) => (
                 <option key={size} value={size}>
@@ -465,8 +457,8 @@ function PaginationBar({
               className={[
                 "w-8 h-8 rounded-xl text-[12px] font-semibold border transition-all cursor-pointer",
                 num === currentPage
-                  ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white border-transparent shadow-sm shadow-violet-200"
-                  : "bg-white text-slate-600 border-slate-200 hover:border-violet-300 hover:text-violet-600",
+                  ? "bg-gray-600 text-white border-transparent shadow-sm shadow-gray-200"
+                  : "bg-white text-slate-600 border-slate-200 hover:border-gray-300 hover:text-gray-600",
               ].join(" ")}
             >
               {num}
@@ -575,7 +567,7 @@ export default function Overview() {
     {
       label: showingAll ? "Total Properties" : "Total Listings",
       value: posts.length,
-      colorKey: "violet",
+      colorKey: "gray",
       Icon: MdOutlineHome,
     },
     {
@@ -627,10 +619,10 @@ export default function Overview() {
       {/* ── WELCOME / PROFILE CARD ── */}
       <div
         className={`bg-white rounded-2xl overflow-hidden transition-all
-        ${isAdmin ? "border border-violet-100 shadow-md shadow-violet-50" : "border border-slate-100 shadow-sm"}`}
+        ${isAdmin ? "border border-gray-200 shadow-md shadow-gray-200" : "border border-slate-100 shadow-sm"}`}
       >
         {isAdmin && (
-          <div className="h-1 w-full bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-400" />
+          <div className="h-1 w-full bg-gray-500" />
         )}
         <div className="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
           <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -642,7 +634,7 @@ export default function Overview() {
                 textClass="text-xl md:text-2xl"
               />
               {isAdmin && (
-                <span className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-violet-600 rounded-full flex items-center justify-center shadow ring-2 ring-white">
+                <span className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-gray-600 rounded-full flex items-center justify-center shadow ring-2 ring-white">
                   <MdVerified size={12} className="text-white" />
                 </span>
               )}
@@ -654,7 +646,7 @@ export default function Overview() {
                 </p>
                 <span
                   className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border
-                  ${isAdmin ? "bg-violet-100 text-violet-700 border-violet-200" : "bg-slate-100 text-slate-500 border-slate-200"}`}
+                  ${isAdmin ? "bg-gray-100 text-gray-700 border-gray-200" : "bg-slate-100 text-slate-500 border-slate-200"}`}
                 >
                   {isAdmin ? (
                     <>
@@ -699,10 +691,9 @@ export default function Overview() {
                 type="button"
                 onClick={() => setAdminViewAll((v) => !v)}
                 className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2.5 text-[12px] font-semibold border transition-all whitespace-nowrap w-full sm:w-auto
-                  ${
-                    adminViewAll
-                      ? "bg-violet-600 text-white border-violet-600 shadow-md shadow-violet-200 hover:bg-violet-700"
-                      : "bg-white text-violet-600 border-violet-200 hover:bg-violet-50 hover:border-violet-400"
+                  ${adminViewAll
+                    ? "bg-gray-900 text-white border-gray-600 shadow-md shadow-gray-700"
+                    : "bg-white text-black border-black hover:bg-gray-50"
                   }`}
               >
                 <MdFilterList size={15} />
@@ -711,7 +702,7 @@ export default function Overview() {
             )}
             <Link
               to="/dashboard/addProperty"
-              className="inline-flex items-center justify-center gap-1.5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white no-underline rounded-xl px-4 py-2.5 text-[13px] font-semibold whitespace-nowrap transition-all shadow-md shadow-violet-200 w-full sm:w-auto"
+              className="inline-flex items-center justify-center gap-1.5 bg-gray-900 text-white no-underline rounded-xl px-4 py-2.5 text-[13px] font-semibold whitespace-nowrap transition-all shadow-md shadow-gray-700 w-full sm:w-auto"
             >
               <MdAddHome size={17} />
               Add Property
@@ -725,7 +716,7 @@ export default function Overview() {
         <div className="flex items-center gap-2">
           <div
             className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg border
-            ${showingAll ? "bg-violet-50 text-violet-600 border-violet-100" : "bg-slate-50 text-slate-500 border-slate-100"}`}
+            ${showingAll ? "bg-gray-50 text-gray-600 border-gray-100" : "bg-slate-50 text-slate-500 border-slate-100"}`}
           >
             {showingAll ? (
               <>
@@ -757,16 +748,16 @@ export default function Overview() {
       {/* ── RECENT LISTINGS CARD ── */}
       <div
         className={`bg-white rounded-2xl overflow-hidden transition-all
-        ${showingAll ? "border border-violet-100 shadow-md shadow-violet-50/80" : "border border-slate-100 shadow-sm"}`}
+        ${showingAll ? "border border-gray-100 shadow-md shadow-gray-50/80" : "border border-slate-100 shadow-sm"}`}
       >
         {showingAll && (
-          <div className="h-0.5 w-full bg-gradient-to-r from-violet-400 via-purple-400 to-indigo-400" />
+          <div className="h-0.5 w-full bg-gray-400" />
         )}
 
         {/* Card header */}
         <div
           className={`flex items-center justify-between px-4 md:px-5 py-3.5 border-b
-          ${showingAll ? "border-violet-50 bg-gradient-to-r from-violet-50/70 to-transparent" : "border-slate-100"}`}
+          ${showingAll ? "border-gray-50 bg-gray-200 to-transparent" : "border-gray-300"}`}
         >
           <div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -774,7 +765,7 @@ export default function Overview() {
                 Recent Listings
               </h3>
               {showingAll && (
-                <span className="inline-flex items-center gap-1 bg-violet-100 text-violet-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-violet-200">
+                <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-gray-200">
                   <MdAdminPanelSettings size={10} />
                   All Users
                 </span>
@@ -789,7 +780,7 @@ export default function Overview() {
           </div>
           <Link
             to="/dashboard/myProperties"
-            className="text-[12px] text-violet-600 font-semibold no-underline hover:text-violet-800 transition-colors whitespace-nowrap"
+            className="text-[12px] text-gray-600 font-semibold no-underline hover:text-gray-800 transition-colors whitespace-nowrap"
           >
             View all →
           </Link>
@@ -816,11 +807,11 @@ export default function Overview() {
         {!loading && !error && totalItems === 0 && (
           <div className="flex flex-col items-center justify-center py-14 gap-3">
             <div
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center ${showingAll ? "bg-violet-50" : "bg-slate-50"}`}
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center ${showingAll ? "bg-gray-50" : "bg-slate-50"}`}
             >
               <MdOutlineHome
                 size={26}
-                className={showingAll ? "text-violet-300" : "text-slate-300"}
+                className={showingAll ? "text-gray-300" : "text-slate-300"}
               />
             </div>
             <div className="text-center">
@@ -835,7 +826,7 @@ export default function Overview() {
             </div>
             <Link
               to="/dashboard/addProperty"
-              className="inline-flex items-center gap-1.5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white no-underline rounded-xl px-4 py-2 text-[12px] font-semibold shadow-md shadow-violet-200 transition-all"
+              className="inline-flex items-center gap-1.5 bg-gray-600 hover:bg-gray-700 text-white no-underline rounded-xl px-4 py-2 text-[12px] font-semibold shadow-md shadow-gray-200 transition-all"
             >
               <MdAddHome size={15} />
               Add Property
@@ -860,7 +851,7 @@ export default function Overview() {
                   <div
                     key={p.id}
                     className={`flex items-center gap-3 px-4 md:px-5 py-3
-                      ${i < pagedPosts.length - 1 ? `border-b ${showingAll ? "border-violet-50" : "border-slate-50"}` : ""}`}
+                      ${i < pagedPosts.length - 1 ? `border-b ${showingAll ? "border-gray-50" : "border-slate-50"}` : ""}`}
                   >
                     {/* Thumbnail — fixed width */}
                     <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl flex-shrink-0 overflow-hidden shadow-sm ring-1 ring-slate-100">
@@ -873,7 +864,7 @@ export default function Overview() {
                             e.currentTarget.style.display = "none";
                             e.currentTarget.parentElement.classList.add(
                               "bg-gradient-to-br",
-                              "from-violet-100",
+                              "from-gray-100",
                               "to-purple-100",
                               "flex",
                               "items-center",
@@ -882,7 +873,7 @@ export default function Overview() {
                           }}
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center text-violet-500">
+                        <div className="w-full h-full bg-gradient-to-br from-gray-100 to-purple-100 flex items-center justify-center text-gray-500">
                           <MdOutlineHome size={18} />
                         </div>
                       )}
@@ -896,14 +887,18 @@ export default function Overview() {
                       <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1 truncate">
                         <MdLocationOn
                           size={11}
-                          className="text-violet-400 flex-shrink-0"
+                          className="text-gray-400 flex-shrink-0"
                         />
                         <span className="truncate">{p.city}</span>
                         <span className="mx-0.5 flex-shrink-0">·</span>
                         <span className="capitalize flex-shrink-0">{type}</span>
                         <span className="mx-0.5 flex-shrink-0">·</span>
                         <span className="flex-shrink-0 font-medium text-slate-500">
-                          {formatPrice(p.price)}
+                          {Number(p.price).toLocaleString('en-US', {
+                            style: 'currency',
+                            currency: 'PKR',
+                            maximumFractionDigits: 0,
+                          })}
                         </span>
                       </p>
                     </div>
@@ -929,7 +924,7 @@ export default function Overview() {
                         type="button"
                         onClick={() => navigate(`/dashboard/property/${p.id}`)}
                         aria-label="View property details"
-                        className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:text-violet-500 hover:bg-violet-50 transition-all cursor-pointer"
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:text-gray-500 hover:bg-gray-50 transition-all cursor-pointer"
                       >
                         <MdOpenInNew size={15} />
                       </button>
@@ -957,11 +952,11 @@ export default function Overview() {
         {/* Mobile footer link */}
         {!loading && totalItems > 0 && (
           <div
-            className={`sm:hidden px-4 py-3 border-t ${showingAll ? "border-violet-50" : "border-slate-50"}`}
+            className={`sm:hidden px-4 py-3 border-t ${showingAll ? "border-gray-50" : "border-slate-50"}`}
           >
             <Link
               to="/dashboard/myProperties"
-              className="block text-center text-[12px] text-violet-600 font-semibold no-underline py-1"
+              className="block text-center text-[12px] text-gray-600 font-semibold no-underline py-1"
             >
               View all properties →
             </Link>

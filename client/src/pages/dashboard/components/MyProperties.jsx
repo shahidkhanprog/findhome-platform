@@ -52,36 +52,39 @@ export function formatPrice(n) {
 const PAGE_SIZE_OPTIONS = [6, 12, 18, 24];
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   STATUS CONFIG
+   STATUS CONFIG (PROFESSIONAL REAL ESTATE COLOR SYSTEM)
 ───────────────────────────────────────────────────────────────────────────── */
 export const STATUS_CONFIG = {
   available: {
     label: "Available",
-    bg: "bg-emerald-50",
-    text: "text-emerald-700",
+    bg: "bg-emerald-500",
+    text: "text-white",
     dot: "bg-emerald-400",
     border: "border-emerald-100",
   },
+
   sold: {
     label: "Sold",
-    bg: "bg-slate-50",
-    text: "text-slate-600",
-    dot: "bg-slate-400",
-    border: "border-slate-100",
+    bg: "bg-rose-500",
+    text: "text-white",
+    dot: "bg-rose-400",
+    border: "border-rose-100",
   },
+
   rented: {
     label: "Rented",
-    bg: "bg-amber-50",
-    text: "text-amber-700",
-    dot: "bg-amber-400",
-    border: "border-amber-100",
+    bg: "bg-indigo-500",
+    text: "text-white",
+    dot: "bg-indigo-400",
+    border: "border-indigo-100",
   },
+
   pending: {
     label: "Pending",
-    bg: "bg-blue-50",
-    text: "text-blue-700",
-    dot: "bg-blue-400",
-    border: "border-blue-100",
+    bg: "bg-amber-500",
+    text: "text-white",
+    dot: "bg-amber-400",
+    border: "border-amber-100",
   },
 };
 const STATUS_KEYS = ["all", "available", "sold", "rented", "pending"];
@@ -272,14 +275,14 @@ function ImageCarousel({ images, title }) {
           <button
             onClick={prev}
             aria-label="Previous image"
-            className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all backdrop-blur-sm z-10 shadow-md"
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-blue-500 text-white flex items-center justify-center transition-all backdrop-blur-sm z-10 shadow-md"
           >
             <MdChevronLeft size={18} />
           </button>
           <button
             onClick={next}
             aria-label="Next image"
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all backdrop-blur-sm z-10 shadow-md"
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-blue-500 text-white flex items-center justify-center transition-all backdrop-blur-sm z-10 shadow-md"
           >
             <MdChevronRight size={18} />
           </button>
@@ -366,7 +369,7 @@ function PropertyCard({
   const canShowRooms = showRooms(property);
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-1 shadow-inner shadow-black/30 border border-slate-400">
+    <div className="bg-slate-200/5 rounded-2xl overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-1 shadow-inner shadow-black/30 border border-slate-400">
       <div className="relative">
         <ImageCarousel images={images} title={post.title} />
         <div className="absolute top-3 left-3 z-10">
@@ -386,8 +389,8 @@ function PropertyCard({
       <div className="p-4 flex-1 flex flex-col gap-1.5">
         {isAdmin && ownerName && (
           <div className="inline-flex items-center gap-1 self-start bg-violet-50 border border-violet-100 rounded-lg px-2 py-0.5 mb-0.5">
-            <MdPerson size={11} className="text-violet-400 flex-shrink-0" />
-            <span className="text-[10.5px] font-semibold text-violet-600 leading-none truncate max-w-[130px]">
+            <MdPerson size={11} className="text-blue-500 flex-shrink-0" />
+            <span className="text-[10.5px] text-blue-500 font-bold leading-none truncate max-w-[130px]">
               {ownerName}
             </span>
           </div>
@@ -396,7 +399,7 @@ function PropertyCard({
           {post.title}
         </h3>
         <div className="flex items-center gap-1 text-[11.5px] text-slate-400">
-          <MdLocationOn size={13} className="text-violet-400 flex-shrink-0" />
+          <MdLocationOn size={13} className="text-blue-500 flex-shrink-0" />
           <span className="truncate">{post.city}</span>
         </div>
         {(area > 0 || (canShowRooms && (bedroom > 0 || bathroom > 0))) && (
@@ -421,8 +424,12 @@ function PropertyCard({
             )}
           </div>
         )}
-        <p className="text-base font-extrabold text-violet-600 mt-auto pt-1.5 border-t border-gray-200">
-          {formatPrice(post.price)}
+        <p className="text-base font-extrabold text-blue-500 mt-auto pt-1.5 border-t border-gray-200">
+          {Number(post.price).toLocaleString('en-US', {
+            style: 'currency',
+            currency: 'PKR',
+            maximumFractionDigits: 0,
+          })}
         </p>
       </div>
 
@@ -431,14 +438,15 @@ function PropertyCard({
       <div className="p-3 flex items-center gap-2">
         <button
           onClick={() => onDetails?.(post.id)}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-[12px] font-semibold bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white rounded-xl border-none cursor-pointer transition-all shadow-sm shadow-violet-200"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-[12px] font-bold bg-gray-900 text-white rounded-xl border-none cursor-pointer transition-all shadow-sm shadow-violet-200"
         >
           <MdOpenInNew size={14} />
-          Details
+          {/* Details */}
+          Preview
         </button>
         <button
           onClick={() => onEdit?.(post)}
-          className="flex items-center justify-center gap-1 py-2 px-3 text-[12px] font-semibold bg-violet-50 text-violet-600 hover:bg-violet-100 rounded-xl border-none cursor-pointer transition-colors"
+          className="flex items-center justify-center gap-1 py-2 px-3 text-[12px] font-semibold bg-violet-50 text-violet-600rounded-xl border-none cursor-pointer transition-colors"
         >
           <MdEdit size={14} />
           Edit
@@ -490,7 +498,7 @@ function PropertyCard({
 
         <button
           onClick={() => onDelete?.(post)}
-          className="flex items-center justify-center py-2 px-2.5 bg-rose-50 text-rose-500 hover:bg-rose-100 border border-rose-100 rounded-xl cursor-pointer transition-colors"
+          className="flex items-center justify-center py-2 px-2.5 bg-gray-300 text-rose-500 border border-gray-600 rounded-xl cursor-pointer transition-colors"
         >
           <MdDeleteOutline size={16} />
         </button>
@@ -561,8 +569,8 @@ function FilterBar({
             className={[
               "flex-shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-all cursor-pointer border",
               adminScope === "all"
-                ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border-transparent shadow-sm"
-                : "bg-white text-slate-500 border-slate-200 hover:border-amber-300 hover:text-amber-600",
+                ? "bg-blue-500 text-white border-transparent shadow-sm"
+                : "bg-white text-slate-500 border-slate-200",
             ].join(" ")}
           >
             <MdPeople size={13} />
@@ -586,8 +594,8 @@ function FilterBar({
             className={[
               "flex-shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-all cursor-pointer border",
               adminScope === "mine"
-                ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border-transparent shadow-sm"
-                : "bg-white text-slate-500 border-slate-200 hover:border-amber-300 hover:text-amber-600",
+                ? "bg-blue-500 text-white border-transparent shadow-sm"
+                : "bg-white text-slate-500 border-slate-200",
             ].join(" ")}
           >
             <MdPersonOutline size={13} />
@@ -624,9 +632,9 @@ function FilterBar({
                   "flex-shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-all cursor-pointer border",
                   isActive
                     ? s === "all"
-                      ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white border-transparent shadow-md shadow-violet-200"
+                      ? "bg-blue-500 text-white border-transparent shadow-md shadow-violet-200"
                       : `${cfg.bg} ${cfg.text} ${cfg.border}`
-                    : "bg-white text-slate-500 border-slate-200 hover:border-slate-300 hover:text-slate-700",
+                    : "bg-white text-slate-500 border-slate-200 hover:border-slate-300",
                 ].join(" ")}
               >
                 {s === "all" ? "All" : cfg.label}
@@ -783,8 +791,8 @@ function PaginationBar({
               className={[
                 "w-8 h-8 rounded-xl text-[12px] font-semibold border transition-all cursor-pointer",
                 num === currentPage
-                  ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white border-transparent shadow-sm shadow-violet-200"
-                  : "bg-white text-slate-600 border-slate-200 hover:border-violet-300 hover:text-violet-600",
+                  ? "bg-gray-900 text-white border-transparent shadow-sm shadow-violet-200"
+                  : "bg-white text-slate-600 border-slate-200",
               ].join(" ")}
             >
               {num}
@@ -1010,7 +1018,7 @@ export default function MyProperties() {
 
         <button
           onClick={() => navigate("/dashboard/addProperty")}
-          className="inline-flex items-center gap-1.5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white border-none rounded-xl px-4 py-2.5 text-[13px] font-semibold cursor-pointer whitespace-nowrap flex-shrink-0 shadow-md shadow-violet-200 transition-all"
+          className="inline-flex items-center gap-1.5 bg-gray-900 text-white border-none rounded-xl px-4 py-2.5 text-[13px] font-semibold cursor-pointer whitespace-nowrap flex-shrink-0 shadow-md shadow-violet-200 transition-all"
         >
           <MdAddHome size={17} />
           <span className="hidden sm:inline">Add Property</span>

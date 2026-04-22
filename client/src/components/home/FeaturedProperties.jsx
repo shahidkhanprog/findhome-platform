@@ -182,7 +182,7 @@ const FeaturedProperties = () => {
         <div className="mt-12 text-center">
           <Link
             to="/list"
-            className="inline-flex items-center gap-2 bg-[#f36c3a] hover:bg-orange-600 active:scale-95 text-white font-bold px-8 py-3.5 rounded-xl transition-all shadow-md shadow-orange-200 text-sm sm:text-base"
+            className="inline-flex items-center gap-2 bg-blue-500 hover:bg-orange-600 active:scale-95 text-white font-bold px-8 py-3.5 rounded-xl transition-all shadow-md shadow-orange-200 text-sm sm:text-base"
           >
             Browse All Properties <FaArrowRight className="text-xs" />
           </Link>

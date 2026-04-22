@@ -601,7 +601,7 @@ const PropertyDetailPage = () => {
     !isNaN(parseFloat(p.latitude)) && !isNaN(parseFloat(p.longitude));
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-28 font-sans">
+    <div className="min-h-screen bg-slate-50 font-sans">
 
       {/* ── Navigation Bar ─────────────────────────────────── */}
       <nav className="bg-white border-b border-slate-100 sticky top-0 z-30 shadow-sm">
@@ -753,16 +753,18 @@ const PropertyDetailPage = () => {
             </div>
 
             {/* Price + Contact block */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6 space-y-4">
-              <div className="flex items-end justify-between">
-                <div>
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 sm:p-6 space-y-4">
+
+              {/* Price + Listed By */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Price</p>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl sm:text-4xl font-black text-slate-900">
+                  <div className="flex items-baseline gap-1 flex-wrap">
+                    <span className="text-2xl sm:text-4xl font-black text-slate-900 leading-tight">
                       {formatPKR(p.price)}
                     </span>
                     {p.listingType === "rent" && (
-                      <span className="text-slate-400 font-bold text-base"> / month</span>
+                      <span className="text-slate-400 font-bold text-sm sm:text-base whitespace-nowrap">/ month</span>
                     )}
                   </div>
                   {p.size && (
@@ -772,47 +774,52 @@ const PropertyDetailPage = () => {
                   )}
                 </div>
 
-                {/* Listed by username */}
+                {/* Listed by */}
                 {p.user && (
-                  <div className="flex items-center gap-2 text-right">
+                  <div className="flex items-center gap-2 shrink-0">
                     {p.user.avatar ? (
                       <img
                         src={p.user.avatar}
                         alt={p.user.username}
-                        className="w-9 h-9 rounded-full object-cover border-2 border-[#f36c3a]"
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-[#f36c3a]"
                       />
                     ) : (
-                      <FaUserCircle className="text-slate-300 text-4xl" />
+                      <FaUserCircle className="text-slate-300 text-3xl sm:text-4xl" />
                     )}
                     <div>
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Listed by</p>
-                      <p className="text-sm font-black text-slate-700">{p.user.username || "Owner"}</p>
+                      <p className="text-xs sm:text-sm font-black text-slate-700 max-w-[80px] sm:max-w-none truncate">
+                        {p.user.username || "Owner"}
+                      </p>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Contact buttons */}
-              <div className="flex flex-col sm:flex-row gap-3">
+              {/* Contact buttons - 3 columns on all screens */}
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 <Link
                   to="tel:+923449885555"
-                  className="flex-1 flex items-center justify-center gap-2 bg-slate-900 hover:bg-[#f36c3a] text-white font-bold text-sm py-3 rounded-xl transition-all active:scale-95"
+                  className="flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-[#f36c3a] text-white font-bold text-xs sm:text-sm py-3 rounded-xl transition-all active:scale-95"
                 >
-                  <FaPhoneAlt size={12} /> Call Now
+                  <FaPhoneAlt size={11} />
+                  <span className="hidden xs:inline sm:inline">Call</span>
+                  <span className="xs:hidden sm:hidden">Call</span>
                 </Link>
                 <Link
                   to="https://wa.me/923449885555"
                   target="_blank"
                   rel="noreferrer"
-                  className="flex-1 flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm py-3 rounded-xl transition-all active:scale-95"
+                  className="flex items-center justify-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs sm:text-sm py-3 rounded-xl transition-all active:scale-95"
                 >
-                  <FaWhatsapp size={15} /> WhatsApp
+                  <FaWhatsapp size={13} />
+                  <span>WhatsApp</span>
                 </Link>
                 <button
                   onClick={() => setIsChatOpen(true)}
-                  className="flex-1 bg-[#f36c3a] hover:bg-orange-600 text-white font-bold text-sm py-3 rounded-xl transition-all active:scale-95"
+                  className="flex items-center justify-center bg-[#f36c3a] hover:bg-orange-600 text-white font-bold text-xs sm:text-sm py-3 rounded-xl transition-all active:scale-95"
                 >
-                  Chat Here
+                  Chat
                 </button>
               </div>
             </div>
