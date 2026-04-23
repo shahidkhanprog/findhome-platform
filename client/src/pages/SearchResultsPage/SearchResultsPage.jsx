@@ -127,11 +127,11 @@ function SearchResultsPage() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
-  // listingType badge color: "sale" = orange, "rent" = green
+  // listingType badge color: "sale" = gray, "rent" = green
   const getListingBadgeColor = (type) => {
     const t = (type || "").toLowerCase();
     if (t === "rent") return "bg-green-500";
-    if (t === "sale") return "bg-orange-500";
+    if (t === "sale") return "bg-gray-500";
     return "bg-blue-500";
   };
 
@@ -161,7 +161,7 @@ function SearchResultsPage() {
               value={filters.query}
               onChange={(e) => handleFilterChange("query", e.target.value)}
               placeholder="Search by city or property name..."
-              className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:bg-white transition placeholder-gray-400"
+              className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:bg-white transition placeholder-gray-400"
             />
           </div>
 
@@ -175,7 +175,7 @@ function SearchResultsPage() {
               <select
                 value={filters.property}
                 onChange={(e) => handleFilterChange("property", e.target.value)}
-                className="w-full pl-8 pr-6 py-2.5 text-xs border border-gray-200 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-700 appearance-none cursor-pointer"
+                className="w-full pl-8 pr-6 py-2.5 text-xs border border-gray-200 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 text-gray-700 appearance-none cursor-pointer"
               >
                 {PROPERTY_TYPES.map((c) => (
                   <option key={c} value={c}>{c === "All Types" ? "All Types" : capitalize(c)}</option>
@@ -194,7 +194,7 @@ function SearchResultsPage() {
               <select
                 value={filters.listingType}
                 onChange={(e) => handleFilterChange("listingType", e.target.value)}
-                className="w-full pl-8 pr-6 py-2.5 text-xs border border-gray-200 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-700 appearance-none cursor-pointer"
+                className="w-full pl-8 pr-6 py-2.5 text-xs border border-gray-200 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 text-gray-700 appearance-none cursor-pointer"
               >
                 <option value="All">All</option>
                 <option value="rent">For Rent</option>
@@ -208,7 +208,7 @@ function SearchResultsPage() {
             {/* Reset */}
             <button
               onClick={handleReset}
-              className="col-span-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-gray-700 border border-gray-200 rounded-md bg-gray-50 hover:bg-gray-100 transition"
+              className="col-span-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-gray-700 border border-gray-500 rounded-md bg-gray-300 hover:bg-gray-300 transition cursor-pointer"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -227,7 +227,7 @@ function SearchResultsPage() {
                 value={filters.minPrice}
                 onChange={(e) => handleFilterChange("minPrice", e.target.value)}
                 placeholder="Min"
-                className="w-full pl-8 pr-2 py-2 text-xs border border-gray-200 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
+                className="w-full pl-8 pr-2 py-2 text-xs border border-gray-200 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 transition"
               />
             </div>
             <span className="text-gray-300 font-bold text-sm shrink-0">—</span>
@@ -238,7 +238,7 @@ function SearchResultsPage() {
                 value={filters.maxPrice}
                 onChange={(e) => handleFilterChange("maxPrice", e.target.value)}
                 placeholder="Max"
-                className="w-full pl-8 pr-2 py-2 text-xs border border-gray-200 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
+                className="w-full pl-8 pr-2 py-2 text-xs border border-gray-200 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 transition"
               />
             </div>
           </div>
@@ -260,7 +260,7 @@ function SearchResultsPage() {
               <select
                 value={sort}
                 onChange={(e) => { setSort(e.target.value); setPage(1); }}
-                className="pl-2 pr-7 py-2 text-xs border border-gray-200 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-700 appearance-none cursor-pointer font-medium"
+                className="pl-2 pr-7 py-2 text-xs border border-gray-200 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 text-gray-700 appearance-none cursor-pointer font-medium"
               >
                 <option value="newest">Sort: Newest</option>
                 <option value="price_asc">Price: Low → High</option>
@@ -294,7 +294,7 @@ function SearchResultsPage() {
         ) : error && allProperties.length === 0 ? (
           <div className="text-center py-24 bg-white rounded-xl">
             <div className="text-red-500 text-lg mb-4">⚠️ {error}</div>
-            <button onClick={() => window.location.reload()} className="px-5 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-semibold">
+            <button onClick={() => window.location.reload()} className="px-5 py-2.5 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-semibold">
               Try Again
             </button>
           </div>
@@ -346,7 +346,7 @@ function SearchResultsPage() {
                     </p>
                     <h3 className="text-sm font-semibold text-gray-800 line-clamp-1 mb-1">{p.title}</h3>
                     {p.city && (
-                      <p className="text-xs text-orange-500 flex items-center gap-1 mb-3">
+                      <p className="text-xs text-gray-500 flex items-center gap-1 mb-3">
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                         </svg>
@@ -386,7 +386,7 @@ function SearchResultsPage() {
 
                     <Link
                       to={`/posts/${p.id}`}
-                      className="block w-full py-2.5 bg-gray-900 text-white text-center text-sm font-semibold rounded-lg hover:bg-orange-500 transition-colors duration-200"
+                      className="block w-full py-2.5 bg-gray-900 text-white text-center text-sm font-semibold rounded-lg hover:bg-gray-500 transition-colors duration-200"
                     >
                       View Details →
                     </Link>
@@ -400,7 +400,7 @@ function SearchResultsPage() {
             <div className="text-5xl mb-4">🏠</div>
             <h3 className="text-xl font-bold text-gray-700 mb-1">No properties found</h3>
             <p className="text-gray-400 text-sm mb-5">Try adjusting your filters or search term.</p>
-            <button onClick={handleReset} className="px-5 py-2.5 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600 transition">
+            <button onClick={handleReset} className="px-5 py-2.5 bg-gray-500 text-white rounded-lg text-sm font-semibold hover:bg-gray-600 transition">
               Clear Filters
             </button>
           </div>
@@ -421,7 +421,7 @@ function SearchResultsPage() {
                 key={n}
                 onClick={() => { setPage(n); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                 className={`w-10 h-10 rounded-lg text-sm font-bold transition-all ${
-                  page === n ? "bg-orange-500 text-white shadow-md" : "bg-white text-gray-600 border border-gray-200 hover:bg-orange-50"
+                  page === n ? "bg-gray-500 text-white shadow-md" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
                 }`}
               >
                 {n}
@@ -441,7 +441,7 @@ function SearchResultsPage() {
                 <div className="mt-12 text-center">
                   <Link
                     to="/list"
-                    className="inline-flex items-center gap-2 bg-[#f36c3a] hover:bg-orange-600 active:scale-95 text-white font-bold px-8 py-3.5 rounded-xl transition-all shadow-md shadow-orange-200 text-sm sm:text-base"
+                    className="inline-flex items-center gap-2 bg-gray-900 active:scale-95 text-white font-bold px-8 py-3.5 rounded-xl transition-all shadow-md shadow-gray-200 text-sm sm:text-base"
                   >
                     Browse All Properties <FaArrowRight className="text-xs" />
                   </Link>

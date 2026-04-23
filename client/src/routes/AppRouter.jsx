@@ -17,16 +17,16 @@ import SearchResultsPage  from "../pages/SearchResultsPage/SearchResultsPage";
 import PropertyDetailPage from "../pages/PropertyDetailPage/PropertyDetailPage";
 
 /* ── Dashboard pages ─────────────────────────────────────────────── */
-import Overview        from "../pages/dashboard/components/Overview";
-import MyProperties    from "../pages/dashboard/components/MyProperties";
-import AddProperty     from "../pages/dashboard/components/AddProperty";
-import SavedPosts      from "../pages/dashboard/components/SavedPosts";
-import Messages        from "../pages/dashboard/components/Messages";
-import Profile         from "../pages/dashboard/components/Profile";
-import Users           from "../pages/dashboard/components/Users";
-import PropertyDetail  from "../pages/dashboard/components/Propertydetail";
-import EditProperty from "../pages/dashboard/components/EditProperty";
-import Queries from "../pages/dashboard/components/Queries";
+import Overview        from "../pages/dashboard/pages/Overview";
+import MyProperties    from "../pages/dashboard/pages/MyProperties";
+import AddProperty     from "../pages/dashboard/pages/AddProperty";
+import SavedPosts      from "../pages/dashboard/pages/SavedPosts";
+import Messages        from "../pages/dashboard/pages/Messages";
+import Profile         from "../pages/dashboard/pages/Profile";
+import Users           from "../pages/dashboard/pages/Users";
+import PropertyDetail  from "../pages/dashboard/pages/Propertydetail";
+import EditProperty from "../pages/dashboard/pages/EditProperty";
+import Queries from "../pages/dashboard/pages/Queries";
 
 const router = createBrowserRouter([
 
