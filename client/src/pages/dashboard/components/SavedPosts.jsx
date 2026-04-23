@@ -47,11 +47,38 @@ function formatPrice(n) {
 }
 
 /* ─── Status config (read-only display — no change action here) ──── */
-const STATUS_CONFIG = {
-  available: { label: "Available", bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-400", border: "border-emerald-100" },
-  sold:      { label: "Sold",      bg: "bg-slate-50",   text: "text-slate-600",   dot: "bg-slate-400",   border: "border-slate-100"   },
-  rented:    { label: "Rented",    bg: "bg-amber-50",   text: "text-amber-700",   dot: "bg-amber-400",   border: "border-amber-100"   },
-  pending:   { label: "Pending",   bg: "bg-blue-50",    text: "text-blue-700",    dot: "bg-blue-400",    border: "border-blue-100"    },
+export const STATUS_CONFIG = {
+  available: {
+    label: "Available",
+    bg: "bg-emerald-500",
+    text: "text-white",
+    dot: "bg-emerald-400",
+    border: "border-emerald-100",
+  },
+
+  sold: {
+    label: "Sold",
+    bg: "bg-rose-500",
+    text: "text-white",
+    dot: "bg-rose-400",
+    border: "border-rose-100",
+  },
+
+  rented: {
+    label: "Rented",
+    bg: "bg-indigo-500",
+    text: "text-white",
+    dot: "bg-indigo-400",
+    border: "border-indigo-100",
+  },
+
+  pending: {
+    label: "Pending",
+    bg: "bg-amber-500",
+    text: "text-white",
+    dot: "bg-amber-400",
+    border: "border-amber-100",
+  },
 };
 const STATUS_KEYS = ["all", "available", "sold", "rented", "pending"];
 
@@ -330,7 +357,7 @@ function SavedPropertyCard({ post, onDetails, onUnsave, unsaving }) {
         {/* Details — primary CTA */}
         <button
           onClick={() => onDetails(post.id)}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-[12px] font-semibold bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white rounded-xl border-none cursor-pointer transition-all shadow-sm shadow-violet-200"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-[12px] font-semibold bg-gray-900 text-white rounded-xl border-none cursor-pointer transition-all shadow-sm shadow-violet-200"
         >
           <MdOpenInNew size={14} />
           Details
@@ -394,7 +421,7 @@ function FilterBar({ posts, filter, setFilter }) {
               "flex-shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-all cursor-pointer border",
               isActive
                 ? s === "all"
-                  ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white border-transparent shadow-md shadow-violet-200"
+                  ? "bg-blue-500 text-white border-transparent shadow-md shadow-violet-200"
                   : `${cfg.bg} ${cfg.text} ${cfg.border}`
                 : "bg-white text-slate-500 border-slate-200 hover:border-slate-300 hover:text-slate-700",
             ].join(" ")}
@@ -562,7 +589,7 @@ export default function SavedPosts() {
         {/* Browse more — takes user to the listings/search page */}
         <button
           onClick={() => navigate("/list")}
-          className="inline-flex items-center gap-1.5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white border-none rounded-xl px-4 py-2.5 text-[13px] font-semibold cursor-pointer whitespace-nowrap flex-shrink-0 shadow-md shadow-violet-200 transition-all"
+          className="inline-flex items-center gap-1.5 bg-gray-900 text-white border-none rounded-xl px-4 py-2.5 text-[13px] font-semibold cursor-pointer whitespace-nowrap flex-shrink-0 shadow-md shadow-violet-200 transition-all"
         >
           <MdFavoriteBorder size={16} />
           <span className="hidden sm:inline">Browse More</span>
@@ -622,7 +649,7 @@ export default function SavedPosts() {
             {posts.length === 0 && (
               <button
                 onClick={() => navigate("/list")}
-                className="mt-1 inline-flex items-center gap-1.5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white border-none rounded-xl px-5 py-2.5 text-[13px] font-semibold cursor-pointer shadow-md shadow-violet-200 transition-all"
+                className="mt-1 inline-flex items-center gap-1.5  bg-gray-900 text-white border-none rounded-xl px-5 py-2.5 text-[13px] font-semibold cursor-pointer shadow-md shadow-violet-200 transition-all"
               >
                 <MdFavoriteBorder size={16} />
                 Browse Listings

@@ -818,7 +818,7 @@ export default function AddProperty({ post, postDetails, onCancel }) {
         {current < 3 ? (
           <button onClick={!isLocked ? handleNext : undefined} disabled={isLocked}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm ${
-              isLocked ? "bg-slate-100 text-slate-300 cursor-not-allowed" : "bg-indigo-600 text-white hover:bg-indigo-700 active:scale-[.98]"
+              isLocked ? "bg-slate-100 text-slate-300 cursor-not-allowed" : "bg-gray-900 text-white hover:bg-gray-700 active:scale-[.98]"
             }`}>
             {isLocked && <IC.Lock className="w-4 h-4" />}
             Next {!isLocked && <IC.ArrR className="w-4 h-4" />}

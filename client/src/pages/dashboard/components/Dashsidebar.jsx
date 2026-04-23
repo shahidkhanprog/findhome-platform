@@ -96,11 +96,11 @@ export default function DashSidebar({ badges = {} }) {
       }}
     >
       {/* Logo */}
-      <div className="h-16 flex items-center justify-center border-b border-slate-100 flex-shrink-0">
-        <div className="w-[34px] h-[34px] rounded-[10px] bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center shadow-md shadow-violet-200">
+      {/* <div className="h-16 flex items-center justify-center border-b border-slate-100 flex-shrink-0">
+        <div className="w-[34px] h-[34px] rounded-[10px] bg-gradient-to-br from-gray-600 to-purple-600 flex items-center justify-center shadow-md shadow-gray-200">
           <MdOutlineHome size={17} color="white" />
         </div>
-      </div>
+      </div> */}
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide px-2 py-3">
@@ -118,7 +118,7 @@ export default function DashSidebar({ badges = {} }) {
                 return [
                   "relative flex items-center justify-center py-[10px] mb-0.5 rounded-[10px] transition-all duration-150",
                   active
-                    ? "bg-gradient-to-r from-violet-50 to-purple-50"
+                    ? "bg-gradient-to-r from-gray-50 to-purple-50"
                     : "hover:bg-slate-50",
                 ].join(" ");
               }}
@@ -129,14 +129,14 @@ export default function DashSidebar({ badges = {} }) {
                   <>
                     {/* Active left accent line */}
                     {active && (
-                      <span className="absolute left-0 top-[20%] h-[60%] w-[3px] rounded-r-full bg-violet-700" />
+                      <span className="absolute left-0 top-[20%] h-[60%] w-[3px] rounded-r-full bg-gray-700" />
                     )}
 
                     {/* Icon with badge */}
                     <span className="relative">
                       <Icon
                         size={20}
-                        className={active ? "text-violet-700" : "text-slate-400"}
+                        className={active ? "text-gray-700" : "text-slate-400"}
                       />
                       {count > 0 && (
                         <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-[3px] border-2 border-white leading-none">

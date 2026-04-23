@@ -817,7 +817,7 @@ const PropertyDetailPage = () => {
                 </Link>
                 <button
                   onClick={() => setIsChatOpen(true)}
-                  className="flex items-center justify-center bg-[#f36c3a] hover:bg-orange-600 text-white font-bold text-xs sm:text-sm py-3 rounded-xl transition-all active:scale-95"
+                  className="flex items-center justify-center bg-[#f36c3a] hover:bg-orange-600 text-white font-bold text-xs sm:text-sm py-3 rounded-xl transition-all active:scale-95 cursor-pointer"
                 >
                   Chat
                 </button>

@@ -107,7 +107,7 @@ const CarouselModal = ({ images, startIndex, onClose }) => {
 
       <button
         onClick={onClose}
-        className="absolute top-5 right-5 p-3 rounded-full text-white hover:bg-white/20 transition"
+        className="absolute top-5 right-5 p-3 rounded-full text-white hover:bg-white/20 transition z-10"
         style={{ background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.15)" }}
       >
         <HiX size={22} />
@@ -735,7 +735,7 @@ const PropertyDetail = () => {
                 <div className="min-w-0">
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Price</p>
                   <div className="flex items-baseline gap-1 flex-wrap">
-                    <span className="text-2xl sm:text-4xl font-black text-slate-900 leading-tight">
+                    <span className="text-1xl sm:text-4xl font-black text-slate-900 leading-tight">
                       {formatPKR(p.price)}
                     </span>
                     {p.listingType === "rent" && (
@@ -792,8 +792,7 @@ const PropertyDetail = () => {
                 </Link>
                 <button
                   onClick={() => setIsChatOpen(true)}
-                  className="flex items-center justify-center bg-[#f36c3a] hover:bg-orange-600 text-white font-bold text-xs sm:text-sm py-3 rounded-xl transition-all active:scale-95"
-                >
+                  className="flex items-center justify-center bg-[#f36c3a] hover:bg-orange-600 text-white font-bold text-xs sm:text-sm py-3 rounded-xl transition-all active:scale-95 cursor-pointer">
                   Chat
                 </button>
               </div>
