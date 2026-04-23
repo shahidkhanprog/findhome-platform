@@ -69,12 +69,12 @@ const services = [
 
 // Tailwind color map per service — keeps classes static so Tailwind picks them up
 const colorMap = {
-  blue:    { bg: "bg-blue-50",    icon: "text-blue-500",    pill: "bg-blue-100 text-blue-600",    arrow: "text-blue-500 group-hover:text-blue-700"    },
-  orange:  { bg: "bg-orange-50",  icon: "text-[#f36c3a]",   pill: "bg-orange-100 text-orange-600", arrow: "text-[#f36c3a] group-hover:text-orange-600" },
+  blue: { bg: "bg-blue-50", icon: "text-blue-500", pill: "bg-blue-100 text-blue-600", arrow: "text-blue-500 group-hover:text-blue-700" },
+  orange: { bg: "bg-orange-50", icon: "text-[#f36c3a]", pill: "bg-orange-100 text-orange-600", arrow: "text-[#f36c3a] group-hover:text-orange-600" },
   emerald: { bg: "bg-emerald-50", icon: "text-emerald-500", pill: "bg-emerald-100 text-emerald-600", arrow: "text-emerald-500 group-hover:text-emerald-700" },
-  purple:  { bg: "bg-purple-50",  icon: "text-purple-500",  pill: "bg-purple-100 text-purple-600",  arrow: "text-purple-500 group-hover:text-purple-700"  },
-  rose:    { bg: "bg-rose-50",    icon: "text-rose-500",    pill: "bg-rose-100 text-rose-600",      arrow: "text-rose-500 group-hover:text-rose-700"      },
-  amber:   { bg: "bg-amber-50",   icon: "text-amber-500",   pill: "bg-amber-100 text-amber-600",    arrow: "text-amber-500 group-hover:text-amber-700"    },
+  purple: { bg: "bg-purple-50", icon: "text-purple-500", pill: "bg-purple-100 text-purple-600", arrow: "text-purple-500 group-hover:text-purple-700" },
+  rose: { bg: "bg-rose-50", icon: "text-rose-500", pill: "bg-rose-100 text-rose-600", arrow: "text-rose-500 group-hover:text-rose-700" },
+  amber: { bg: "bg-amber-50", icon: "text-amber-500", pill: "bg-amber-100 text-amber-600", arrow: "text-amber-500 group-hover:text-amber-700" },
 };
 
 const Services = () => {

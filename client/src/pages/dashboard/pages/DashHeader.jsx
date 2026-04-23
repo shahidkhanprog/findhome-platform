@@ -39,7 +39,7 @@ const DashHeader = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  // ✅ FIX: correct structure from your system
+  //  FIX: correct structure from your system
   const user = currentUser?.userData ?? {};
 
   const avatar = user.avatar ?? null;

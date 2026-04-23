@@ -1,4 +1,3 @@
-// export default DashSidebar;
 // components/dashboard/DashSidebar.jsx
 import { useContext } from "react";
 import { useLocation, NavLink } from "react-router-dom";
@@ -13,11 +12,9 @@ import {
 } from "react-icons/md";
 import { AuthContext } from "../../../context/AuthContext";
 
-/* ─── Constants ──────────────────────────────────────────────── */
 const W_STRIP  = 64;
 const NAVBAR_H = 64;
 
-/* ─── Nav item definitions ───────────────────────────────────── */
 const NAV_ITEMS = [
   {
     id:    "overview",
@@ -59,7 +56,7 @@ const NAV_ITEMS = [
   },
   {
     id:        "queries",
-    label:     "Queries Messages ",
+    label:     "Queries Messages",
     path:      "/dashboard/queries",
     Icon:      MdInbox,
     badgeKey:  "queries",
@@ -67,12 +64,6 @@ const NAV_ITEMS = [
   },
 ];
 
-/* ─── DashSidebar ────────────────────────────────────────────── */
-/**
- * Props
- * ─────
- * badges — { messages?: number, queries?: number }
- */
 export default function DashSidebar({ badges = {} }) {
   const { pathname }    = useLocation();
   const { currentUser } = useContext(AuthContext);
@@ -95,14 +86,6 @@ export default function DashSidebar({ badges = {} }) {
         zIndex: 40,
       }}
     >
-      {/* Logo */}
-      {/* <div className="h-16 flex items-center justify-center border-b border-slate-100 flex-shrink-0">
-        <div className="w-[34px] h-[34px] rounded-[10px] bg-gradient-to-br from-gray-600 to-purple-600 flex items-center justify-center shadow-md shadow-gray-200">
-          <MdOutlineHome size={17} color="white" />
-        </div>
-      </div> */}
-
-      {/* Nav */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide px-2 py-3">
         {visibleItems.map(({ id, label, path, Icon, badgeKey }) => {
           const count       = badgeKey ? (badges[badgeKey] ?? 0) : 0;
@@ -127,12 +110,9 @@ export default function DashSidebar({ badges = {} }) {
                 const active = isActive || forceActive;
                 return (
                   <>
-                    {/* Active left accent line */}
                     {active && (
                       <span className="absolute left-0 top-[20%] h-[60%] w-[3px] rounded-r-full bg-gray-700" />
                     )}
-
-                    {/* Icon with badge */}
                     <span className="relative">
                       <Icon
                         size={20}
