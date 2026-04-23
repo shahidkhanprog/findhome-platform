@@ -34,6 +34,7 @@ const FeaturedProperties = () => {
             const bDate = b.createdAt ? new Date(b.createdAt) : b.id;
             return bDate - aDate;
           });
+          
           // Take first 6
           const firstSix = sorted.slice(0, 6);
           setProperties(firstSix);

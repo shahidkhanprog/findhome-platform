@@ -80,6 +80,9 @@ function List() {
   // Client-side filtering & sorting
   const filteredProperties = useMemo(() => {
     let list = [...allProperties];
+
+    // Only show available properties
+    list = allProperties.filter(p => p.status === 'available');
     
     if (filters.listingType !== "All") {
       list = list.filter(p => 

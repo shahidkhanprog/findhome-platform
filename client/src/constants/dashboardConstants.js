@@ -6,7 +6,7 @@ import {
   MdOutlineHome,
 } from "react-icons/md";
 
-export const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
+export const PAGE_SIZE_OPTIONS = [6, 12, 18, 24];
 
 export const STATUS_CONFIG = {
   available: {
