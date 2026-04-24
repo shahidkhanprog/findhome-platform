@@ -40,63 +40,20 @@ export default function Profile() {
     ? new Date(user.createdAt).getFullYear()
     : new Date().getFullYear();
 
-
   const handleUsernameCommit = useCallback((newValue) => {
     const trimmed = newValue.trim().toLowerCase();
-    if (trimmed !== username) {
-      setUsername(trimmed);
-    }
-    // Clear any username error when user commits a change
+    if (trimmed !== username) setUsername(trimmed);
     if (errors.username) setErrors((prev) => ({ ...prev, username: "" }));
   }, [username, errors.username]);
 
   const handlePhoneCommit = useCallback((newValue) => {
     const trimmed = newValue.trim();
-    if (trimmed !== phone) {
-      setPhone(trimmed);
-    }
+    if (trimmed !== phone) setPhone(trimmed);
     if (errors.phone) setErrors((prev) => ({ ...prev, phone: "" }));
   }, [phone, errors.phone]);
 
-  const handlePasswordChange = useCallback((e) => setPassword(e.target.value), []);
-  const handleConfirmChange = useCallback((e) => setConfirm(e.target.value), []);
-
-  const validate = useCallback(() => {
-    const trimmedUsername = username.trim();
-    const trimmedPhone = phone.trim();
-    const e = { username: "", phone: "", password: "", confirm: "" };
-    let ok = true;
-
-    if (!trimmedUsername) {
-      e.username = "Username cannot be empty";
-      ok = false;
-    } else if (trimmedUsername.includes(" ")) {
-      e.username = "Username cannot contain spaces";
-      ok = false;
-    }
-
-    if (trimmedPhone && !/^[\+\d\s\-\(\)]{5,20}$/.test(trimmedPhone)) {
-      e.phone = "Enter a valid phone number";
-      ok = false;
-    }
-
-    if (changePassword) {
-      if (!password) {
-        e.password = "Password is required";
-        ok = false;
-      } else if (password.length < 6) {
-        e.password = "Min 6 characters";
-        ok = false;
-      }
-      if (password !== confirm) {
-        e.confirm = "Passwords do not match";
-        ok = false;
-      }
-    }
-
-    setErrors(e);
-    return ok;
-  }, [username, phone, password, confirm, changePassword]);
+const handlePasswordChange = useCallback((val) => setPassword(val), []);
+const handleConfirmChange = useCallback((val) => setConfirm(val), []);
 
   const handleTogglePassword = useCallback((val) => {
     setChangePassword(val);
@@ -114,7 +71,6 @@ export default function Profile() {
     setUsername(trimmedUsername);
     setPhone(trimmedPhone);
     setApiError("");
-    setErrors((e) => ({ ...e, username: "" }));
 
     const e = { username: "", phone: "", password: "", confirm: "" };
     let ok = true;
@@ -237,13 +193,14 @@ export default function Profile() {
               onPhoneCommit={handlePhoneCommit}
             />
 
-
+            {/* ✅ passing primitive strings instead of whole errors object */}
             <PasswordSection
               enabled={changePassword}
               onToggle={handleTogglePassword}
               password={password}
               confirm={confirm}
-              errors={errors}
+              passwordError={errors.password}
+              confirmError={errors.confirm}
               onPasswordChange={handlePasswordChange}
               onConfirmChange={handleConfirmChange}
             />

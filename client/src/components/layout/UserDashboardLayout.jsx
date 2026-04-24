@@ -23,10 +23,10 @@ const UserDashboardLayout = () => {
     if (!currentUser) return;
     try {
       // Adjust these endpoints to match your backend
-      const [msgRes, queryRes] = await Promise.all([
-        apiRequest.get("/messages/unread-count"),
-        apiRequest.get("/contact/unread-count"),
-      ]);
+        // const [msgRes, queryRes] = await Promise.all([
+        //   apiRequest.get("/messages/unread-count"),
+        //   apiRequest.get("/contact/unread-count"),
+        // ]);
       setBadges({
         messages: msgRes.data?.count ?? 0,
         queries:  queryRes.data?.count ?? 0,
