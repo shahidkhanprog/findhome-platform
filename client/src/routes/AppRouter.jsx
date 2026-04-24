@@ -27,6 +27,9 @@ import Users           from "../pages/dashboard/pages/Users";
 import PropertyDetail  from "../pages/dashboard/pages/Propertydetail";
 import EditProperty from "../pages/dashboard/pages/EditProperty";
 import Queries from "../pages/dashboard/pages/Queries";
+import PrivacyPolicy from "../pages/PrivacyPolicy/PrivacyPolicy";
+import TermsOfService from "../pages/TermsOfService/TermsOfService";
+import Sitemap from "../pages/Sitemap/Sitemap";
 
 const router = createBrowserRouter([
 
@@ -44,6 +47,9 @@ const router = createBrowserRouter([
       { path: "forgotpassword",              element: <ForgotPassword />     },
       { path: "search-results",              element: <SearchResultsPage />  },
       { path: "property-detail/:id",         element: <PropertyDetailPage /> },
+      { path: "privacy-policy",              element: <PrivacyPolicy />      },
+      { path: "terms-of-service",            element: <TermsOfService />     },
+      { path: "sitemap",                     element: <Sitemap />            },
     ],
   },
 

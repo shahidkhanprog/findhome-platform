@@ -128,19 +128,19 @@ const Footer = () => {
           <p>© {new Date().getFullYear()} FindHome. All rights reserved.</p>
           <div className="flex space-x-5">
             <NavLink
-              to="#"
+              to="/privacy-policy"
               className="hover:text-blue-400 transition-colors duration-300"
             >
               Privacy Policy
             </NavLink>
             <NavLink
-              to="#"
+              to="/terms-of-service"
               className="hover:text-blue-400 transition-colors duration-300"
             >
               Terms of Service
             </NavLink>
             <NavLink
-              to="#"
+              to="/sitemap"
               className="hover:text-blue-400 transition-colors duration-300"
             >
               Sitemap
