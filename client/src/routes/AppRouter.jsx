@@ -15,6 +15,9 @@ import Register           from "../pages/Register/Register";
 import ForgotPassword     from "../pages/ForgotPassword/ForgotPassword";
 import SearchResultsPage  from "../pages/SearchResultsPage/SearchResultsPage";
 import PropertyDetailPage from "../pages/PropertyDetailPage/PropertyDetailPage";
+import PrivacyPolicy      from "../pages/PrivacyPolicy/PrivacyPolicy";
+import TermsOfService     from "../pages/TermsOfService/TermsOfService";
+import Sitemap            from "../pages/Sitemap/Sitemap";
 
 /* ── Dashboard pages ─────────────────────────────────────────────── */
 import Overview        from "../pages/dashboard/pages/Overview";
@@ -25,11 +28,8 @@ import Messages        from "../pages/dashboard/pages/Messages";
 import Profile         from "../pages/dashboard/pages/Profile";
 import Users           from "../pages/dashboard/pages/Users";
 import PropertyDetail  from "../pages/dashboard/pages/Propertydetail";
-import EditProperty from "../pages/dashboard/pages/EditProperty";
-import Queries from "../pages/dashboard/pages/Queries";
-import PrivacyPolicy from "../pages/PrivacyPolicy/PrivacyPolicy";
-import TermsOfService from "../pages/TermsOfService/TermsOfService";
-import Sitemap from "../pages/Sitemap/Sitemap";
+import EditProperty    from "../pages/dashboard/pages/EditProperty";
+import Queries         from "../pages/dashboard/pages/Queries";
 
 const router = createBrowserRouter([
 

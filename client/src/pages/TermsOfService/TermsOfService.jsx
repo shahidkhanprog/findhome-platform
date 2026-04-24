@@ -10,8 +10,8 @@ import {
 
 export default function TermsOfService() {
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1224px] mx-auto">
         {/* Back button */}
         <Link
           to="/"
@@ -23,7 +23,7 @@ export default function TermsOfService() {
         {/* Card */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-md shadow-slate-50/80 overflow-hidden">
           {/* Gradient bar – matches Privacy Policy */}
-          <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 to-gray-900" />
+          <div className="h-1.5 w-full bg-gray-700" />
 
           <div className="p-6 md:p-8">
             {/* Header */}
