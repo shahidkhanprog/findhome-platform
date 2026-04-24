@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FaArrowRight, FaHeart } from "react-icons/fa";
 import apiRequest from "../../lib/apiRequest";
-import PropertyCard from "../../components/list/PropertyCard"; // reuse list card
+import PropertyCard from "../../components/list/PropertyCard";
 
 const FeaturedProperties = () => {
   const [properties, setProperties] = useState([]);
@@ -17,7 +17,7 @@ const FeaturedProperties = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await apiRequest.get("/posts");
+        const response = await apiRequest.get("/posts/active");
         let data = [];
         if (Array.isArray(response.data)) data = response.data;
         else if (response.data.posts) data = response.data.posts;
@@ -117,10 +117,10 @@ const FeaturedProperties = () => {
       <section className="py-16 sm:py-20 px-5 sm:px-8 lg:px-20 bg-slate-50">
         <div className="max-w-7xl mx-auto text-center">
           <div className="bg-white rounded-2xl border border-slate-200 p-8">
-            <p className="text-red-500 font-semibold">{error}</p>
+            <p className="text-gray-500 font-semibold">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="mt-4 px-5 py-2 bg-[#f36c3a] text-white rounded-xl text-sm font-bold hover:bg-orange-600 transition"
+              className="mt-4 px-5 w-sm py-3 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-600 transition"
             >
               Try Again
             </button>

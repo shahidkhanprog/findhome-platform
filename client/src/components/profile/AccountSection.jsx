@@ -12,7 +12,7 @@ export default function AccountSection({
   onPhoneCommit,      // renamed from onPhoneChange
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-violet-100 shadow-sm shadow-violet-50 p-5 flex flex-col gap-4">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm shadow-gray-50 p-5 flex flex-col gap-4">
       <h3 className="text-[13px] font-bold text-slate-700">Account Info</h3>
 
       <Field label="Email" icon={MdOutlineEmail}>

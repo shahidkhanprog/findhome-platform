@@ -387,3 +387,42 @@ export const getUserPosts = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// Only return posts that are available and whose owners are active (for public listing page)
+
+export const getActiveOwnerPosts = async (req, res) => {
+  const { city, listingType, property, minPrice, maxPrice, bedroom } = req.query;
+
+  try {
+    const posts = await prisma.post.findMany({
+      where: {
+        status: "available",
+        user: {
+          isActive: true,
+        },
+        ...(city && { city: { contains: city, mode: "insensitive" } }),
+        ...(listingType && { listingType }),
+        ...(property && { property }),
+        ...(bedroom && { bedroom: parseInt(bedroom, 10) }),
+        ...((minPrice || maxPrice) && {
+          price: {
+            ...(minPrice && { gte: parseInt(minPrice, 10) }),
+            ...(maxPrice && { lte: parseInt(maxPrice, 10) }),
+          },
+        }),
+      },
+      include: {
+        postDetails: true,
+        user: {
+          select: { id: true, username: true, avatar: true, isActive: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error("Error fetching active owner posts:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

@@ -11,7 +11,7 @@ export default function PasswordSection({
   onConfirmChange,
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-violet-100 shadow-sm shadow-violet-50 p-5 flex flex-col gap-4">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm shadow-gray-50 p-5 flex flex-col gap-4">
       <Toggle checked={enabled} onChange={onToggle} label="Change Password" />
 
       {enabled && (

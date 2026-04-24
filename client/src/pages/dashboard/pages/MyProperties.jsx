@@ -151,9 +151,9 @@ export default function MyProperties() {
       {!loading && !error && (
         filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 bg-white border border-slate-100 rounded-2xl gap-3">
-            <div className="w-16 h-16 rounded-2xl bg-violet-50 flex items-center justify-center"><MdOutlineHome size={32} className="text-violet-300" /></div>
+            <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center"><MdOutlineHome size={32} className="text-gray-300" /></div>
             <div className="text-center px-6"><p className="text-sm font-bold text-slate-600">{emptyTitle}</p><p className="text-xs text-slate-400 mt-1">{emptySub}</p></div>
-            <button onClick={() => navigate("/dashboard/addProperty")} className="mt-1 inline-flex items-center gap-1.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl px-5 py-2.5 text-[13px] font-semibold shadow-md">Add Property</button>
+            <button onClick={() => navigate("/dashboard/addProperty")} className="mt-1 inline-flex items-center gap-1.5 bg-gray-900 text-white rounded-xl px-5 py-2.5 text-[13px] font-semibold shadow-md">Add Property</button>
           </div>
         ) : (
           <>

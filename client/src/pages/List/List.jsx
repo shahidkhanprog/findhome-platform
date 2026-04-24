@@ -29,7 +29,7 @@ function List() {
       setLoading(true);
       setError(null);
       try {
-        const response = await apiRequest.get('/posts');
+        const response = await apiRequest.get('/posts/active');
         let data = [];
         if (Array.isArray(response.data)) {
           data = response.data;
@@ -82,7 +82,7 @@ function List() {
     let list = [...allProperties];
 
     // Only show available properties
-    list = allProperties.filter(p => p.status === 'available');
+    // list = allProperties.filter(p => p.status === 'available');
     
     if (filters.listingType !== "All") {
       list = list.filter(p => 

@@ -13,7 +13,7 @@ export default function SaveButton({ status, onClick }) {
         ${
           isSaved
             ? "bg-emerald-500 text-white"
-            : "bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white disabled:opacity-60"
+            : "bg-gray-900 text-white disabled:opacity-60"
         }`}
     >
       {isLoading && (

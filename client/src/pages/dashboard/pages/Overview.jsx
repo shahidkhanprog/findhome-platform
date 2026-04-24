@@ -2,7 +2,7 @@
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../../../context/AuthContext";
 import apiRequest from "../../../lib/apiRequest";
-import { MdCheckCircleOutline, MdHighlightOff, MdOutlineAccessTime, MdOutlineHome } from "react-icons/md";
+import { MdAssignmentTurnedIn, MdBlock, MdCheckCircleOutline, MdHighlightOff, MdKey, MdOutlineAccessTime, MdOutlineHome, MdVisibility } from "react-icons/md";
 
 import WelcomeCard from "../../../components/dashboard/WelcomeCard";
 import StatsGrid from "../../../components/dashboard/StatsGrid";
@@ -55,10 +55,42 @@ export default function Overview() {
   const pagedPosts = recentPosts.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const stats = [
-    { label: showingAll ? "Total Properties" : "Total Listings", value: posts.length, colorKey: "gray", Icon: MdOutlineHome },
-    { label: "Available", value: posts.filter((p) => p.status === "available").length, colorKey: "emerald", Icon: MdCheckCircleOutline },
-    { label: "Sold", value: posts.filter((p) => p.status === "sold").length, colorKey: "slate", Icon: MdHighlightOff },
-    { label: "Rented", value: posts.filter((p) => p.status === "rented").length, colorKey: "amber", Icon: MdOutlineAccessTime },
+    {
+      label: showingAll ? "Total Properties" : "Total Listings",
+      value: posts.length,
+      colorKey: "gray",
+      Icon: MdOutlineHome,
+    },
+    {
+      label: "Available",
+      value: posts.filter((p) => p.status === "available").length,
+      colorKey: "emerald",
+      Icon: MdCheckCircleOutline,
+    },
+    {
+      label: "Sold",
+      value: posts.filter((p) => p.status === "sold").length,
+      colorKey: "blue",
+      Icon: MdAssignmentTurnedIn,
+    },
+    {
+      label: "Pending",
+      value: posts.filter((p) => p.status === "pending").length,
+      colorKey: "amber",
+      Icon: MdOutlineAccessTime,
+    },
+    {
+      label: "Rented",
+      value: posts.filter((p) => p.status === "rented").length,
+      colorKey: "indigo",
+      Icon: MdKey,
+    },
+    {
+      label: "Disabled",
+      value: posts.filter((p) => p.status === "disabled").length,
+      colorKey: "violet",
+      Icon: MdVisibility,
+    },
   ];
 
   const handlePageChange = (page) => setCurrentPage(Math.max(1, Math.min(page, totalPages)));

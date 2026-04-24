@@ -92,7 +92,7 @@ const DashHeader = () => {
               }}
             />
           ) : (
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 select-none">
+            <div className="w-7 h-7 rounded-full bg-gray-600 flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 select-none">
               {initials}
             </div>
           )}

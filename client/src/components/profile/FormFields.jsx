@@ -30,7 +30,7 @@ export const TextInput = memo(function TextInput({ value, onChange, disabled, pl
         ${
           disabled
             ? "bg-slate-50 text-slate-400 border-slate-100 cursor-not-allowed"
-            : "bg-white text-slate-800 border-slate-200 focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+            : "bg-white text-slate-800 border-slate-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
         }`}
     />
   );
@@ -57,7 +57,7 @@ export const LocalTextInput = memo(function LocalTextInput({ initialValue, onCom
         ${
           disabled
             ? "bg-slate-50 text-slate-400 border-slate-100 cursor-not-allowed"
-            : "bg-white text-slate-800 border-slate-200 focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+            : "bg-white text-slate-800 border-slate-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
         }`}
     />
   );
@@ -72,7 +72,7 @@ export const PasswordInput = memo(function PasswordInput({ value, onChange, plac
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="w-full px-3.5 py-2.5 pr-10 text-[13px] rounded-xl border border-slate-200 bg-white text-slate-800 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all outline-none"
+        className="w-full px-3.5 py-2.5 pr-10 text-[13px] rounded-xl border border-slate-200 bg-white text-slate-800 focus:border-gray-400 focus:ring-2 focus:ring-gray-100 transition-all outline-none"
       />
       <button
         type="button"
@@ -97,7 +97,7 @@ export function Toggle({ checked, onChange, label }) {
       </span>
       <div
         className={`relative w-10 h-5 rounded-full transition-colors duration-200 flex-shrink-0 ${
-          checked ? "bg-violet-600" : "bg-slate-200"
+          checked ? "bg-gray-600" : "bg-slate-200"
         }`}
       >
         <div

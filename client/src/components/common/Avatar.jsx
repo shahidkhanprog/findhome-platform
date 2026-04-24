@@ -20,8 +20,7 @@ export default function Avatar({
   }
   return (
     <div
-      className={`${className} rounded-full bg-gradient-to-br from-gray-500 to-purple-600 flex items-center justify-center ${textClass} font-bold text-white flex-shrink-0 select-none shadow-sm`}
-    >
+      className={`${className} rounded-full bg-gray-600 flex items-center justify-center ${textClass} font-bold text-white flex-shrink-0 select-none shadow-sm`}>
       {letter}
     </div>
   );
