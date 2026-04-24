@@ -116,10 +116,9 @@ export default function RecentListingsCard({
                       </span>
                     </p>
                   </div>
-
-                  <div className="flex-shrink-0 w-28 flex justify-center">
-                    {showingAll && postedBy && <UserChip username={postedBy} onClick={() => openUserDialog(postUser)} />}
-                  </div>
+                    <div className="flex-shrink-0 w-28 flex justify-center">
+                      {showingAll && postedBy && <UserChip username={postedBy} onClick={() => openUserDialog(postUser)} />}
+                    </div>
 
                   <div className="flex-shrink-0 w-24 flex justify-end">
                     <StatusBadge status={p.status} />
@@ -149,15 +148,18 @@ export default function RecentListingsCard({
             </div>
           </div>
         </div>
-      )}
+      )
+      }
 
-      {!loading && totalItems > 0 && (
-        <div className={`sm:hidden px-4 py-3 border-t ${showingAll ? "border-gray-50" : "border-slate-50"}`}>
-          <Link to="/dashboard/myProperties" className="block text-center text-[12px] text-gray-600 font-semibold no-underline py-1">
-            View all properties →
-          </Link>
-        </div>
-      )}
-    </div>
+      {
+        !loading && totalItems > 0 && (
+          <div className={`sm:hidden px-4 py-3 border-t ${showingAll ? "border-gray-50" : "border-slate-50"}`}>
+            <Link to="/dashboard/myProperties" className="block text-center text-[12px] text-gray-600 font-semibold no-underline py-1">
+              View all properties →
+            </Link>
+          </div>
+        )
+      }
+    </div >
   );
 }

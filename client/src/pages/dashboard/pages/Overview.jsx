@@ -23,6 +23,8 @@ export default function Overview() {
   const [pageSize, setPageSize] = useState(6);
   const [dialogUser, setDialogUser] = useState(null);
 
+  const [statCounts, setStatCounts] = useState({ available: 0, sold: 0, pending: 0, rented: 0, publicVisible: 0, });
+
   // Fetch posts
   useEffect(() => {
     if (!userId) {
@@ -46,6 +48,29 @@ export default function Overview() {
     fetchPosts();
   }, [userId, isAdmin, adminViewAll]);
 
+
+  // --------------------------------------------- Fetch stats
+  useEffect(() => {
+    if (!userId) return;
+
+    const fetchStats = async () => {
+      try {
+        const res = await apiRequest.get("/posts/stats", {
+          params: {
+            userId,
+            isAdmin: isAdmin && adminViewAll, // only treat as admin if viewing all
+          },
+        });
+        setStatCounts(res.data);
+      } catch (err) {
+        console.error("Failed to fetch stats", err);
+      }
+    };
+    fetchStats();
+  }, [userId, isAdmin, adminViewAll]);
+
+  // ---------------------------------------------
+
   const showingAll = isAdmin && adminViewAll;
   const oneWeekAgo = new Date();
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -55,42 +80,12 @@ export default function Overview() {
   const pagedPosts = recentPosts.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const stats = [
-    {
-      label: showingAll ? "Total Properties" : "Total Listings",
-      value: posts.length,
-      colorKey: "gray",
-      Icon: MdOutlineHome,
-    },
-    {
-      label: "Available",
-      value: posts.filter((p) => p.status === "available").length,
-      colorKey: "emerald",
-      Icon: MdCheckCircleOutline,
-    },
-    {
-      label: "Sold",
-      value: posts.filter((p) => p.status === "sold").length,
-      colorKey: "blue",
-      Icon: MdAssignmentTurnedIn,
-    },
-    {
-      label: "Pending",
-      value: posts.filter((p) => p.status === "pending").length,
-      colorKey: "amber",
-      Icon: MdOutlineAccessTime,
-    },
-    {
-      label: "Rented",
-      value: posts.filter((p) => p.status === "rented").length,
-      colorKey: "indigo",
-      Icon: MdKey,
-    },
-    {
-      label: "Disabled",
-      value: posts.filter((p) => p.status === "disabled").length,
-      colorKey: "violet",
-      Icon: MdVisibility,
-    },
+    { label: showingAll ? "Total Properties" : "Total Listings", value: posts.length, colorKey: "gray", Icon: MdOutlineHome, },
+    { label: "Available", value: statCounts.available, colorKey: "emerald", Icon: MdCheckCircleOutline, },
+    { label: "Sold", value: statCounts.sold, colorKey: "blue", Icon: MdAssignmentTurnedIn, },
+    { label: "Pending", value: statCounts.pending, colorKey: "amber", Icon: MdOutlineAccessTime, },
+    { label: "Rented", value: statCounts.rented, colorKey: "indigo", Icon: MdKey, },
+    { label: "Public Visible", value: statCounts.publicVisible, colorKey: "violet", Icon: MdVisibility, },
   ];
 
   const handlePageChange = (page) => setCurrentPage(Math.max(1, Math.min(page, totalPages)));

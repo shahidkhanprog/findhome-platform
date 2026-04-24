@@ -10,6 +10,7 @@ import {
   deletePost,
   getUserPosts,
   getActiveOwnerPosts,
+  getPostStats,
 } from "../controllers/post.controller.js";
 
 import {
@@ -22,6 +23,7 @@ const router = express.Router();
 
 router.get("/", getAllPosts);
 router.get("/active", getActiveOwnerPosts);
+router.get("/stats",verifyTokenOrAdmin, getPostStats);
 router.get("/:id", getPost);
 router.post("/", verifyToken, createPost);
 router.post("/details", verifyToken, createPostDetails);

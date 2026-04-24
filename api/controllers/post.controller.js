@@ -426,3 +426,44 @@ export const getActiveOwnerPosts = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+// export const getPostStats = async (req, res) => {
+//   try {
+//     const [available, sold, pending, rented, publicVisible] = await Promise.all([
+//       prisma.post.count({ where: { status: "available" } }),         // all available posts
+//       prisma.post.count({ where: { status: "sold" } }),              // all sold posts
+//       prisma.post.count({ where: { status: "pending" } }),           // all pending posts
+//       prisma.post.count({ where: { status: "rented" } }),            // all rented posts
+//       prisma.post.count({                                            // available + owner isActive
+//         where: { status: "available", user: { isActive: true } },
+//       }),
+//     ]);
+
+//     res.status(200).json({ available, sold, pending, rented, publicVisible });
+//   } catch (error) {
+//     console.error("Error fetching post stats:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+export const getPostStats = async (req, res) => {
+  try {
+    const { userId, isAdmin } = req.query;
+
+    // Admin sees platform-wide stats, User sees only their own
+    const userFilter = isAdmin === "true" ? {} : { userId };
+
+    const [available, sold, pending, rented, publicVisible] = await Promise.all([
+      prisma.post.count({ where: { status: "available", ...userFilter } }),
+      prisma.post.count({ where: { status: "sold", ...userFilter } }),
+      prisma.post.count({ where: { status: "pending", ...userFilter } }),
+      prisma.post.count({ where: { status: "rented", ...userFilter } }),
+      prisma.post.count({ where: { status: "available", user: { isActive: true }, ...userFilter } }),
+    ]);
+
+    res.status(200).json({ available, sold, pending, rented, publicVisible });
+  } catch (error) {
+    console.error("Error fetching post stats:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

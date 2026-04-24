@@ -35,9 +35,9 @@ const FeaturedProperties = () => {
             return bDate - aDate;
           });
           
-          // Take first 6
-          const firstSix = sorted.slice(0, 6);
-          setProperties(firstSix);
+          // Take first 3
+          const firstThree = sorted.slice(0, 3);
+          setProperties(firstThree);
         }
       } catch (err) {
         console.error("Failed to fetch featured properties:", err);
