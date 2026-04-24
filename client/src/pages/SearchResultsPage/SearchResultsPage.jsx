@@ -86,6 +86,9 @@ function SearchResultsPage() {
   const filtered = useMemo(() => {
     let list = [...allProperties];
 
+    // Only show available properties
+    list = allProperties.filter(p => p.status === 'available');
+
     // listingType: "sale" or "rent" — from backend
     if (filters.listingType && filters.listingType !== "All") {
       list = list.filter(
