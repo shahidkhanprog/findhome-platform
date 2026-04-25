@@ -1,12 +1,17 @@
-// export default List;
-import { useState, useEffect, useMemo } from "react";
+// List;
+import { useState, useEffect, useMemo, useContext } from "react";
 import PropertyCard from "../../components/list/PropertyCard";
 import EmptyState from "../../components/list/EmptyState";
 import Pagination from "../../components/list/Pagination";
 import ListHeader from "../../components/list/ListHeader";
 import apiRequest from "../../lib/apiRequest";
+import { AuthContext } from "../../context/AuthContext";
 
 function List() {
+
+  // Get current user (if user login than display saved posts count)
+  const { currentUser } = useContext(AuthContext);
+
   const [sort, setSort] = useState("newest");
   const [page, setPage] = useState(1);
   const [favourites, setFavourites] = useState([]);
@@ -15,7 +20,7 @@ function List() {
     category: "All Types",
     listingType: "All",
   });
-  
+
   const [allProperties, setAllProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -76,34 +81,34 @@ function List() {
     setPage(1);
     setSearchResetKey(prev => prev + 1);
   };
-  
+
   // Client-side filtering & sorting
   const filteredProperties = useMemo(() => {
     let list = [...allProperties];
 
     // Only show available properties
     // list = allProperties.filter(p => p.status === 'available');
-    
+
     if (filters.listingType !== "All") {
-      list = list.filter(p => 
+      list = list.filter(p =>
         (p.listingType || p.type || "").toLowerCase() === filters.listingType.toLowerCase()
       );
     }
-    
+
     if (filters.category !== "All Types") {
-      list = list.filter(p => 
+      list = list.filter(p =>
         (p.type || p.property || "").toLowerCase() === filters.category.toLowerCase()
       );
     }
-    
+
     if (filters.query.trim()) {
       const term = filters.query.toLowerCase().trim();
-      list = list.filter(p => 
-        (p.title || "").toLowerCase().includes(term) || 
+      list = list.filter(p =>
+        (p.title || "").toLowerCase().includes(term) ||
         (p.location || p.city || "").toLowerCase().includes(term)
       );
     }
-    
+
     if (sort === "price_asc") {
       list.sort((a, b) => (a.price || 0) - (b.price || 0));
     } else if (sort === "price_desc") {
@@ -111,7 +116,7 @@ function List() {
     } else if (sort === "newest") {
       list.sort((a, b) => (b.id || 0) - (a.id || 0));
     }
-    
+
     return list;
   }, [allProperties, filters, sort]);
 
@@ -127,7 +132,7 @@ function List() {
 
   const toggleFavourite = async (id) => {
     const wasFaved = favourites.includes(id);
-    setFavourites(prev => 
+    setFavourites(prev =>
       wasFaved ? prev.filter(f => f !== id) : [...prev, id]
     );
     try {
@@ -137,7 +142,7 @@ function List() {
         await apiRequest.post(`/saved-posts/${id}`);
       }
     } catch (err) {
-      setFavourites(prev => 
+      setFavourites(prev =>
         wasFaved ? [...prev, id] : prev.filter(f => f !== id)
       );
       console.error("Failed to toggle favourite:", err);
@@ -191,7 +196,7 @@ function List() {
       <div className="bg-slate-50 min-h-[400px] flex items-center justify-center">
         <div className="text-center p-8">
           <div className="text-red-500 text-xl mb-4">⚠️ {error}</div>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700"
           >
@@ -225,7 +230,7 @@ function List() {
               <PropertyCard
                 key={property.id}
                 p={property}
-                isFaved={favourites.includes(property.id)}
+                isFaved={(currentUser && favourites.includes(property.id)) || false}
                 onToggleFav={toggleFavourite}
               />
             ))

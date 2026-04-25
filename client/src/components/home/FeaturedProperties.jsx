@@ -1,15 +1,20 @@
 // FeaturedProperties.jsx - Shows the 6 most recent properties
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext, use } from "react";
 import { Link } from "react-router-dom";
 import { FaArrowRight, FaHeart } from "react-icons/fa";
 import apiRequest from "../../lib/apiRequest";
 import PropertyCard from "../../components/list/PropertyCard";
+import { AuthContext } from "../../context/AuthContext";
 
 const FeaturedProperties = () => {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [favourites, setFavourites] = useState([]);
+
+  // Get current user (if user login than display saved posts count)
+  const { currentUser } = useContext(AuthContext);
+  const user = currentUser?.userData ?? null;
 
   // Fetch all properties and take the 6 most recent
   useEffect(() => {
@@ -34,7 +39,7 @@ const FeaturedProperties = () => {
             const bDate = b.createdAt ? new Date(b.createdAt) : b.id;
             return bDate - aDate;
           });
-          
+
           // Take first 3
           const firstThree = sorted.slice(0, 3);
           setProperties(firstThree);
@@ -98,7 +103,7 @@ const FeaturedProperties = () => {
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-            {[1, 2, 3, 4, 5, 6].map(i => (
+            {[1, 2, 3].map(i => (
               <div key={i} className="animate-pulse">
                 <div className="bg-gray-200 h-48 rounded-lg mb-3"></div>
                 <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
@@ -152,9 +157,9 @@ const FeaturedProperties = () => {
             </p>
           </div>
           <div className="flex items-center gap-4">
-            {favourites.length > 0 && (
-              <div className="flex items-center gap-2 bg-rose-50 border border-rose-200 text-rose-600 text-xs font-bold px-3 py-2 rounded-full">
-                <FaHeart className="text-rose-500 text-xs" />
+            {(user && favourites.length > 0) && (
+              <div className="flex items-center gap-1 text-sm text-gray-600">
+                <FaHeart className="text-red-500" />
                 {favourites.length} Saved
               </div>
             )}
@@ -173,7 +178,7 @@ const FeaturedProperties = () => {
             <PropertyCard
               key={property.id}
               p={property}
-              isFaved={favourites.includes(property.id)}
+              isFaved={(user && favourites.includes(property.id)) || false}
               onToggleFav={toggleFavourite}
             />
           ))}

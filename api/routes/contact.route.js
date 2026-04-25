@@ -11,10 +11,10 @@ import { verifyToken, verifyAdmin } from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
-// ✅ PUBLIC — anyone can submit the contact form (no login required)
+//  PUBLIC — anyone can submit the contact form (no login required)
 router.post("/", submitContact);
 
-// ✅ ADMIN ONLY — all read/manage routes require token + admin role
+//  ADMIN ONLY — all read/manage routes require token + admin role
 router.get(   "/",            verifyToken, verifyAdmin, getAllContacts);
 router.get(   "/unread-count",verifyToken, verifyAdmin, getUnreadCount);
 router.put(   "/:id/read",    verifyToken, verifyAdmin, markAsRead);

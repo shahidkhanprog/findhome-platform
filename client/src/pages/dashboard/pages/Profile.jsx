@@ -193,8 +193,9 @@ const handleConfirmChange = useCallback((val) => setConfirm(val), []);
               onPhoneCommit={handlePhoneCommit}
             />
 
-            {/* ✅ passing primitive strings instead of whole errors object */}
-            <PasswordSection
+            {/*  passing primitive strings instead of whole errors object */}
+            <form>
+              <PasswordSection
               enabled={changePassword}
               onToggle={handleTogglePassword}
               password={password}
@@ -204,6 +205,7 @@ const handleConfirmChange = useCallback((val) => setConfirm(val), []);
               onPasswordChange={handlePasswordChange}
               onConfirmChange={handleConfirmChange}
             />
+            </form>
 
             {apiError && (
               <div className="flex items-center gap-2 text-[12px] text-rose-600 bg-rose-50 border border-rose-100 px-4 py-2.5 rounded-xl">
