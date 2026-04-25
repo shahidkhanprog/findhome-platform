@@ -10,7 +10,7 @@ import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
-// 🔒 Protected routes (login required)
+//  Protected routes (login required)
 router.post("/:postId", verifyToken, toggleSavePost);
 router.get("/", verifyToken, getSavedPosts);
 router.get("/check/:postId", verifyToken, checkSavedPost);

@@ -6,7 +6,7 @@ import { AuthContext } from "../../context/AuthContext";
 const Navbar = () => {
   const { currentUser, logout } = useContext(AuthContext);
 
-  // ✅ Safely unwrap the nested userData — currentUser can be null when logged out
+  // Safely unwrap the nested userData — currentUser can be null when logged out
   const user = currentUser?.userData ?? null;
 
   const [menuOpen, setMenuOpen]         = useState(false);

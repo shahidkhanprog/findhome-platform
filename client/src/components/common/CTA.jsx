@@ -1,8 +1,13 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Link } from "react-router-dom";
 import { FaArrowRight } from "react-icons/fa";
+import { AuthContext } from "../../context/AuthContext";
 
 const CTA = () => {
+  
+    const { currentUser } = useContext(AuthContext);
+    const user = currentUser?.userData ?? null;
+
   return (
     <section
       className="relative py-24 px-6 lg:px-20 bg-cover bg-center"
@@ -34,10 +39,10 @@ const CTA = () => {
           </Link>
 
           <Link
-            to="/register"
+            to={(user) ? "/dashboard/profile" : "/register"} 
             className="bg-white text-gray-900 hover:bg-gray-200 px-8 py-4 rounded-lg font-semibold transition"
           >
-            Create Account
+            {(user) ? `Welcome, ${user.username}!` : "Create Account"}
           </Link>
         </div>
       </div>
