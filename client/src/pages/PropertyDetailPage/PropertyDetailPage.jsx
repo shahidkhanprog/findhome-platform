@@ -3,7 +3,7 @@ import { useState, useEffect, useContext } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import {
   FaHeart, FaRegHeart, FaArrowLeft, FaBed, FaBath, FaMapMarkerAlt,
-  FaBolt, FaPaw, FaCheck, FaUserCircle, FaPhoneAlt, FaWhatsapp,
+  FaBolt, FaPaw, FaCheck, FaUserCircle,
 } from "react-icons/fa";
 import { HiLocationMarker, HiOutlineHome } from "react-icons/hi";
 import { MdLocationCity, MdOutlineOtherHouses } from "react-icons/md";
@@ -12,7 +12,6 @@ import { TbRulerMeasure } from "react-icons/tb";
 import { AuthContext } from "../../context/AuthContext";
 import apiRequest from "../../lib/apiRequest";
 
-// Import extracted components
 import ImageCarouselModal from "../../components/property/ImageCarouselModal";
 import ChatDrawer from "../../components/property/ChatDrawer";
 import SpecCard from "../../components/property/SpecCard";
@@ -22,8 +21,8 @@ import PropertyGallery from "../../components/property/PropertyGallery";
 import NearbyFacilities from "../../components/property/NearbyFacilities";
 import AmenitiesList from "../../components/property/AmenitiesList";
 import ContactButtons from "../../components/property/ContactButtons";
+import LoginPromptModal from "../../components/property/LoginPromptModal"; // new
 
-// Utility function
 const formatPKR = (amount) =>
   new Intl.NumberFormat("en-PK", {
     style: "currency",
@@ -53,6 +52,7 @@ export default function PropertyDetailPage() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false); // new
 
   // Fetch property data
   useEffect(() => {
@@ -103,9 +103,9 @@ export default function PropertyDetailPage() {
     fetchProperty();
   }, [id]);
 
-  // Saved status
+  // Saved status (only for logged in users)
   useEffect(() => {
-    if (!id) return;
+    if (!id || !currentUser) return;
     const checkSaved = async () => {
       try {
         const res = await apiRequest.get(`/saved-posts/check/${id}`);
@@ -113,17 +113,23 @@ export default function PropertyDetailPage() {
       } catch { /* ignore */ }
     };
     checkSaved();
-  }, [id]);
+  }, [id, currentUser]);
 
-  const toggleSaved = async () => {
+  const toggleSaved = () => {
+    if (!currentUser) {
+      setShowLoginModal(true);
+      return;
+    }
     const prev = isSaved;
     setIsSaved(!prev);
-    try {
-      if (prev) await apiRequest.delete(`/saved-posts/${id}`);
-      else await apiRequest.post(`/saved-posts/${id}`);
-    } catch {
-      setIsSaved(prev);
-    }
+    (async () => {
+      try {
+        if (prev) await apiRequest.delete(`/saved-posts/${id}`);
+        else await apiRequest.post(`/saved-posts/${id}`);
+      } catch {
+        setIsSaved(prev);
+      }
+    })();
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-4 border-slate-200 border-t-[#f36c3a]" /></div>;
@@ -154,9 +160,13 @@ export default function PropertyDetailPage() {
     <div className="min-h-screen bg-slate-50">
       <nav className="bg-white border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center pt-[30px]">
-          <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-600 font-bold hover:text-[#f36c3a]"><FaArrowLeft size={12} /> Back to Listings</button>
+          <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-600 font-bold hover:text-[#f36c3a]"><FaArrowLeft size={12} /> Back</button>
           <button onClick={toggleSaved} className="p-2.5 hover:bg-slate-100 rounded-full transition">
-            {currentUser && isSaved ? <FaHeart className="text-red-500 text-xl" /> : <FaRegHeart className="text-slate-500 text-xl" />}
+            {currentUser && isSaved ? (
+              <FaHeart className="text-red-500 text-xl" />
+            ) : (
+              <FaRegHeart className="text-slate-500 text-xl" />
+            )}
           </button>
         </div>
       </nav>
@@ -240,6 +250,7 @@ export default function PropertyDetailPage() {
 
       <ChatDrawer isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} property={p} />
       {carouselIndex !== null && <ImageCarouselModal images={p.images} startIndex={carouselIndex} onClose={() => setCarouselIndex(null)} />}
+      <LoginPromptModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </div>
   );
 }
