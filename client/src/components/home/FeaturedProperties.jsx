@@ -12,9 +12,8 @@ const FeaturedProperties = () => {
   const [error, setError] = useState(null);
   const [favourites, setFavourites] = useState([]);
 
-  // Get current user (if user login than display saved posts count)
+  // Get current currentUser (if currentUser login than display saved posts count)
   const { currentUser } = useContext(AuthContext);
-  const user = currentUser?.userData ?? null;
 
   // Fetch all properties and take the 6 most recent
   useEffect(() => {
@@ -157,7 +156,7 @@ const FeaturedProperties = () => {
             </p>
           </div>
           <div className="flex items-center gap-4">
-            {(user && favourites.length > 0) && (
+            {(currentUser && favourites.length > 0) && (
               <div className="flex items-center gap-1 text-sm text-gray-600">
                 <FaHeart className="text-red-500" />
                 {favourites.length} Saved
@@ -178,7 +177,7 @@ const FeaturedProperties = () => {
             <PropertyCard
               key={property.id}
               p={property}
-              isFaved={(user && favourites.includes(property.id)) || false}
+              isFaved={(currentUser && favourites.includes(property.id)) || false}
               onToggleFav={toggleFavourite}
             />
           ))}
