@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { HiX } from "react-icons/hi";
 import { FaCheck, FaPaperPlane } from "react-icons/fa";
 import { formatPKR } from "../../utils/format.js";
+import { useContext } from "react";
+import { SocketContext } from "../../context/SocketContext.jsx";
 
 
 const fmtTime = (d) => d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -13,6 +15,9 @@ const fmtDateSep = (d) => {
 };
 
 export default function ChatDrawer({ isOpen, onClose, property }) {
+
+  const { socket } = useContext(SocketContext);
+
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState("");
   const [isTyping, setIsTyping] = useState(false);
