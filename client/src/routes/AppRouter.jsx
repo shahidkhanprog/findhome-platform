@@ -30,6 +30,7 @@ import Users           from "../pages/dashboard/pages/Users";
 import PropertyDetail  from "../pages/dashboard/pages/Propertydetail";
 import EditProperty    from "../pages/dashboard/pages/EditProperty";
 import Queries         from "../pages/dashboard/pages/Queries";
+import { singlePropertyLoader, profilePageLoader } from "../lib/loaders.js";
 
 const router = createBrowserRouter([
 
@@ -46,7 +47,7 @@ const router = createBrowserRouter([
       { path: "register",                    element: <Register />           },
       { path: "forgotpassword",              element: <ForgotPassword />     },
       { path: "search-results",              element: <SearchResultsPage />  },
-      { path: "property-detail/:id",         element: <PropertyDetailPage /> },
+      { path: "property-detail/:id",         element: <PropertyDetailPage />, loader: singlePropertyLoader },
       { path: "privacy-policy",              element: <PrivacyPolicy />      },
       { path: "terms-of-service",            element: <TermsOfService />     },
       { path: "sitemap",                     element: <Sitemap />            },
@@ -66,7 +67,7 @@ const router = createBrowserRouter([
       { path: "addProperty",      element: <AddProperty />    },
       { path: "edit/:postId",     element: <EditProperty />   }, // edit property page with dynamic postId
       { path: "favorites",        element: <SavedPosts />     },
-      { path: "messages",         element: <Messages />       },
+      { path: "messages",         element: <Messages />,    loader: profilePageLoader},
       { path: "profile",          element: <Profile />        },
       { path: "users",            element: <Users />          },
       { path: "property/:id",     element: <PropertyDetail /> }, // single property detail

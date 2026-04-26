@@ -1,6 +1,6 @@
 // components/dashboard/DashSidebar.jsx
 import { useContext } from "react";
-import { useLocation, NavLink } from "react-router-dom";
+import { useLocation, NavLink, useLoaderData } from "react-router-dom";
 import {
   MdGridView,
   MdOutlineHome,
@@ -46,6 +46,7 @@ const NAV_ITEMS = [
     path:     "/dashboard/messages",
     Icon:     MdOutlineMessage,
     badgeKey: "messages",
+
   },
   {
     id:        "users",
@@ -65,6 +66,12 @@ const NAV_ITEMS = [
 ];
 
 export default function DashSidebar({ badges = {} }) {
+
+  const data = useLoaderData();
+
+  console.log(data);
+
+
   const { pathname }    = useLocation();
   const { currentUser } = useContext(AuthContext);
   const role            = currentUser?.userData?.role ?? "";

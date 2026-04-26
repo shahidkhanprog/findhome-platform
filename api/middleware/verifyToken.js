@@ -100,7 +100,7 @@ export const verifyAdmin = (req, res, next) => {
 };
 
 // ================================================== Verify Token Or Admin ==================================================
-// ✅ NO ownership check here — just verify the token is valid.
+//  NO ownership check here — just verify the token is valid.
 // Each controller handles its own ownership logic.
 export const verifyTokenOrAdmin = (req, res, next) => {
     verifyToken(req, res, next);

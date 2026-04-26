@@ -14,7 +14,9 @@ const fmtDateSep = (d) => {
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 };
 
-export default function ChatDrawer({ isOpen, onClose, property }) {
+export default function ChatDrawer({ isOpen, onClose, property}) {
+
+
 
   const { socket } = useContext(SocketContext);
 

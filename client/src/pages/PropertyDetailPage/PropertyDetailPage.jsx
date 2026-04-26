@@ -1,6 +1,6 @@
 // src/pages/PropertyDetailPage/PropertyDetailPage.jsx
-import { useState, useEffect, useContext } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useState, useContext, Suspense } from "react";
+import { Await, useLoaderData, useNavigate, useParams } from "react-router-dom";
 import {
   FaHeart, FaRegHeart, FaArrowLeft, FaBed, FaBath, FaMapMarkerAlt,
   FaBolt, FaPaw, FaCheck, FaUserCircle,
@@ -10,7 +10,8 @@ import { MdLocationCity, MdOutlineOtherHouses } from "react-icons/md";
 import { GiHomeGarage } from "react-icons/gi";
 import { TbRulerMeasure } from "react-icons/tb";
 import { AuthContext } from "../../context/AuthContext";
-import apiRequest from "../../lib/apiRequest";
+import usePropertyData from "../../hooks/usePropertyData";
+import useSavedStatus from "../../hooks/useSavedStatus";
 
 import ImageCarouselModal from "../../components/property/ImageCarouselModal";
 import ChatDrawer from "../../components/property/ChatDrawer";
@@ -21,7 +22,7 @@ import PropertyGallery from "../../components/property/PropertyGallery";
 import NearbyFacilities from "../../components/property/NearbyFacilities";
 import AmenitiesList from "../../components/property/AmenitiesList";
 import ContactButtons from "../../components/property/ContactButtons";
-import LoginPromptModal from "../../components/property/LoginPromptModal"; // new
+import LoginPromptModal from "../../components/property/LoginPromptModal";
 
 const formatPKR = (amount) =>
   new Intl.NumberFormat("en-PK", {
@@ -43,93 +44,28 @@ const getPolicyLabel = (val, type) => {
 };
 
 export default function PropertyDetailPage() {
+
+  const data = useLoaderData();
+
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useContext(AuthContext);
-  const [property, setProperty] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+
+  // Custom hooks
+  const { property, loading, error } = usePropertyData();
+  const { isSaved, toggleSaved: toggleSavedRaw } = useSavedStatus(id, currentUser);
+
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(null);
-  const [showLoginModal, setShowLoginModal] = useState(false); // new
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
-  // Fetch property data
-  useEffect(() => {
-    if (!id) {
-      setError("No property ID provided.");
-      setLoading(false);
-      return;
-    }
-    const fetchProperty = async () => {
-      try {
-        const res = await apiRequest.get(`/posts/${id}`);
-        let data = res.data;
-        if (res.data.post) data = res.data.post;
-        else if (res.data.data) data = res.data.data;
-        const normalized = {
-          id: data.id,
-          title: data.title || "Untitled Property",
-          address: data.address || null,
-          city: data.city || null,
-          price: data.price || 0,
-          listingType: data.listingType || "rent",
-          property: data.property || "Property",
-          status: data.status || "available",
-          bedroom: data.bedroom ?? null,
-          bathroom: data.bathroom ?? null,
-          latitude: data.latitude || null,
-          longitude: data.longitude || null,
-          images: data.images?.length ? data.images : (data.image ? [data.image] : ["https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&q=80"]),
-          description: data.postDetails?.desc || data.description || null,
-          utilities: data.postDetails?.utilities || null,
-          pet: data.postDetails?.pet || null,
-          size: data.postDetails?.size ?? null,
-          school: data.postDetails?.school ?? null,
-          bus: data.postDetails?.bus ?? null,
-          restaurant: data.postDetails?.restaurant ?? null,
-          amenities: data.amenities?.length ? data.amenities : null,
-          user: data.user || null,
-          createdAt: data.createdAt ? new Date(data.createdAt) : null,
-        };
-        setProperty(normalized);
-      } catch (err) {
-        setError(err.response?.data?.message || "Failed to load property.");
-        setProperty(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProperty();
-  }, [id]);
-
-  // Saved status (only for logged in users)
-  useEffect(() => {
-    if (!id || !currentUser) return;
-    const checkSaved = async () => {
-      try {
-        const res = await apiRequest.get(`/saved-posts/check/${id}`);
-        setIsSaved(res.data?.saved ?? false);
-      } catch { /* ignore */ }
-    };
-    checkSaved();
-  }, [id, currentUser]);
-
+  // Wrapper for toggleSaved that shows login modal if not logged in
   const toggleSaved = () => {
     if (!currentUser) {
       setShowLoginModal(true);
       return;
     }
-    const prev = isSaved;
-    setIsSaved(!prev);
-    (async () => {
-      try {
-        if (prev) await apiRequest.delete(`/saved-posts/${id}`);
-        else await apiRequest.post(`/saved-posts/${id}`);
-      } catch {
-        setIsSaved(prev);
-      }
-    })();
+    toggleSavedRaw();
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-4 border-slate-200 border-t-[#f36c3a]" /></div>;
@@ -248,7 +184,15 @@ export default function PropertyDetailPage() {
         </div>
       </main>
 
-      <ChatDrawer isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} property={p} />
+      <Suspense fallback={<p>Loading...</p>}>
+        <Await
+          resolve={data.chatResponse}
+          errorElement={<p>Error loading Chats</p>}
+        >
+          {(chatResponse) => <ChatDrawer isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} property={p}/>}
+        </Await>
+      </Suspense>
+
       {carouselIndex !== null && <ImageCarouselModal images={p.images} startIndex={carouselIndex} onClose={() => setCarouselIndex(null)} />}
       <LoginPromptModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </div>
