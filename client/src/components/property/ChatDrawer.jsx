@@ -1,10 +1,11 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useContext } from "react";
 import { HiX } from "react-icons/hi";
 import { FaCheck, FaPaperPlane } from "react-icons/fa";
 import { formatPKR } from "../../utils/format.js";
-import { useContext } from "react";
 import { SocketContext } from "../../context/SocketContext.jsx";
+import { AuthContext } from "../../context/AuthContext.jsx";
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const fmtTime = (d) => d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 const fmtDateSep = (d) => {
@@ -14,56 +15,178 @@ const fmtDateSep = (d) => {
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 };
 
-export default function ChatDrawer({ isOpen, onClose, property}) {
-
-
-
+export default function ChatDrawer({ isOpen, onClose, property }) {
   const { socket } = useContext(SocketContext);
+  const { currentUser } = useContext(AuthContext);
+
+  // --- Extract owner ID (property agent) from various possible paths ---
+  const ownerId =
+    property?.userId ||
+    property?.user?.id ||
+    property?.ownerId ||
+    property?.user?._id;
+
+  // --- Extract current user ID from various possible paths ---
+  const currentUserId =
+    currentUser?.userData?.id ||   // if your AuthContext uses { userData: { id } }
+    currentUser?.id ||             // standard shape
+    currentUser?._id ||            // MongoDB shape
+    currentUser?.userData?._id;
+
+  // Debug logs (remove after confirming it works)
+  console.log("🔍 ChatDrawer | ownerId:", ownerId);
+  console.log("🔍 ChatDrawer | currentUserId:", currentUserId);
 
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [chatId, setChatId] = useState(null);
+  const [receiver, setReceiver] = useState(null);
+  const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
 
-  useEffect(() => {
-    if (property && messages.length === 0) {
-      setMessages([
-        {
-          id: 1,
-          from: "agent",
-          text: `Hi! 👋 I'm the agent for "${property.title}". Feel free to ask any questions about this property.`,
-          ts: new Date(Date.now() - 1000 * 60 * 18),
-        },
-      ]);
-    }
-  }, [property, messages.length]);
-
-  const simulateReply = useCallback(() => {
-    setIsTyping(true);
-    setTimeout(() => {
-      setIsTyping(false);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now() + 1,
-          from: "agent",
-          text: "Thank you for your message! I'll review your query and get back to you shortly.",
-          ts: new Date(),
-        },
-      ]);
-    }, 2200);
-  }, []);
-
-  const handleSend = () => {
-    const text = draft.trim();
-    if (!text) return;
-    setMessages((prev) => [...prev, { id: Date.now(), from: "user", text, ts: new Date() }]);
-    setDraft("");
-    simulateReply();
-    inputRef.current?.focus();
+  const fetcher = async (endpoint, options = {}) => {
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      credentials: "include",
+      headers: { "Content-Type": "application/json", ...options.headers },
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
   };
 
+  const initChat = useCallback(async () => {
+    if (!ownerId || !currentUserId) return;
+    setLoading(true);
+    try {
+      const chats = await fetcher("/api/chats");
+      let existingChat = chats.find((c) => c.userIDs.includes(ownerId));
+      if (existingChat) {
+        setChatId(existingChat.id);
+        setReceiver(existingChat.receiver);
+        await fetcher(`/api/chats/read/${existingChat.id}`, { method: "PUT" });
+        const chatWithMessages = await fetcher(`/api/chats/${existingChat.id}`);
+        setMessages(
+          chatWithMessages.messages.map((m) => ({
+            id: m.id,
+            from: m.userId === currentUserId ? "user" : "agent",
+            text: m.text,
+            ts: new Date(m.createdAt),
+          }))
+        );
+      } else {
+        const newChat = await fetcher("/api/chats", {
+          method: "POST",
+          body: JSON.stringify({ receiverId: ownerId }),
+        });
+        setChatId(newChat.id);
+        const chatDetail = await fetcher(`/api/chats/${newChat.id}`);
+        setReceiver(chatDetail.receiver);
+        setMessages([]);
+      }
+    } catch (err) {
+      console.error("Chat init error:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [ownerId, currentUserId]);
+
+  const sendMessage = async (text) => {
+  console.log("📤 sendMessage called, chatId:", chatId, "text:", text);
+  if (!chatId || !text.trim()) {
+    console.warn("❌ Cannot send: missing chatId or text");
+    return;
+  }
+  const tempId = Date.now();
+  const newMsg = {
+    id: tempId,
+    from: "user",
+    text: text.trim(),
+    ts: new Date(),
+    pending: true,
+  };
+  setMessages((prev) => [...prev, newMsg]);
+  setDraft("");
+
+  try {
+    console.log("📡 Sending POST to /api/messages/" + chatId);
+    const saved = await fetcher(`/api/messages/${chatId}`, {
+      method: "POST",
+      body: JSON.stringify({ text: text.trim() }),
+    });
+    console.log("✅ Message saved on server:", saved);
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === tempId
+          ? {
+              id: saved.id,
+              from: "user",
+              text: saved.text,
+              ts: new Date(saved.createdAt),
+              pending: false,
+            }
+          : m
+      )
+    );
+    socket?.emit("sendMessage", {
+      chatId,
+      message: saved,
+      receiverId: ownerId,
+    });
+    console.log("📨 Emitted sendMessage via socket");
+  } catch (err) {
+    console.error("❌ Send failed:", err);
+    setMessages((prev) => prev.filter((m) => m.id !== tempId));
+  }
+};
+
+  useEffect(() => {
+    if (!socket || !chatId) return;
+    const onReceiveMessage = (data) => {
+      if (data.chatId !== chatId) return;
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === data.message.id)) return prev;
+        return [
+          ...prev,
+          {
+            id: data.message.id,
+            from: "agent",
+            text: data.message.text,
+            ts: new Date(data.message.createdAt),
+          },
+        ];
+      });
+      fetcher(`/api/chats/read/${chatId}`, { method: "PUT" }).catch(console.warn);
+    };
+    const onTyping = ({ chatId: typingChatId, userId }) => {
+      if (typingChatId === chatId && userId !== currentUserId) {
+        setIsTyping(true);
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 1500);
+      }
+    };
+    socket.on("receiveMessage", onReceiveMessage);
+    socket.on("typing", onTyping);
+    return () => {
+      socket.off("receiveMessage", onReceiveMessage);
+      socket.off("typing", onTyping);
+      clearTimeout(typingTimeoutRef.current);
+    };
+  }, [socket, chatId, currentUserId]);
+
+  const handleTyping = (e) => {
+    setDraft(e.target.value);
+    if (!chatId || !socket) return;
+    socket.emit("typing", { chatId, receiverId: ownerId });
+    clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit("stopTyping", { chatId, receiverId: ownerId });
+    }, 1000);
+  };
+
+  const handleSend = () => sendMessage(draft);
   const handleKey = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -76,10 +199,40 @@ export default function ChatDrawer({ isOpen, onClose, property}) {
   }, [messages, isTyping]);
 
   useEffect(() => {
+    if (isOpen && ownerId && currentUserId && !chatId && String(ownerId) !== String(currentUserId)) {
+      initChat();
+    }
+  }, [isOpen, ownerId, currentUserId, chatId, initChat]);
+
+  useEffect(() => {
     if (isOpen) setTimeout(() => inputRef.current?.focus(), 380);
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  if (!ownerId || !currentUserId) {
+    return (
+      <div className="fixed inset-0 z-50 flex justify-end">
+        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onClick={onClose} />
+        <div className="relative w-full sm:max-w-md bg-white h-full shadow-2xl flex flex-col items-center justify-center p-6 text-center">
+          <p className="text-slate-600 font-semibold">Missing user or property information. Please try again.</p>
+          <button onClick={onClose} className="mt-4 bg-[#f36c3a] text-white px-4 py-2 rounded-xl">Close</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (String(ownerId) === String(currentUserId)) {
+    return (
+      <div className="fixed inset-0 z-50 flex justify-end">
+        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onClick={onClose} />
+        <div className="relative w-full sm:max-w-md bg-white h-full shadow-2xl flex flex-col items-center justify-center p-6 text-center">
+          <p className="text-slate-600 font-semibold">You cannot chat with yourself (this is your own property).</p>
+          <button onClick={onClose} className="mt-4 bg-[#f36c3a] text-white px-4 py-2 rounded-xl">Close</button>
+        </div>
+      </div>
+    );
+  }
 
   const grouped = messages.reduce((acc, m) => {
     const key = fmtDateSep(m.ts);
@@ -104,11 +257,17 @@ export default function ChatDrawer({ isOpen, onClose, property}) {
         <div className="bg-[#f36c3a] p-6 text-white flex justify-between items-center rounded-bl-[2.5rem]">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl border border-white/30">👩‍💼</div>
+              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl border border-white/30">
+                {receiver?.avatar ? (
+                  <img src={receiver.avatar} className="w-full h-full object-cover rounded-2xl" alt="agent" />
+                ) : (
+                  "👩‍💼"
+                )}
+              </div>
               <span className="absolute bottom-1 right-1 w-3 h-3 rounded-full bg-green-400 border-2 border-[#f36c3a] animate-pulse" />
             </div>
             <div>
-              <p className="font-black text-lg leading-tight">Property Agent</p>
+              <p className="font-black text-lg leading-tight">{receiver?.username || "Property Agent"}</p>
               <p className="text-xs font-bold opacity-80 flex items-center gap-1.5">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" /> Active now
               </p>
@@ -132,6 +291,9 @@ export default function ChatDrawer({ isOpen, onClose, property}) {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-4 scrollbar-hide">
+          {loading && messages.length === 0 && (
+            <div className="flex justify-center items-center h-full text-slate-400 text-sm">Loading chat...</div>
+          )}
           {Object.entries(grouped).map(([date, msgs]) => (
             <React.Fragment key={date}>
               <div className="flex items-center gap-3 my-4">
@@ -145,15 +307,14 @@ export default function ChatDrawer({ isOpen, onClose, property}) {
                 return (
                   <div key={m.id} className={`msg-in flex ${isUser ? "justify-end" : "justify-start"} ${nextSame ? "mb-0.5" : "mb-3"}`}>
                     <div className={`max-w-[78%] flex flex-col ${isUser ? "items-end" : "items-start"}`}>
-                      <div
-                        className={`px-4 py-2.5 text-sm leading-relaxed font-medium ${isUser ? "bg-[#f36c3a] text-white rounded-[18px] rounded-br-[5px]" : "bg-white text-slate-800 rounded-[18px] rounded-bl-[5px] border border-slate-100"} shadow-sm`}
-                      >
+                      <div className={`px-4 py-2.5 text-sm leading-relaxed font-medium ${isUser ? "bg-[#f36c3a] text-white rounded-[18px] rounded-br-[5px]" : "bg-white text-slate-800 rounded-[18px] rounded-bl-[5px] border border-slate-100"} shadow-sm`}>
                         {m.text}
+                        {m.pending && <span className="ml-2 text-[10px] opacity-70">⌛</span>}
                       </div>
                       {!nextSame && (
                         <div className={`flex items-center gap-1 mt-1 ${isUser ? "flex-row-reverse" : ""}`}>
                           <span className="text-[10px] text-slate-400 font-semibold">{fmtTime(m.ts)}</span>
-                          {isUser && <FaCheck size={9} className="text-green-500" />}
+                          {isUser && !m.pending && <FaCheck size={9} className="text-green-500" />}
                         </div>
                       )}
                     </div>
@@ -182,15 +343,15 @@ export default function ChatDrawer({ isOpen, onClose, property}) {
               ref={inputRef}
               type="text"
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
+              onChange={handleTyping}
               onKeyDown={handleKey}
               placeholder="Type your message..."
               className="flex-1 bg-transparent px-2 outline-none text-slate-900 font-bold text-sm"
             />
             <button
               onClick={handleSend}
-              disabled={!draft.trim()}
-              className={`p-3 rounded-2xl transition active:scale-90 ${draft.trim() ? "bg-[#f36c3a] text-white shadow-md shadow-orange-200" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
+              disabled={!draft.trim() || loading}
+              className={`p-3 rounded-2xl transition active:scale-90 ${draft.trim() && !loading ? "bg-[#f36c3a] text-white shadow-md shadow-orange-200" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
             >
               <FaPaperPlane size={15} />
             </button>

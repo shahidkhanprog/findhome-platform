@@ -5,21 +5,26 @@ import { AuthContext } from "./AuthContext";
 export const SocketContext = createContext();
 
 export const SocketContextProvider = ({ children }) => {
-
   const { currentUser } = useContext(AuthContext);
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    setSocket(io("http://localhost:4000"));
+    const newSocket = io("http://localhost:4000", {
+      withCredentials: true,
+    });
+    setSocket(newSocket);
+    return () => newSocket.close();
   }, []);
 
-
-  useEffect (() => { 
-    currentUser && socket?.emit("newUser", currentUser.id );
-   },[currentUser, socket]);
+  useEffect(() => {
+    if (currentUser && socket) {
+      const userId = currentUser?.userData?.id || currentUser?.id || currentUser?._id;
+      if (userId) socket.emit("newUser", userId);
+    }
+  }, [currentUser, socket]);
 
   return (
-     <SocketContext.Provider value={{ socket }}>
+    <SocketContext.Provider value={{ socket }}>
       {children}
     </SocketContext.Provider>
   );

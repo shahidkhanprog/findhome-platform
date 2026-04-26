@@ -185,13 +185,31 @@ export default function PropertyDetailPage() {
       </main>
 
       <Suspense fallback={<p>Loading...</p>}>
-        <Await
-          resolve={data.chatResponse}
-          errorElement={<p>Error loading Chats</p>}
-        >
-          {(chatResponse) => <ChatDrawer isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} property={p}/>}
-        </Await>
-      </Suspense>
+  <Await
+    resolve={data.chatResponse}
+    errorElement={<p>Error loading Chats</p>}
+  >
+    {(chatResponse) => {
+      // Ensure property has a userId (owner ID) from the nested user object
+      const propertyForChat = {
+        ...p,
+        userId: p.user?.id || p.user?._id,
+        ownerId: p.user?.id || p.user?._id,
+        user: {
+          ...p.user,
+          id: p.user?.id || p.user?._id,
+        },
+      };
+      return (
+        <ChatDrawer
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+          property={propertyForChat}
+        />
+      );
+    }}
+  </Await>
+</Suspense>
 
       {carouselIndex !== null && <ImageCarouselModal images={p.images} startIndex={carouselIndex} onClose={() => setCarouselIndex(null)} />}
       <LoginPromptModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
