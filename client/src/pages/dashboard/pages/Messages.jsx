@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useContext, useCallback } from "react";
 import {
-  MdSearch, MdMoreVert, MdSend, MdDone, MdDoneAll, MdCircle,
+  MdSearch, MdMoreVert, MdSend, MdDone, MdDoneAll,
   MdArrowBack, MdFilterList, MdEdit, MdClose, MdCheck,
   MdDeleteOutline, MdOutlineMarkChatRead, MdKeyboardArrowDown,
 } from "react-icons/md";
@@ -35,12 +35,9 @@ const sortChatsByLatestMessage = (chats) => {
   });
 };
 
-// ------------------------------------------------------------------
-//  Avatar Component
-// ------------------------------------------------------------------
+// Avatar Component – no online dot
 const Avatar = ({ contact, size = "md" }) => {
   const sz = { sm: "w-8 h-8 text-xs", md: "w-10 h-10 text-sm", lg: "w-12 h-12 text-base" };
-  const dot = { sm: "w-2 h-2 border", md: "w-2.5 h-2.5 border-2", lg: "w-3 h-3 border-3" };
   const initials = contact?.username?.slice(0, 2).toUpperCase() || "??";
   const color = "from-violet-400 to-purple-500";
   return (
@@ -52,16 +49,11 @@ const Avatar = ({ contact, size = "md" }) => {
           initials
         )}
       </div>
-      {contact?.online && (
-        <span className={`absolute bottom-0 right-0 ${dot[size]} bg-emerald-400 rounded-full border-white`} />
-      )}
     </div>
   );
 };
 
-// ------------------------------------------------------------------
-//  Message Bubble (text only)
-// ------------------------------------------------------------------
+// Message Bubble (text only)
 const MessageBubble = ({ msg, onDelete, selected, onSelect, selectMode, isMe }) => {
   const [showActions, setShowActions] = useState(false);
   const actionsRef = useRef(null);
@@ -152,9 +144,7 @@ const groupMessagesByDate = (messages) => {
   return items;
 };
 
-// ------------------------------------------------------------------
-//  MAIN COMPONENT (text only – no emoji, no file attachments)
-// ------------------------------------------------------------------
+// MAIN COMPONENT (no online status)
 export default function Messages() {
   const { currentUser } = useContext(AuthContext);
   const { socket } = useContext(SocketContext);
@@ -203,7 +193,6 @@ export default function Messages() {
         ...chat,
         messages: chat.messages || [],
         typing: false,
-        online: false,
         unread,
       };
     } catch (err) {
@@ -225,7 +214,6 @@ export default function Messages() {
           ...chat,
           messages: chat.messages || [],
           typing: false,
-          online: false,
           unread,
         };
       });
@@ -410,7 +398,6 @@ export default function Messages() {
   });
 
   const activeChat = chats.find(c => c.id === activeChatId);
-  const isOnline = activeChat?.receiver?.online;
 
   useEffect(() => {
     if (!showScrollBtn) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -532,9 +519,7 @@ export default function Messages() {
               <Avatar contact={activeChat.receiver || { username: "FindProperty" }} size="md" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-slate-800 truncate">{activeChat.receiver?.username || "FindProperty"}</p>
-                <p className="text-xs text-slate-400 flex items-center gap-1.5">
-                  {activeChat.typing ? <span className="text-violet-500 italic">typing…</span> : (isOnline ? <><MdCircle size={8} className="text-emerald-400" /> Online</> : "Offline")}
-                </p>
+                {activeChat.typing && <p className="text-xs text-violet-500 italic">typing…</p>}
               </div>
               <div className="flex items-center gap-2">
                 {selectMode ? (
