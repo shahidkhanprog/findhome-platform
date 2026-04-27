@@ -40,10 +40,30 @@ export const initSocket = (server) => {
         io.to(receiverSocketId).emit("stopTyping", { chatId });
       }
     });
+    socket.on("receiveMessage", ({ chatId, message }) => {
+  setChats(prev => prev.map(chat => {
+    if (chat.id !== chatId) return chat;
+    const isFromOther = message.userId !== currentUserId;
+    const isActive = chat.id === activeChatId;
+    const newUnread = isActive ? 0 : (isFromOther ? (chat.unread || 0) + 1 : chat.unread || 0);
+    return {
+      ...chat,
+      messages: [...chat.messages, message],
+      lastMessage: message.text,
+      unread: newUnread,
+    };
+  }));
+  
+  if (activeChatId === chatId) {
+    // automatically mark as read for the open chat
+    fetcher(`/api/chats/read/${chatId}`, { method: "PUT" }).catch(console.warn);
+  }
+});
 
     socket.on("disconnect", () => {
       if (socket.userId) delete userSocketMap[socket.userId];
     });
+
   });
 
   return io;

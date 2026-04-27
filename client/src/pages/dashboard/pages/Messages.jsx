@@ -20,14 +20,23 @@ const fmtSize = (bytes) => {
   return (bytes / 1048576).toFixed(1) + " MB";
 };
 
+// ---------- Last‑read storage helpers ----------
+const getLastRead = (chatId) => {
+  const stored = localStorage.getItem(`chat_last_read_${chatId}`);
+  return stored ? new Date(stored) : null;
+};
+const setLastRead = (chatId, time = new Date()) => {
+  localStorage.setItem(`chat_last_read_${chatId}`, time.toISOString());
+};
+
 // ------------------------------------------------------------------
-//  Avatar Component (uses real username / avatar)
+//  Avatar Component
 // ------------------------------------------------------------------
 const Avatar = ({ contact, size = "md" }) => {
   const sz = { sm: "w-8 h-8 text-xs", md: "w-10 h-10 text-sm", lg: "w-12 h-12 text-base" };
   const dot = { sm: "w-2 h-2 border", md: "w-2.5 h-2.5 border-2", lg: "w-3 h-3 border-3" };
   const initials = contact?.username?.slice(0, 2).toUpperCase() || "??";
-  const color = "from-violet-400 to-purple-500"; // fallback gradient
+  const color = "from-violet-400 to-purple-500";
   return (
     <div className={`relative flex-shrink-0 ${sz[size]}`}>
       <div className={`${sz[size]} rounded-2xl bg-gray-900 flex items-center justify-center font-bold text-white select-none`}>
@@ -102,7 +111,7 @@ const AttachmentPreview = ({ attachment, caption, onCaptionChange, onSend, onCan
 };
 
 // ------------------------------------------------------------------
-//  Message Bubble (real data)
+//  Message Bubble
 // ------------------------------------------------------------------
 const MessageBubble = ({ msg, onDelete, selected, onSelect, selectMode, isMe }) => {
   const [showActions, setShowActions] = useState(false);
@@ -200,7 +209,7 @@ const groupMessagesByDate = (messages) => {
 export default function Messages() {
   const { currentUser } = useContext(AuthContext);
   const { socket } = useContext(SocketContext);
-  const [chats, setChats] = useState([]);          // { id, userIDs, lastMessage, seenBy, receiver, messages, typing, online? }
+  const [chats, setChats] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
   const [input, setInput] = useState("");
   const [search, setSearch] = useState("");
@@ -218,9 +227,9 @@ export default function Messages() {
   const messagesRef = useRef(null);
   const fileInputRef = useRef(null);
   const filterRef = useRef(null);
-  const currentUserId = currentUser?.id ||currentUser.userData.id;
 
-  // ---------- Helper fetcher ----------
+  const currentUserId = currentUser?.id || currentUser?.userData?.id || currentUser?._id;
+
   const fetcher = async (endpoint, options = {}) => {
     const res = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
@@ -231,26 +240,28 @@ export default function Messages() {
     return res.json();
   };
 
-const loadChats = useCallback(async () => {
-  if (!currentUserId) {
-    console.warn("⚠️ loadChats: no currentUserId");
-    return;
-  }
-  try {
-    console.log("📡 Fetching /api/chats...");
-    const data = await fetcher("/api/chats");
-    console.log("✅ API response:", data);
-    setChats(data.map(chat => ({
-      ...chat,
-      messages: chat.messages || [],
-      typing: false,
-      online: false,
-      unread: chat.seenBy?.includes(currentUserId) ? 0 : (chat.messages?.length || 0)
-    })));
-  } catch (err) {
-    console.error("❌ loadChats error:", err);
-  }
-}, [currentUserId]);
+  // ---------- Load chats & compute unread using last-read timestamp ----------
+  const loadChats = useCallback(async () => {
+    if (!currentUserId) return;
+    try {
+      const data = await fetcher("/api/chats");
+      setChats(data.map(chat => {
+        const lastRead = getLastRead(chat.id);
+        const unread = chat.messages?.filter(m =>
+          m.userId !== currentUserId && (!lastRead || new Date(m.createdAt) > lastRead)
+        ).length || 0;
+        return {
+          ...chat,
+          messages: chat.messages || [],
+          typing: false,
+          online: false,
+          unread,
+        };
+      }));
+    } catch (err) {
+      console.error("❌ loadChats error:", err);
+    }
+  }, [currentUserId]);
 
   useEffect(() => { loadChats(); }, [loadChats]);
 
@@ -260,17 +271,23 @@ const loadChats = useCallback(async () => {
     socket.on("receiveMessage", ({ chatId, message }) => {
       setChats(prev => prev.map(chat => {
         if (chat.id !== chatId) return chat;
+        const isFromOther = message.userId !== currentUserId;
+        const isActive = chat.id === activeChatId;
+        let newUnread = chat.unread;
+        if (isFromOther && !isActive) newUnread = (chat.unread || 0) + 1;
+        else if (isActive && isFromOther) {
+          // auto-mark as read for active chat
+          fetcher(`/api/chats/read/${chatId}`, { method: "PUT" }).catch(console.warn);
+          setLastRead(chatId);
+          newUnread = 0;
+        }
         return {
           ...chat,
           messages: [...chat.messages, message],
           lastMessage: message.text,
-          unread: chat.id === activeChatId ? 0 : (chat.unread || 0) + 1
+          unread: newUnread,
         };
       }));
-      if (activeChatId === chatId) {
-        // mark as read automatically
-        fetcher(`/api/chats/read/${chatId}`, { method: "PUT" }).catch(console.warn);
-      }
     });
     socket.on("typing", ({ chatId, userId }) => {
       if (userId === currentUserId) return;
@@ -308,6 +325,8 @@ const loadChats = useCallback(async () => {
         ...chat,
         messages: chat.messages.map(m => m.id === tempId ? { ...saved, pending: false } : m)
       } : chat));
+      // update last-read timestamp for this chat (since user just sent and sees the chat)
+      setLastRead(activeChatId);
       socket?.emit("sendMessage", { chatId: activeChatId, message: saved, receiverId: getReceiverId(activeChatId) });
     } catch (err) {
       console.error("Send failed", err);
@@ -325,7 +344,6 @@ const loadChats = useCallback(async () => {
 
   const handleKey = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
 
-  // ---------- Typing indicator (emit) ----------
   let typingTimeout;
   const handleTyping = (e) => {
     setInput(e.target.value);
@@ -337,7 +355,6 @@ const loadChats = useCallback(async () => {
     }, 1000);
   };
 
-  // ---------- Delete message (frontend only for now) ----------
   const deleteMessage = async (msgId) => {
     setChats(prev => prev.map(chat => chat.id === activeChatId ? {
       ...chat,
@@ -345,16 +362,15 @@ const loadChats = useCallback(async () => {
     } : chat));
   };
 
-  // ---------- Other UI handlers ----------
   const openChat = (chatId) => {
     setActiveChatId(chatId);
     setMobileView("chat");
     setSelectMode(false);
     setSelectedMsgIds([]);
     setShowEmoji(false);
-    // mark chat as read
     fetcher(`/api/chats/read/${chatId}`, { method: "PUT" }).catch(console.warn);
     setChats(prev => prev.map(chat => chat.id === chatId ? { ...chat, unread: 0 } : chat));
+    setLastRead(chatId);
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
@@ -374,15 +390,14 @@ const loadChats = useCallback(async () => {
   const markContactRead = (chatId) => {
     fetcher(`/api/chats/read/${chatId}`, { method: "PUT" }).catch(console.warn);
     setChats(prev => prev.map(chat => chat.id === chatId ? { ...chat, unread: 0 } : chat));
+    setLastRead(chatId);
   };
 
   const deleteContact = async (chatId) => {
-    // optional: call delete endpoint if exists
     setChats(prev => prev.filter(c => c.id !== chatId));
     if (activeChatId === chatId) setActiveChatId(null);
   };
 
-  // ---------- Filtered chats ----------
   const filteredChats = chats.filter(chat => {
     const receiver = chat.receiver || {};
     const name = receiver.username || "";
@@ -392,9 +407,8 @@ const loadChats = useCallback(async () => {
   });
 
   const activeChat = chats.find(c => c.id === activeChatId);
-  const isOnline = activeChat?.receiver?.online; // could be set via socket presence
+  const isOnline = activeChat?.receiver?.online;
 
-  // Auto-scroll
   useEffect(() => {
     if (!showScrollBtn) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [activeChat?.messages?.length]);
@@ -421,7 +435,6 @@ const loadChats = useCallback(async () => {
     e.target.value = "";
   };
   const confirmAttachment = () => {
-    // For now, just send a text placeholder (extend to upload file)
     if (attachPreview) {
       sendMessageWithFile(attachPreview, attachCaption);
     }
@@ -429,18 +442,14 @@ const loadChats = useCallback(async () => {
     setAttachCaption("");
   };
   const sendMessageWithFile = async (attachment, caption) => {
-    // TODO: implement file upload to server, then send message with URL
-    console.log("File attachment not implemented in backend yet");
+    console.log("File attachment not implemented");
   };
   const cancelAttachment = () => {
     if (attachPreview?.previewUrl) URL.revokeObjectURL(attachPreview.previewUrl);
     setAttachPreview(null);
     setAttachCaption("");
   };
-  console.log("🔍 currentUser:", currentUser);
-console.log("🔍 currentUserId:", currentUserId);
 
-  // Empty state component
   const EmptyState = () => (
     <div className="flex flex-col items-center justify-center h-full text-center px-8 bg-slate-50/40">
       <div className="w-20 h-20 rounded-3xl bg-gray-200 flex items-center justify-center mb-5">
@@ -525,7 +534,7 @@ console.log("🔍 currentUserId:", currentUserId);
                   <button
                     key={chat.id}
                     onClick={() => openChat(chat.id)}
-                    onContextMenu={(e) => { e.preventDefault(); /* optional context menu */ }}
+                    onContextMenu={(e) => { e.preventDefault(); }}
                     className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all hover:bg-slate-50 border-r-2 ${activeChatId === chat.id ? "bg-gray-200 border-r-black" : "border-r-transparent"}`}
                   >
                     <Avatar contact={receiver} />
@@ -533,8 +542,8 @@ console.log("🔍 currentUserId:", currentUserId);
                       <div className="flex items-center justify-between mb-0.5">
                         <span className={`text-sm font-semibold truncate ${activeChatId === chat.id ? "text-blue-700" : "text-slate-800"}`}>{receiver.username}</span>
                         <span className="text-[11px] text-slate-400 flex-shrink-0 ml-2">
-  {chat.messages?.length ? new Date(chat.messages[chat.messages.length-1].createdAt).toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' }) : ""}
-</span>
+                          {chat.messages?.length ? new Date(chat.messages[chat.messages.length-1].createdAt).toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' }) : ""}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className={`text-xs truncate ${unread > 0 ? "text-slate-700 font-medium" : "text-slate-400"}`}>
