@@ -11,8 +11,10 @@ import { SocketContext } from "../../../context/SocketContext";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-// ---------- Helpers ----------
-const getNow = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+// ---------- Helper: 12‑hour time with AM/PM ----------
+const format12HourTime = (date) =>
+  new Date(date).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+
 const fmtSize = (bytes) => {
   if (!bytes) return "0 B";
   if (bytes < 1024) return bytes + " B";
@@ -20,7 +22,7 @@ const fmtSize = (bytes) => {
   return (bytes / 1048576).toFixed(1) + " MB";
 };
 
-// ---------- Last‑read storage ----------
+// Last‑read storage
 const getLastRead = (chatId) => {
   const stored = localStorage.getItem(`chat_last_read_${chatId}`);
   return stored ? new Date(stored) : null;
@@ -29,21 +31,20 @@ const setLastRead = (chatId, time = new Date()) => {
   localStorage.setItem(`chat_last_read_${chatId}`, time.toISOString());
 };
 
-// ---------- Sort chats by latest message timestamp (descending) ----------
 const sortChatsByLatestMessage = (chats) => {
   return [...chats].sort((a, b) => {
     const aTime = a.messages?.length
-      ? new Date(a.messages[a.messages.length-1].createdAt)
+      ? new Date(a.messages[a.messages.length - 1].createdAt)
       : new Date(a.createdAt);
     const bTime = b.messages?.length
-      ? new Date(b.messages[b.messages.length-1].createdAt)
+      ? new Date(b.messages[b.messages.length - 1].createdAt)
       : new Date(b.createdAt);
     return bTime - aTime;
   });
 };
 
 // ------------------------------------------------------------------
-//  Avatar Component (unchanged)
+//  Avatar Component
 // ------------------------------------------------------------------
 const Avatar = ({ contact, size = "md" }) => {
   const sz = { sm: "w-8 h-8 text-xs", md: "w-10 h-10 text-sm", lg: "w-12 h-12 text-base" };
@@ -84,9 +85,7 @@ const AttachmentPreview = ({ attachment, caption, onCaptionChange, onSend, onCan
               <p className="text-[11px] text-slate-400 truncate max-w-[220px]">{attachment.name}</p>
             </div>
           </div>
-          <button onClick={onCancel} className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100">
-            <MdClose size={18} />
-          </button>
+          <button onClick={onCancel} className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100"><MdClose size={18} /></button>
         </div>
         <div className="bg-slate-50 flex items-center justify-center min-h-[260px] max-h-[340px] overflow-hidden px-5 py-5">
           {isImage ? (
@@ -124,7 +123,7 @@ const AttachmentPreview = ({ attachment, caption, onCaptionChange, onSend, onCan
 };
 
 // ------------------------------------------------------------------
-//  Message Bubble (unchanged)
+//  Message Bubble with 12‑hour time
 // ------------------------------------------------------------------
 const MessageBubble = ({ msg, onDelete, selected, onSelect, selectMode, isMe }) => {
   const [showActions, setShowActions] = useState(false);
@@ -137,7 +136,7 @@ const MessageBubble = ({ msg, onDelete, selected, onSelect, selectMode, isMe }) 
     return () => document.removeEventListener("mousedown", handler);
   }, [showActions]);
 
-  const timeStr = msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : msg.time;
+  const timeStr = msg.createdAt ? format12HourTime(msg.createdAt) : msg.time;
 
   return (
     <div className={`flex ${isMe ? "justify-end" : "justify-start"} mb-1.5 group`} onClick={() => selectMode && onSelect(msg.id)}>
@@ -253,10 +252,17 @@ export default function Messages() {
     return res.json();
   };
 
-  // Helper: fetch a single chat by ID (for new chats)
+  const getReceiverId = (chatId) => {
+    const chat = chats.find(c => c.id === chatId);
+    return chat?.userIDs?.find(id => id !== currentUserId);
+  };
+
+  // ✅ FIXED: fetch chat using all chats to get receiver object
   const fetchChat = async (chatId) => {
     try {
-      const chat = await fetcher(`/api/chats/${chatId}`);
+      const allChats = await fetcher("/api/chats");
+      const chat = allChats.find(c => c.id === chatId);
+      if (!chat) return null;
       const lastRead = getLastRead(chat.id);
       const unread = chat.messages?.filter(m =>
         m.userId !== currentUserId && (!lastRead || new Date(m.createdAt) > lastRead)
@@ -274,7 +280,6 @@ export default function Messages() {
     }
   };
 
-  // ---------- Load chats & compute unread ----------
   const loadChats = useCallback(async () => {
     if (!currentUserId) return;
     try {
@@ -300,15 +305,12 @@ export default function Messages() {
 
   useEffect(() => { loadChats(); }, [loadChats]);
 
-  // ---------- Real-time socket events with new chat handling ----------
   useEffect(() => {
     if (!socket) return;
 
     socket.on("receiveMessage", async ({ chatId, message }) => {
-      // Check if chat already exists in state
       const existingChat = chats.find(c => c.id === chatId);
       if (existingChat) {
-        // Update existing chat
         setChats(prev => {
           const updated = prev.map(chat => {
             if (chat.id !== chatId) return chat;
@@ -331,12 +333,9 @@ export default function Messages() {
           return sortChatsByLatestMessage(updated);
         });
       } else {
-        // New chat – fetch full chat object and add to list
         const newChat = await fetchChat(chatId);
         if (newChat) {
           setChats(prev => sortChatsByLatestMessage([...prev, newChat]));
-          // Also mark as read automatically if the active chat is this one? Not possible because not open.
-          // But we can set last read if needed: setLastRead(chatId); // optional
         }
       }
     });
@@ -357,15 +356,13 @@ export default function Messages() {
       socket.off("receiveMessage");
       socket.off("typing");
     };
-  }, [socket, activeChatId, currentUserId, chats]); // include chats in dependency for fetchChat reference
+  }, [socket, activeChatId, currentUserId, chats]);
 
-  // ---------- Send message ----------
   const sendMessage = async () => {
     const text = input.trim();
     if (!text || !activeChatId) return;
     const tempId = Date.now();
     const newMsg = { id: tempId, text, createdAt: new Date(), userId: currentUserId, read: false, pending: true };
-    // optimistic update
     setChats(prev => {
       const updated = prev.map(chat =>
         chat.id === activeChatId ? {
@@ -405,11 +402,6 @@ export default function Messages() {
         return sortChatsByLatestMessage(updated);
       });
     }
-  };
-
-  const getReceiverId = (chatId) => {
-    const chat = chats.find(c => c.id === chatId);
-    return chat?.userIDs?.find(id => id !== currentUserId);
   };
 
   const handleKey = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
@@ -478,7 +470,6 @@ export default function Messages() {
     if (activeChatId === chatId) setActiveChatId(null);
   };
 
-  // filtered and sorted (already sorted in state)
   const filteredChats = chats.filter(chat => {
     const receiver = chat.receiver || {};
     const name = receiver.username || "";
@@ -555,7 +546,6 @@ export default function Messages() {
         />
       )}
       <div className="flex h-[calc(100vh-112px)] bg-slate-50 rounded-2xl overflow-hidden border border-slate-200/80 shadow-sm">
-        {/* Contact List Sidebar */}
         <div className={`flex flex-col w-full md:w-[320px] lg:w-[340px] flex-shrink-0 bg-white border-r border-slate-100 ${mobileView === "chat" ? "hidden md:flex" : "flex"}`}>
           <div className="px-5 pt-5 pb-3 border-b border-slate-100 flex-shrink-0">
             <div className="flex items-center justify-between mb-4">
@@ -611,6 +601,9 @@ export default function Messages() {
               filteredChats.map(chat => {
                 const receiver = chat.receiver || { username: "Unknown", role: "User" };
                 const unread = chat.unread || 0;
+                const lastMsgTime = chat.messages?.length
+                  ? format12HourTime(chat.messages[chat.messages.length - 1].createdAt)
+                  : "";
                 return (
                   <button
                     key={chat.id}
@@ -622,9 +615,7 @@ export default function Messages() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-0.5">
                         <span className={`text-sm font-semibold truncate ${activeChatId === chat.id ? "text-blue-700" : "text-slate-800"}`}>{receiver.username}</span>
-                        <span className="text-[11px] text-slate-400 flex-shrink-0 ml-2">
-                          {chat.messages?.length ? new Date(chat.messages[chat.messages.length-1].createdAt).toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' }) : ""}
-                        </span>
+                        <span className="text-[11px] text-slate-400 flex-shrink-0 ml-2">{lastMsgTime}</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className={`text-xs truncate ${unread > 0 ? "text-slate-700 font-medium" : "text-slate-400"}`}>
@@ -641,7 +632,6 @@ export default function Messages() {
           </div>
         </div>
 
-        {/* Chat Panel */}
         <div className={`flex flex-col flex-1 min-w-0 ${mobileView === "list" ? "hidden md:flex" : "flex"}`}>
           {activeChat ? (
             <>

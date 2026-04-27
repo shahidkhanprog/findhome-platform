@@ -7,7 +7,10 @@ import { AuthContext } from "../../context/AuthContext.jsx";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-const fmtTime = (d) => d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+// Helper: 12‑hour time with AM/PM
+const fmtTime = (d) =>
+  d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+
 const fmtDateSep = (d) => {
   const diff = (Date.now() - d) / 1000;
   if (diff < 86400) return "Today";
@@ -19,23 +22,19 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
   const { socket } = useContext(SocketContext);
   const { currentUser } = useContext(AuthContext);
 
-  // --- Extract owner ID (property agent) from various possible paths ---
+  // Extract owner ID from property (the agent/user we are chatting with)
   const ownerId =
     property?.userId ||
     property?.user?.id ||
     property?.ownerId ||
     property?.user?._id;
 
-  // --- Extract current user ID from various possible paths ---
+  // Extract current user ID
   const currentUserId =
-    currentUser?.userData?.id ||   // if your AuthContext uses { userData: { id } }
-    currentUser?.id ||             // standard shape
-    currentUser?._id ||            // MongoDB shape
+    currentUser?.userData?.id ||
+    currentUser?.id ||
+    currentUser?._id ||
     currentUser?.userData?._id;
-
-  // Debug logs (remove after confirming it works)
-  console.log("🔍 ChatDrawer | ownerId:", ownerId);
-  console.log("🔍 ChatDrawer | currentUserId:", currentUserId);
 
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState("");
@@ -65,7 +64,7 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
       let existingChat = chats.find((c) => c.userIDs.includes(ownerId));
       if (existingChat) {
         setChatId(existingChat.id);
-        setReceiver(existingChat.receiver);
+        setReceiver(existingChat.receiver); // receiver already contains username, avatar
         await fetcher(`/api/chats/read/${existingChat.id}`, { method: "PUT" });
         const chatWithMessages = await fetcher(`/api/chats/${existingChat.id}`);
         setMessages(
@@ -94,53 +93,46 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
   }, [ownerId, currentUserId]);
 
   const sendMessage = async (text) => {
-  console.log("📤 sendMessage called, chatId:", chatId, "text:", text);
-  if (!chatId || !text.trim()) {
-    console.warn("❌ Cannot send: missing chatId or text");
-    return;
-  }
-  const tempId = Date.now();
-  const newMsg = {
-    id: tempId,
-    from: "user",
-    text: text.trim(),
-    ts: new Date(),
-    pending: true,
-  };
-  setMessages((prev) => [...prev, newMsg]);
-  setDraft("");
+    if (!chatId || !text.trim()) return;
+    const tempId = Date.now();
+    const newMsg = {
+      id: tempId,
+      from: "user",
+      text: text.trim(),
+      ts: new Date(),
+      pending: true,
+    };
+    setMessages((prev) => [...prev, newMsg]);
+    setDraft("");
 
-  try {
-    console.log("📡 Sending POST to /api/messages/" + chatId);
-    const saved = await fetcher(`/api/messages/${chatId}`, {
-      method: "POST",
-      body: JSON.stringify({ text: text.trim() }),
-    });
-    console.log("✅ Message saved on server:", saved);
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.id === tempId
-          ? {
-              id: saved.id,
-              from: "user",
-              text: saved.text,
-              ts: new Date(saved.createdAt),
-              pending: false,
-            }
-          : m
-      )
-    );
-    socket?.emit("sendMessage", {
-      chatId,
-      message: saved,
-      receiverId: ownerId,
-    });
-    console.log("📨 Emitted sendMessage via socket");
-  } catch (err) {
-    console.error("❌ Send failed:", err);
-    setMessages((prev) => prev.filter((m) => m.id !== tempId));
-  }
-};
+    try {
+      const saved = await fetcher(`/api/messages/${chatId}`, {
+        method: "POST",
+        body: JSON.stringify({ text: text.trim() }),
+      });
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === tempId
+            ? {
+                id: saved.id,
+                from: "user",
+                text: saved.text,
+                ts: new Date(saved.createdAt),
+                pending: false,
+              }
+            : m
+        )
+      );
+      socket?.emit("sendMessage", {
+        chatId,
+        message: saved,
+        receiverId: ownerId,
+      });
+    } catch (err) {
+      console.error("Send failed:", err);
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+    }
+  };
 
   useEffect(() => {
     if (!socket || !chatId) return;
@@ -241,6 +233,9 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
     return acc;
   }, {});
 
+  // Determine who we are talking to (property owner / agent)
+  const contact = receiver || property?.user || { username: "Property Owner", avatar: null };
+
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <style>{`
@@ -258,19 +253,17 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl border border-white/30">
-                {receiver?.avatar ? (
-                  <img src={receiver.avatar} className="w-full h-full object-cover rounded-2xl" alt="agent" />
+                {contact?.avatar ? (
+                  <img src={contact.avatar} className="w-full h-full object-cover rounded-2xl" alt="owner" />
                 ) : (
-                  "👩‍💼"
+                  "👤"
                 )}
               </div>
-              <span className="absolute bottom-1 right-1 w-3 h-3 rounded-full bg-green-400 border-2 border-[#f36c3a] animate-pulse" />
+              {/* Removed green online dot and "Active now" text */}
             </div>
             <div>
-              <p className="font-black text-lg leading-tight">{receiver?.username || "Property Agent"}</p>
-              <p className="text-xs font-bold opacity-80 flex items-center gap-1.5">
-                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" /> Active now
-              </p>
+              <p className="font-black text-lg leading-tight">{contact?.username || "Property Owner"}</p>
+              {/* Removed the "Active now" label */}
             </div>
           </div>
           <button onClick={onClose} className="p-2.5 bg-white/10 hover:bg-white/20 rounded-2xl transition"><HiX size={22} /></button>
