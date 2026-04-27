@@ -19,7 +19,13 @@ const fmtDateSep = (d) => {
 export default function ChatDrawer({ isOpen, onClose, property }) {
   const { socket } = useContext(SocketContext);
   const { currentUser } = useContext(AuthContext);
-  const { markChatRead, ensureChat, fetcher } = useContext(ChatContext);
+  const {
+    markChatRead,
+    ensureChat,
+    fetcher,
+    addMessage,        // ✅ update global chat state with new message
+    fetchAndAddChat,   // ✅ sync full chat (messages, receiver) to global state
+  } = useContext(ChatContext);
 
   const ownerId =
     property?.userId ||
@@ -47,17 +53,19 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
     if (!ownerId || !currentUserId) return;
     setLoading(true);
     try {
-      // ensureChat uses shared context — will find existing or create new
       const chat = await ensureChat(ownerId);
       if (!chat) return;
 
       setChatId(chat.id);
       setReceiver(chat.receiver);
 
-      // Mark as read immediately via shared context
+      // ✅ Sync this chat to global state (so Messages page sees receiver and messages)
+      await fetchAndAddChat(chat.id);
+
+      // Mark as read via shared context
       await markChatRead(chat.id);
 
-      // Load full messages for this chat
+      // Load full messages for local UI
       const chatDetail = await fetcher(`/api/chats/${chat.id}`);
       setMessages(
         (chatDetail.messages || []).map((m) => ({
@@ -72,15 +80,19 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
     } finally {
       setLoading(false);
     }
-  }, [ownerId, currentUserId, ensureChat, markChatRead, fetcher]);
+  }, [ownerId, currentUserId, ensureChat, fetchAndAddChat, markChatRead, fetcher]);
 
   const sendMessage = async (text) => {
     if (!chatId || !text.trim()) return;
     const tempId = Date.now();
-    setMessages((prev) => [
-      ...prev,
-      { id: tempId, from: "user", text: text.trim(), ts: new Date(), pending: true },
-    ]);
+    const newMsg = {
+      id: tempId,
+      from: "user",
+      text: text.trim(),
+      ts: new Date(),
+      pending: true,
+    };
+    setMessages((prev) => [...prev, newMsg]);
     setDraft("");
 
     try {
@@ -88,16 +100,33 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
         method: "POST",
         body: JSON.stringify({ text: text.trim() }),
       });
+
+      // Update local drawer messages
       setMessages((prev) =>
         prev.map((m) =>
           m.id === tempId
-            ? { id: saved.id, from: "user", text: saved.text, ts: new Date(saved.createdAt), pending: false }
+            ? {
+                id: saved.id,
+                from: "user",
+                text: saved.text,
+                ts: new Date(saved.createdAt),
+                pending: false,
+              }
             : m
         )
       );
-      // Mark read after sending (we are active in this chat)
+
+      // ✅ Update global chat state (so Messages page sees the new message immediately)
+      addMessage(chatId, saved);
+
+      // Mark as read after sending (we are active in this chat)
       markChatRead(chatId);
-      socket?.emit("sendMessage", { chatId, message: saved, receiverId: ownerId });
+
+      socket?.emit("sendMessage", {
+        chatId,
+        message: saved,
+        receiverId: ownerId,
+      });
     } catch (err) {
       console.error("Send failed:", err);
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
@@ -121,7 +150,7 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
           },
         ];
       });
-      // Mark as read via shared context — this updates Messages unread count too
+      // Mark as read via shared context – updates Messages unread count too
       markChatRead(chatId);
     };
 
