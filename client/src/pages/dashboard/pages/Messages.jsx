@@ -9,8 +9,11 @@ import { AuthContext } from "../../../context/AuthContext";
 import { SocketContext } from "../../../context/SocketContext";
 import { ChatContext } from "../../../context/ChatContext";
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 const format12HourTime = (date) =>
-  new Date(date).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+  new Date(date).toLocaleTimeString("en-US", {
+    hour: "numeric", minute: "2-digit", hour12: true,
+  });
 
 const getDateGroup = (date) => {
   const d = new Date(date);
@@ -36,19 +39,16 @@ const groupMessagesByDate = (messages) => {
   return items;
 };
 
+// ─── Sub-components ───────────────────────────────────────────────────────────
 const Avatar = ({ contact, size = "md" }) => {
   const sz = { sm: "w-8 h-8 text-xs", md: "w-10 h-10 text-sm", lg: "w-12 h-12 text-base" };
   const initials = contact?.username?.slice(0, 2).toUpperCase() || "??";
   return (
     <div className={`relative flex-shrink-0 ${sz[size]}`}>
-      <div
-        className={`${sz[size]} rounded-2xl bg-gray-900 flex items-center justify-center font-bold text-white select-none`}
-      >
-        {contact?.avatar ? (
-          <img src={contact.avatar} alt="" className="w-full h-full object-cover rounded-2xl" />
-        ) : (
-          initials
-        )}
+      <div className={`${sz[size]} rounded-2xl bg-gray-900 flex items-center justify-center font-bold text-white select-none`}>
+        {contact?.avatar
+          ? <img src={contact.avatar} alt="" className="w-full h-full object-cover rounded-2xl" />
+          : initials}
       </div>
     </div>
   );
@@ -77,11 +77,7 @@ const MessageBubble = ({ msg, onDelete, selected, onSelect, selectMode, isMe }) 
     >
       {selectMode && (
         <div className={`flex items-end pb-2 ${isMe ? "order-2 ml-2" : "mr-2"}`}>
-          <div
-            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all cursor-pointer ${
-              selected ? "bg-[#f36c3a] border-violet-600" : "border-slate-300 bg-white"
-            }`}
-          >
+          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all cursor-pointer ${selected ? "bg-[#f36c3a] border-violet-600" : "border-slate-300 bg-white"}`}>
             {selected && <MdCheck size={12} className="text-white" />}
           </div>
         </div>
@@ -99,9 +95,7 @@ const MessageBubble = ({ msg, onDelete, selected, onSelect, selectMode, isMe }) 
               <MdMoreVert size={13} />
             </button>
             {showActions && (
-              <div
-                className={`absolute top-7 ${isMe ? "right-0" : "left-0"} bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-20 min-w-[140px]`}
-              >
+              <div className={`absolute top-7 ${isMe ? "right-0" : "left-0"} bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-20 min-w-[140px]`}>
                 <button
                   onClick={() => { onDelete(msg.id); setShowActions(false); }}
                   className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs text-rose-500 hover:bg-rose-50"
@@ -112,24 +106,13 @@ const MessageBubble = ({ msg, onDelete, selected, onSelect, selectMode, isMe }) 
             )}
           </div>
         )}
-        <div
-          className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-            isMe
-              ? "bg-[#f36c3a] text-white rounded-br-sm"
-              : "bg-white text-slate-700 rounded-bl-sm shadow-sm border border-slate-100"
-          }`}
-        >
+        <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${isMe ? "bg-[#f36c3a] text-white rounded-br-sm" : "bg-white text-slate-700 rounded-bl-sm shadow-sm border border-slate-100"}`}>
           <p className="whitespace-pre-wrap break-words">{msg.text}</p>
           <div className="flex items-center gap-1 mt-1 justify-end">
-            <span className={`text-[10px] ${isMe ? "text-violet-300" : "text-slate-400"}`}>
-              {timeStr}
-            </span>
-            {isMe &&
-              (msg.read ? (
-                <MdDoneAll size={12} className="text-violet-300" />
-              ) : (
-                <MdDone size={12} className="text-violet-400" />
-              ))}
+            <span className={`text-[10px] ${isMe ? "text-violet-300" : "text-slate-400"}`}>{timeStr}</span>
+            {isMe && (msg.read
+              ? <MdDoneAll size={12} className="text-violet-300" />
+              : <MdDone size={12} className="text-violet-400" />)}
           </div>
         </div>
       </div>
@@ -141,11 +124,8 @@ const TypingIndicator = () => (
   <div className="flex justify-start mb-2">
     <div className="bg-white border border-slate-100 shadow-sm px-4 py-3 rounded-2xl rounded-bl-sm flex items-center gap-1">
       {[0, 1, 2].map((i) => (
-        <span
-          key={i}
-          className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"
-          style={{ animationDelay: `${i * 0.15}s`, animationDuration: "0.8s" }}
-        />
+        <span key={i} className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"
+          style={{ animationDelay: `${i * 0.15}s`, animationDuration: "0.8s" }} />
       ))}
     </div>
   </div>
@@ -159,6 +139,7 @@ const DateDivider = ({ label }) => (
   </div>
 );
 
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function Messages() {
   const { socket } = useContext(SocketContext);
   const {
@@ -169,7 +150,6 @@ export default function Messages() {
     addMessage,
     replaceMessage,
     removeMessage,
-    incrementUnread,
     setTyping,
     fetcher,
     sortByLatest,
@@ -189,90 +169,110 @@ export default function Messages() {
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const messagesRef = useRef(null);
+  const typingTimeout = useRef(null);
+
+  // ✅ Keep a ref of activeChatId so socket handlers always see latest value
+  //    without needing activeChatId in their dependency array (avoids
+  //    unsubscribe/resubscribe on every chat switch)
+  const activeChatIdRef = useRef(activeChatId);
+  useEffect(() => { activeChatIdRef.current = activeChatId; }, [activeChatId]);
 
   const getReceiverId = (chatId) => {
     const chat = chats.find((c) => c.id === chatId);
-    return chat?.userIDs?.find((id) => id !== currentUserId);
+    return chat?.userIDs?.find((id) => String(id) !== String(currentUserId));
   };
 
-  // ✅ Socket handler — fixes Unknown name + receiver sees chat instantly
+  // ─── Single socket handler ────────────────────────────────────────────────
   useEffect(() => {
     if (!socket) return;
 
-    socket.on("receiveMessage", ({ chatId, message }) => {
-      const isFromOther = message.userId !== currentUserId;
-      const isActive = chatId === activeChatId;
+    const onReceiveMessage = ({ chatId, message }) => {
+      const isFromOther = String(message.userId) !== String(currentUserId);
+      const isActive = chatId === activeChatIdRef.current;
+
+      // Pull sender info the server attached (fixes Unknown name/avatar)
+      const senderInfo =
+        message.senderUsername
+          ? { username: message.senderUsername, avatar: message.senderAvatar || null }
+          : null;
 
       setChats((prevChats) => {
         const chatExists = prevChats.find((c) => c.id === chatId);
 
         if (!chatExists) {
-          // New chat for receiver — fetch full data with receiver info
+          // Brand-new chat — fetch full details (receiver info, history)
           fetchAndAddChat(chatId, message);
-          return prevChats;
+          return prevChats; // state update comes from fetchAndAddChat
         }
 
-        // Chat exists but receiver info missing — fix Unknown name
+        // Duplicate guard
+        if (chatExists.messages.some((m) => m.id === message.id)) return prevChats;
+
+        // ✅ Patch receiver inline using senderInfo — no extra API call needed
         const hasValidReceiver =
           chatExists.receiver?.username &&
           chatExists.receiver.username !== "Unknown";
 
-        if (!hasValidReceiver) {
-          fetchAndAddChat(chatId, message);
-        }
-
-        // Avoid duplicate messages
-        const alreadyExists = chatExists.messages.some((m) => m.id === message.id);
-        if (alreadyExists) return prevChats;
+        const patchedReceiver =
+          !hasValidReceiver && senderInfo
+            ? { ...(chatExists.receiver || {}), ...senderInfo }
+            : chatExists.receiver;
 
         return sortByLatest(
           prevChats.map((chat) => {
             if (chat.id !== chatId) return chat;
-            const newUnread =
-              isFromOther && !isActive
-                ? (chat.unread || 0) + 1
-                : chat.unread;
             return {
               ...chat,
+              receiver: patchedReceiver,
               messages: [...chat.messages, message],
               lastMessage: message.text,
-              unread: newUnread,
+              // ✅ Only increment unread if message is from other user AND chat is not open
+              unread: isFromOther && !isActive
+                ? (chat.unread || 0) + 1
+                : chat.unread,
             };
           })
         );
       });
 
-      // Mark as read if this chat is currently open
+      // If this chat is currently open, mark it read immediately
       if (isFromOther && isActive) {
         markChatRead(chatId);
       }
-    });
+    };
 
-    socket.on("typing", ({ chatId, userId }) => {
-      if (userId === currentUserId) return;
+    const onTyping = ({ chatId, userId }) => {
+      if (String(userId) === String(currentUserId)) return;
       setTyping(chatId, true);
       setTimeout(() => setTyping(chatId, false), 2000);
-    });
+    };
+
+    socket.on("receiveMessage", onReceiveMessage);
+    socket.on("typing", onTyping);
 
     return () => {
-      socket.off("receiveMessage");
-      socket.off("typing");
+      socket.off("receiveMessage", onReceiveMessage);
+      socket.off("typing", onTyping);
     };
-  }, [socket, activeChatId, currentUserId]);
+    // ✅ activeChatId deliberately NOT in deps — we use the ref above
+  }, [socket, currentUserId, fetchAndAddChat, markChatRead, setChats, setTyping, sortByLatest]);
 
+  // ─── Send a message ───────────────────────────────────────────────────────
   const sendMessage = async () => {
     const text = input.trim();
     if (!text || !activeChatId) return;
-    const tempId = Date.now();
+
+    const tempId = `temp_${Date.now()}`;
     const newMsg = {
       id: tempId,
       text,
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
       userId: currentUserId,
       read: false,
       pending: true,
     };
 
+    // Optimistic update
     addMessage(activeChatId, newMsg);
     setInput("");
 
@@ -281,15 +281,19 @@ export default function Messages() {
         method: "POST",
         body: JSON.stringify({ text }),
       });
+
+      // Replace temp message with real DB message
       replaceMessage(activeChatId, tempId, saved);
       markChatRead(activeChatId);
+
+      // Notify receiver via socket
       socket?.emit("sendMessage", {
         chatId: activeChatId,
         message: saved,
         receiverId: getReceiverId(activeChatId),
       });
     } catch (err) {
-      console.error("Send failed", err);
+      console.error("Send failed:", err);
       removeMessage(activeChatId, tempId);
     }
   };
@@ -301,23 +305,18 @@ export default function Messages() {
     }
   };
 
-  let typingTimeout;
   const handleTyping = (e) => {
     setInput(e.target.value);
     if (!activeChatId || !socket) return;
-    socket.emit("typing", {
-      chatId: activeChatId,
-      receiverId: getReceiverId(activeChatId),
-    });
-    clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(() => {
-      socket.emit("stopTyping", {
-        chatId: activeChatId,
-        receiverId: getReceiverId(activeChatId),
-      });
+    const receiverId = getReceiverId(activeChatId);
+    socket.emit("typing", { chatId: activeChatId, receiverId });
+    clearTimeout(typingTimeout.current);
+    typingTimeout.current = setTimeout(() => {
+      socket.emit("stopTyping", { chatId: activeChatId, receiverId });
     }, 1000);
   };
 
+  // ─── Open / close chat ────────────────────────────────────────────────────
   const openChat = (chatId) => {
     setActiveChatId(chatId);
     setMobileView("chat");
@@ -327,31 +326,32 @@ export default function Messages() {
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
+  // ─── Multi-select / delete ────────────────────────────────────────────────
   const deleteSelected = () => {
     selectedMsgIds.forEach((id) => removeMessage(activeChatId, id));
     setSelectMode(false);
     setSelectedMsgIds([]);
   };
 
-  const toggleSelect = (msgId) => {
+  const toggleSelect = (msgId) =>
     setSelectedMsgIds((prev) =>
       prev.includes(msgId) ? prev.filter((id) => id !== msgId) : [...prev, msgId]
     );
-  };
 
+  // ─── Filtered chat list ───────────────────────────────────────────────────
   const filteredChats = chats.filter((chat) => {
-    const receiver = chat.receiver || {};
-    const name = receiver.username || "";
+    const name = chat.receiver?.username || "";
     const matchSearch = name.toLowerCase().includes(search.toLowerCase());
-    const matchFilter = filter === "unread" ? chat.unread > 0 : true;
+    const matchFilter = filter === "unread" ? (chat.unread || 0) > 0 : true;
     return matchSearch && matchFilter;
   });
 
   const activeChat = chats.find((c) => c.id === activeChatId);
 
+  // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (!showScrollBtn) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeChat?.messages?.length]);
+  }, [activeChat?.messages?.length, showScrollBtn]);
 
   const handleScroll = () => {
     if (!messagesRef.current) return;
@@ -359,45 +359,22 @@ export default function Messages() {
     setShowScrollBtn(scrollHeight - scrollTop - clientHeight > 120);
   };
 
-  const EmptyState = () => (
-    <div className="flex flex-col items-center justify-center h-full text-center px-8 bg-slate-50/40">
-      <div className="w-20 h-20 rounded-3xl bg-gray-200 flex items-center justify-center mb-5">
-        <svg
-          className="w-9 h-9 text-violet-300"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.5}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"
-          />
-        </svg>
-      </div>
-      <p className="text-slate-700 font-semibold text-base mb-1.5">Select a conversation</p>
-      <p className="text-slate-400 text-sm leading-relaxed max-w-[220px]">
-        Choose a contact from the list to start messaging
-      </p>
-    </div>
-  );
+  const totalUnread = chats.reduce((sum, c) => sum + (c.unread || 0), 0);
 
+  // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="flex h-[calc(100vh-112px)] bg-slate-50 rounded-2xl overflow-hidden border border-slate-200/80 shadow-sm">
-      {/* Sidebar */}
-      <div
-        className={`flex flex-col w-full md:w-[320px] lg:w-[340px] flex-shrink-0 bg-white border-r border-slate-100 ${
-          mobileView === "chat" ? "hidden md:flex" : "flex"
-        }`}
-      >
+
+      {/* ── Sidebar ── */}
+      <div className={`flex flex-col w-full md:w-[320px] lg:w-[340px] flex-shrink-0 bg-white border-r border-slate-100 ${mobileView === "chat" ? "hidden md:flex" : "flex"}`}>
+
         <div className="px-5 pt-5 pb-3 border-b border-slate-100 flex-shrink-0">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-bold text-slate-800 tracking-tight">Messages</h2>
-              {chats.reduce((sum, c) => sum + (c.unread || 0), 0) > 0 && (
+              {totalUnread > 0 && (
                 <span className="min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-[#f36c3a] text-white text-[10px] font-bold">
-                  {chats.reduce((sum, c) => sum + (c.unread || 0), 0)}
+                  {totalUnread}
                 </span>
               )}
             </div>
@@ -405,25 +382,16 @@ export default function Messages() {
               <div className="relative">
                 <button
                   onClick={() => setShowFilterMenu((v) => !v)}
-                  className={`w-8 h-8 flex items-center justify-center rounded-xl ${
-                    filter !== "all"
-                      ? "bg-violet-100 text-violet-600"
-                      : "text-slate-400 hover:bg-slate-100"
-                  }`}
+                  className={`w-8 h-8 flex items-center justify-center rounded-xl ${filter !== "all" ? "bg-violet-100 text-violet-600" : "text-slate-400 hover:bg-slate-100"}`}
                 >
                   <MdFilterList size={18} />
                 </button>
                 {showFilterMenu && (
                   <div className="absolute top-9 right-0 bg-white border border-slate-200 rounded-xl shadow-xl py-1.5 z-20 min-w-[150px]">
                     {["all", "unread"].map((f) => (
-                      <button
-                        key={f}
+                      <button key={f}
                         onClick={() => { setFilter(f); setShowFilterMenu(false); }}
-                        className={`w-full flex items-center justify-between px-4 py-2.5 text-sm capitalize ${
-                          filter === f
-                            ? "text-violet-600 bg-gray-200 font-semibold"
-                            : "text-slate-600 hover:bg-slate-50"
-                        }`}
+                        className={`w-full flex items-center justify-between px-4 py-2.5 text-sm capitalize ${filter === f ? "text-violet-600 bg-gray-200 font-semibold" : "text-slate-600 hover:bg-slate-50"}`}
                       >
                         {f} {filter === f && <MdCheck size={14} />}
                       </button>
@@ -436,6 +404,7 @@ export default function Messages() {
               </button>
             </div>
           </div>
+
           {filter !== "all" && (
             <div className="flex items-center gap-2 mb-3">
               <span className="flex items-center gap-1.5 bg-violet-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full capitalize">
@@ -444,6 +413,7 @@ export default function Messages() {
               </span>
             </div>
           )}
+
           <div className="flex items-center gap-2.5 bg-slate-50 border border-slate-200 rounded-xl px-3.5 h-9 focus-within:border-violet-300">
             <MdSearch size={16} className="text-slate-400" />
             <input
@@ -452,9 +422,7 @@ export default function Messages() {
               placeholder="Search conversations…"
               className="flex-1 bg-transparent text-sm outline-none"
             />
-            {search && (
-              <button onClick={() => setSearch("")}><MdClose size={14} /></button>
-            )}
+            {search && <button onClick={() => setSearch("")}><MdClose size={14} /></button>}
           </div>
         </div>
 
@@ -469,45 +437,27 @@ export default function Messages() {
               const receiver = chat.receiver || { username: "Unknown" };
               const unread = chat.unread || 0;
               const lastMsgTime = chat.messages?.length
-                ? format12HourTime(
-                    chat.messages[chat.messages.length - 1].createdAt
-                  )
+                ? format12HourTime(chat.messages[chat.messages.length - 1].createdAt)
                 : "";
               return (
                 <button
                   key={chat.id}
                   onClick={() => openChat(chat.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all hover:bg-slate-50 border-r-2 ${
-                    activeChatId === chat.id
-                      ? "bg-gray-200 border-r-black"
-                      : "border-r-transparent"
-                  }`}
+                  className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all hover:bg-slate-50 border-r-2 ${activeChatId === chat.id ? "bg-gray-200 border-r-black" : "border-r-transparent"}`}
                 >
                   <Avatar contact={receiver} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-0.5">
-                      <span
-                        className={`text-sm font-semibold truncate ${
-                          activeChatId === chat.id ? "text-blue-700" : "text-slate-800"
-                        }`}
-                      >
+                      <span className={`text-sm font-semibold truncate ${activeChatId === chat.id ? "text-blue-700" : "text-slate-800"}`}>
                         {receiver.username}
                       </span>
-                      <span className="text-[11px] text-slate-400 flex-shrink-0 ml-2">
-                        {lastMsgTime}
-                      </span>
+                      <span className="text-[11px] text-slate-400 flex-shrink-0 ml-2">{lastMsgTime}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span
-                        className={`text-xs truncate ${
-                          unread > 0 ? "text-slate-700 font-medium" : "text-slate-400"
-                        }`}
-                      >
-                        {chat.typing ? (
-                          <span className="text-violet-500 italic">typing…</span>
-                        ) : (
-                          chat.lastMessage || "New chat"
-                        )}
+                      <span className={`text-xs truncate ${unread > 0 ? "text-slate-700 font-medium" : "text-slate-400"}`}>
+                        {chat.typing
+                          ? <span className="text-violet-500 italic">typing…</span>
+                          : (chat.lastMessage || "New chat")}
                       </span>
                       {unread > 0 && (
                         <span className="ml-2 flex-shrink-0 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-[#f36c3a] text-white text-[10px] font-bold">
@@ -515,9 +465,6 @@ export default function Messages() {
                         </span>
                       )}
                     </div>
-                    <span className="text-[10px] font-semibold mt-0.5 inline-block text-slate-400">
-                      User
-                    </span>
                   </div>
                 </button>
               );
@@ -526,19 +473,13 @@ export default function Messages() {
         </div>
       </div>
 
-      {/* Chat Panel */}
-      <div
-        className={`flex flex-col flex-1 min-w-0 ${
-          mobileView === "list" ? "hidden md:flex" : "flex"
-        }`}
-      >
+      {/* ── Chat Panel ── */}
+      <div className={`flex flex-col flex-1 min-w-0 ${mobileView === "list" ? "hidden md:flex" : "flex"}`}>
         {activeChat ? (
           <>
+            {/* Header */}
             <div className="flex items-center gap-3 px-5 py-3.5 bg-white border-b border-slate-100 flex-shrink-0">
-              <button
-                onClick={() => setMobileView("list")}
-                className="md:hidden w-8 h-8 flex items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"
-              >
+              <button onClick={() => setMobileView("list")} className="md:hidden w-8 h-8 flex items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100">
                 <MdArrowBack size={20} />
               </button>
               <Avatar contact={activeChat.receiver} size="md" />
@@ -553,54 +494,47 @@ export default function Messages() {
               <div className="flex items-center gap-2">
                 {selectMode ? (
                   <>
-                    <span className="text-xs text-slate-400 mr-1">
-                      {selectedMsgIds.length} selected
-                    </span>
+                    <span className="text-xs text-slate-400 mr-1">{selectedMsgIds.length} selected</span>
                     {selectedMsgIds.length > 0 && (
-                      <button
-                        onClick={deleteSelected}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 text-rose-500 text-xs font-semibold"
-                      >
+                      <button onClick={deleteSelected}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 text-rose-500 text-xs font-semibold">
                         <MdDeleteOutline size={15} /> Delete
                       </button>
                     )}
-                    <button
-                      onClick={() => { setSelectMode(false); setSelectedMsgIds([]); }}
-                      className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100"
-                    >
+                    <button onClick={() => { setSelectMode(false); setSelectedMsgIds([]); }}
+                      className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100">
                       <MdClose size={18} />
                     </button>
                   </>
                 ) : (
-                  <button
-                    onClick={() => setSelectMode(true)}
-                    className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100"
-                  >
+                  <button onClick={() => setSelectMode(true)}
+                    className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100">
                     <BsThreeDotsVertical size={16} />
                   </button>
                 )}
               </div>
             </div>
 
+            {/* Messages */}
             <div
               ref={messagesRef}
               onScroll={handleScroll}
               className="flex-1 overflow-y-auto px-5 py-5 bg-slate-50/60 relative"
             >
               {groupMessagesByDate(activeChat.messages || []).map((item, idx) =>
-                item.type === "divider" ? (
-                  <DateDivider key={idx} label={item.label} />
-                ) : (
-                  <MessageBubble
-                    key={item.msg.id}
-                    msg={item.msg}
-                    onDelete={(id) => removeMessage(activeChatId, id)}
-                    selected={selectedMsgIds.includes(item.msg.id)}
-                    onSelect={toggleSelect}
-                    selectMode={selectMode}
-                    isMe={item.msg.userId === currentUserId}
-                  />
-                )
+                item.type === "divider"
+                  ? <DateDivider key={`div-${idx}`} label={item.label} />
+                  : (
+                    <MessageBubble
+                      key={item.msg.id}
+                      msg={item.msg}
+                      onDelete={(id) => removeMessage(activeChatId, id)}
+                      selected={selectedMsgIds.includes(item.msg.id)}
+                      onSelect={toggleSelect}
+                      selectMode={selectMode}
+                      isMe={String(item.msg.userId) === String(currentUserId)}
+                    />
+                  )
               )}
               {activeChat.typing && <TypingIndicator />}
               <div ref={bottomRef} />
@@ -614,6 +548,7 @@ export default function Messages() {
               )}
             </div>
 
+            {/* Input */}
             <div className="px-4 py-3.5 bg-white border-t border-slate-100 flex-shrink-0">
               <div className="flex items-end gap-2.5 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 focus-within:border-violet-300">
                 <textarea
@@ -637,7 +572,16 @@ export default function Messages() {
             </div>
           </>
         ) : (
-          <EmptyState />
+          /* Empty state */
+          <div className="flex flex-col items-center justify-center h-full text-center px-8 bg-slate-50/40">
+            <div className="w-20 h-20 rounded-3xl bg-gray-200 flex items-center justify-center mb-5">
+              <svg className="w-9 h-9 text-violet-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+              </svg>
+            </div>
+            <p className="text-slate-700 font-semibold text-base mb-1.5">Select a conversation</p>
+            <p className="text-slate-400 text-sm leading-relaxed max-w-[220px]">Choose a contact from the list to start messaging</p>
+          </div>
         )}
       </div>
     </div>

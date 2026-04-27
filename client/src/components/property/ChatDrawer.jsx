@@ -23,8 +23,8 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
     markChatRead,
     ensureChat,
     fetcher,
-    addMessage,        // ✅ update global chat state with new message
-    fetchAndAddChat,   // ✅ sync full chat (messages, receiver) to global state
+    addMessage,
+    fetchAndAddChat,
   } = useContext(ChatContext);
 
   const ownerId =
@@ -43,34 +43,45 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
   const [draft, setDraft] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [chatId, setChatId] = useState(null);
-  const [receiver, setReceiver] = useState(null);
+  const [receiver, setReceiver] = useState(null); // full receiver object for this drawer
   const [loading, setLoading] = useState(false);
+
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
+  // ─── Init chat ────────────────────────────────────────────────────────────
   const initChat = useCallback(async () => {
     if (!ownerId || !currentUserId) return;
     setLoading(true);
     try {
+      // Step 1: get or create the chat
       const chat = await ensureChat(ownerId);
       if (!chat) return;
-
       setChatId(chat.id);
-      setReceiver(chat.receiver);
 
-      // ✅ Sync this chat to global state (so Messages page sees receiver and messages)
-      await fetchAndAddChat(chat.id);
+      // Step 2: always fetch full details — guarantees receiver is populated
+      // fetchAndAddChat also upserts into global ChatContext with correct receiver
+      const fullChat = await fetchAndAddChat(chat.id);
 
-      // Mark as read via shared context
+      // Step 3: set local receiver state for the drawer header
+      const resolvedReceiver =
+        fullChat?.receiver ||
+        chat.receiver ||
+        property?.user ||
+        null;
+      setReceiver(resolvedReceiver);
+
+      // Step 4: mark as read
       await markChatRead(chat.id);
 
-      // Load full messages for local UI
-      const chatDetail = await fetcher(`/api/chats/${chat.id}`);
+      // Step 5: load messages for drawer UI
+      // reuse the messages already in fullChat to avoid an extra fetch
+      const msgs = fullChat?.messages || chat.messages || [];
       setMessages(
-        (chatDetail.messages || []).map((m) => ({
+        msgs.map((m) => ({
           id: m.id,
-          from: m.userId === currentUserId ? "user" : "agent",
+          from: String(m.userId) === String(currentUserId) ? "user" : "agent",
           text: m.text,
           ts: new Date(m.createdAt),
         }))
@@ -80,19 +91,18 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
     } finally {
       setLoading(false);
     }
-  }, [ownerId, currentUserId, ensureChat, fetchAndAddChat, markChatRead, fetcher]);
+  }, [ownerId, currentUserId, ensureChat, fetchAndAddChat, markChatRead, property]);
 
+  // ─── Send message ─────────────────────────────────────────────────────────
   const sendMessage = async (text) => {
     if (!chatId || !text.trim()) return;
-    const tempId = Date.now();
-    const newMsg = {
-      id: tempId,
-      from: "user",
-      text: text.trim(),
-      ts: new Date(),
-      pending: true,
-    };
-    setMessages((prev) => [...prev, newMsg]);
+    const tempId = `temp_${Date.now()}`;
+
+    // Optimistic update in drawer
+    setMessages((prev) => [
+      ...prev,
+      { id: tempId, from: "user", text: text.trim(), ts: new Date(), pending: true },
+    ]);
     setDraft("");
 
     try {
@@ -101,27 +111,29 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
         body: JSON.stringify({ text: text.trim() }),
       });
 
-      // Update local drawer messages
+      // Replace temp message with real one in drawer
       setMessages((prev) =>
         prev.map((m) =>
           m.id === tempId
-            ? {
-                id: saved.id,
-                from: "user",
-                text: saved.text,
-                ts: new Date(saved.createdAt),
-                pending: false,
-              }
+            ? { id: saved.id, from: "user", text: saved.text, ts: new Date(saved.createdAt), pending: false }
             : m
         )
       );
 
-      // ✅ Update global chat state (so Messages page sees the new message immediately)
-      addMessage(chatId, saved);
+      // ✅ THE FIX: pass receiver info as senderInfo so ChatContext can
+      //    immediately patch the chat's receiver field in global state.
+      //    Without this, the chat shows "Unknown" in Messages page because
+      //    `saved` only contains userId — no username or avatar.
+      const receiverInfo = receiver
+        ? { username: receiver.username, avatar: receiver.avatar || null }
+        : property?.user
+        ? { username: property.user.username, avatar: property.user.avatar || null }
+        : null;
 
-      // Mark as read after sending (we are active in this chat)
+      addMessage(chatId, saved, receiverInfo);
       markChatRead(chatId);
 
+      // Notify the receiver via socket
       socket?.emit("sendMessage", {
         chatId,
         message: saved,
@@ -133,29 +145,27 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
     }
   };
 
+  // ─── Socket: incoming messages & typing for this drawer ──────────────────
   useEffect(() => {
     if (!socket || !chatId) return;
 
-    const onReceiveMessage = (data) => {
-      if (data.chatId !== chatId) return;
+    const onReceiveMessage = ({ chatId: incomingChatId, message }) => {
+      if (incomingChatId !== chatId) return;
+      if (String(message.userId) === String(currentUserId)) return;
+
       setMessages((prev) => {
-        if (prev.some((m) => m.id === data.message.id)) return prev;
+        if (prev.some((m) => m.id === message.id)) return prev;
         return [
           ...prev,
-          {
-            id: data.message.id,
-            from: "agent",
-            text: data.message.text,
-            ts: new Date(data.message.createdAt),
-          },
+          { id: message.id, from: "agent", text: message.text, ts: new Date(message.createdAt) },
         ];
       });
-      // Mark as read via shared context – updates Messages unread count too
+
       markChatRead(chatId);
     };
 
     const onTyping = ({ chatId: typingChatId, userId }) => {
-      if (typingChatId === chatId && userId !== currentUserId) {
+      if (typingChatId === chatId && String(userId) !== String(currentUserId)) {
         setIsTyping(true);
         clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 1500);
@@ -171,6 +181,7 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
     };
   }, [socket, chatId, currentUserId, markChatRead]);
 
+  // ─── Typing emit ──────────────────────────────────────────────────────────
   const handleTyping = (e) => {
     setDraft(e.target.value);
     if (!chatId || !socket) return;
@@ -183,22 +194,33 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
 
   const handleSend = () => sendMessage(draft);
   const handleKey = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
+  // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
+  // Init on open
   useEffect(() => {
     if (isOpen && ownerId && currentUserId && !chatId && String(ownerId) !== String(currentUserId)) {
       initChat();
     }
   }, [isOpen, ownerId, currentUserId, chatId, initChat]);
 
+  // Reset all local state when drawer closes
+  useEffect(() => {
+    if (!isOpen) {
+      setChatId(null);
+      setReceiver(null);
+      setMessages([]);
+      setDraft("");
+      setIsTyping(false);
+    }
+  }, [isOpen]);
+
+  // Focus input on open
   useEffect(() => {
     if (isOpen) setTimeout(() => inputRef.current?.focus(), 380);
   }, [isOpen]);
@@ -236,6 +258,7 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
     return acc;
   }, {});
 
+  // contact for drawer header — prefer fetched receiver, fallback to property.user
   const contact = receiver || property?.user || { username: "Property Owner", avatar: null };
 
   return (
@@ -250,17 +273,16 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
       `}</style>
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onClick={onClose} />
       <div className="drawer-panel relative w-full sm:max-w-md bg-[#f0f2f5] h-full shadow-2xl flex flex-col">
+
         {/* Header */}
         <div className="bg-[#f36c3a] p-6 text-white flex justify-between items-center rounded-bl-[2.5rem]">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl border border-white/30">
-              {contact?.avatar ? (
-                <img src={contact.avatar} className="w-full h-full object-cover rounded-2xl" alt="owner" />
-              ) : "👤"}
+              {contact?.avatar
+                ? <img src={contact.avatar} className="w-full h-full object-cover rounded-2xl" alt="owner" />
+                : "👤"}
             </div>
-            <div>
-              <p className="font-black text-lg leading-tight">{contact?.username || "Property Owner"}</p>
-            </div>
+            <p className="font-black text-lg leading-tight">{contact?.username || "Property Owner"}</p>
           </div>
           <button onClick={onClose} className="p-2.5 bg-white/10 hover:bg-white/20 rounded-2xl transition">
             <HiX size={22} />
@@ -274,7 +296,7 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
             <div>
               <p className="text-white text-xs font-black line-clamp-1">{property?.title}</p>
               <p className="text-white/70 text-[10px] font-bold mt-0.5">
-                {formatPKR(property?.price)} {property?.listingType === "rent" ? "/mo" : ""} · {property?.city}
+                {formatPKR(property?.price)}{property?.listingType === "rent" ? "/mo" : ""} · {property?.city}
               </p>
             </div>
           </div>
@@ -296,18 +318,9 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
                 const isUser = m.from === "user";
                 const nextSame = idx < msgs.length - 1 && msgs[idx + 1].from === m.from;
                 return (
-                  <div
-                    key={m.id}
-                    className={`msg-in flex ${isUser ? "justify-end" : "justify-start"} ${nextSame ? "mb-0.5" : "mb-3"}`}
-                  >
+                  <div key={m.id} className={`msg-in flex ${isUser ? "justify-end" : "justify-start"} ${nextSame ? "mb-0.5" : "mb-3"}`}>
                     <div className={`max-w-[78%] flex flex-col ${isUser ? "items-end" : "items-start"}`}>
-                      <div
-                        className={`px-4 py-2.5 text-sm leading-relaxed font-medium ${
-                          isUser
-                            ? "bg-[#f36c3a] text-white rounded-[18px] rounded-br-[5px]"
-                            : "bg-white text-slate-800 rounded-[18px] rounded-bl-[5px] border border-slate-100"
-                        } shadow-sm`}
-                      >
+                      <div className={`px-4 py-2.5 text-sm leading-relaxed font-medium shadow-sm ${isUser ? "bg-[#f36c3a] text-white rounded-[18px] rounded-br-[5px]" : "bg-white text-slate-800 rounded-[18px] rounded-bl-[5px] border border-slate-100"}`}>
                         {m.text}
                         {m.pending && <span className="ml-2 text-[10px] opacity-70">⌛</span>}
                       </div>
@@ -328,11 +341,8 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
               <div className="flex items-center gap-2">
                 <div className="px-4 py-3 flex gap-1.5 bg-white rounded-[18px] rounded-bl-[5px] border border-slate-100 shadow-sm">
                   {[0, 1, 2].map((i) => (
-                    <div
-                      key={i}
-                      className="typing-dot w-2 h-2 rounded-full bg-slate-400"
-                      style={{ animationDelay: `${i * 0.18}s` }}
-                    />
+                    <div key={i} className="typing-dot w-2 h-2 rounded-full bg-slate-400"
+                      style={{ animationDelay: `${i * 0.18}s` }} />
                   ))}
                 </div>
                 <span className="text-[10px] text-slate-400 font-semibold">typing…</span>
@@ -357,11 +367,7 @@ export default function ChatDrawer({ isOpen, onClose, property }) {
             <button
               onClick={handleSend}
               disabled={!draft.trim() || loading}
-              className={`p-3 rounded-2xl transition active:scale-90 ${
-                draft.trim() && !loading
-                  ? "bg-[#f36c3a] text-white shadow-md shadow-orange-200"
-                  : "bg-slate-200 text-slate-400 cursor-not-allowed"
-              }`}
+              className={`p-3 rounded-2xl transition active:scale-90 ${draft.trim() && !loading ? "bg-[#f36c3a] text-white shadow-md shadow-orange-200" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
             >
               <FaPaperPlane size={15} />
             </button>

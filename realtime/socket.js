@@ -10,60 +10,59 @@ export const initSocket = (server) => {
     },
   });
 
+  // userId → { socketId, username, avatar }
   const userSocketMap = {};
 
   io.on("connection", (socket) => {
     console.log("client connected:", socket.id);
 
-    socket.on("newUser", (userId) => {
-      userSocketMap[userId] = socket.id;
+    // ✅ Receives full user info — stored so we can enrich forwarded messages
+    socket.on("newUser", ({ userId, username, avatar } = {}) => {
+      if (!userId) return;
+      userSocketMap[userId] = { socketId: socket.id, username, avatar };
       socket.userId = userId;
+      console.log(`User registered: ${username} (${userId})`);
     });
 
+    // ✅ Enriches the message with sender info before forwarding to receiver
+    //    This is what fixes the "Unknown / UN avatar" bug on the receiver side
     socket.on("sendMessage", ({ chatId, message, receiverId }) => {
-      const receiverSocketId = userSocketMap[receiverId];
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit("receiveMessage", { chatId, message });
-      }
+      const receiverEntry = userSocketMap[receiverId];
+      if (!receiverEntry) return; // receiver is offline — they'll see it on next load
+
+      const senderEntry = userSocketMap[socket.userId];
+      const enrichedMessage = {
+        ...message,
+        senderUsername: senderEntry?.username ?? null,
+        senderAvatar:   senderEntry?.avatar   ?? null,
+      };
+
+      io.to(receiverEntry.socketId).emit("receiveMessage", {
+        chatId,
+        message: enrichedMessage,
+      });
     });
 
     socket.on("typing", ({ chatId, receiverId }) => {
-      const receiverSocketId = userSocketMap[receiverId];
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit("typing", { chatId, userId: socket.userId });
+      const entry = userSocketMap[receiverId];
+      if (entry) {
+        io.to(entry.socketId).emit("typing", { chatId, userId: socket.userId });
       }
     });
 
     socket.on("stopTyping", ({ chatId, receiverId }) => {
-      const receiverSocketId = userSocketMap[receiverId];
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit("stopTyping", { chatId });
+      const entry = userSocketMap[receiverId];
+      if (entry) {
+        io.to(entry.socketId).emit("stopTyping", { chatId });
       }
     });
-    socket.on("receiveMessage", ({ chatId, message }) => {
-  setChats(prev => prev.map(chat => {
-    if (chat.id !== chatId) return chat;
-    const isFromOther = message.userId !== currentUserId;
-    const isActive = chat.id === activeChatId;
-    const newUnread = isActive ? 0 : (isFromOther ? (chat.unread || 0) + 1 : chat.unread || 0);
-    return {
-      ...chat,
-      messages: [...chat.messages, message],
-      lastMessage: message.text,
-      unread: newUnread,
-    };
-  }));
-  
-  if (activeChatId === chatId) {
-    // automatically mark as read for the open chat
-    fetcher(`/api/chats/read/${chatId}`, { method: "PUT" }).catch(console.warn);
-  }
-});
 
     socket.on("disconnect", () => {
-      if (socket.userId) delete userSocketMap[socket.userId];
+      if (socket.userId) {
+        delete userSocketMap[socket.userId];
+        console.log(`User disconnected: ${socket.userId}`);
+      }
     });
-
   });
 
   return io;
