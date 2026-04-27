@@ -20,7 +20,7 @@ const fmtSize = (bytes) => {
   return (bytes / 1048576).toFixed(1) + " MB";
 };
 
-// ---------- Last‑read storage helpers ----------
+// ---------- Last‑read storage ----------
 const getLastRead = (chatId) => {
   const stored = localStorage.getItem(`chat_last_read_${chatId}`);
   return stored ? new Date(stored) : null;
@@ -29,8 +29,21 @@ const setLastRead = (chatId, time = new Date()) => {
   localStorage.setItem(`chat_last_read_${chatId}`, time.toISOString());
 };
 
+// ---------- Sort chats by latest message timestamp (descending) ----------
+const sortChatsByLatestMessage = (chats) => {
+  return [...chats].sort((a, b) => {
+    const aTime = a.messages?.length
+      ? new Date(a.messages[a.messages.length-1].createdAt)
+      : new Date(a.createdAt);
+    const bTime = b.messages?.length
+      ? new Date(b.messages[b.messages.length-1].createdAt)
+      : new Date(b.createdAt);
+    return bTime - aTime;
+  });
+};
+
 // ------------------------------------------------------------------
-//  Avatar Component
+//  Avatar Component (unchanged)
 // ------------------------------------------------------------------
 const Avatar = ({ contact, size = "md" }) => {
   const sz = { sm: "w-8 h-8 text-xs", md: "w-10 h-10 text-sm", lg: "w-12 h-12 text-base" };
@@ -111,7 +124,7 @@ const AttachmentPreview = ({ attachment, caption, onCaptionChange, onSend, onCan
 };
 
 // ------------------------------------------------------------------
-//  Message Bubble
+//  Message Bubble (unchanged)
 // ------------------------------------------------------------------
 const MessageBubble = ({ msg, onDelete, selected, onSelect, selectMode, isMe }) => {
   const [showActions, setShowActions] = useState(false);
@@ -240,12 +253,33 @@ export default function Messages() {
     return res.json();
   };
 
-  // ---------- Load chats & compute unread using last-read timestamp ----------
+  // Helper: fetch a single chat by ID (for new chats)
+  const fetchChat = async (chatId) => {
+    try {
+      const chat = await fetcher(`/api/chats/${chatId}`);
+      const lastRead = getLastRead(chat.id);
+      const unread = chat.messages?.filter(m =>
+        m.userId !== currentUserId && (!lastRead || new Date(m.createdAt) > lastRead)
+      ).length || 0;
+      return {
+        ...chat,
+        messages: chat.messages || [],
+        typing: false,
+        online: false,
+        unread,
+      };
+    } catch (err) {
+      console.error("Failed to fetch chat", err);
+      return null;
+    }
+  };
+
+  // ---------- Load chats & compute unread ----------
   const loadChats = useCallback(async () => {
     if (!currentUserId) return;
     try {
       const data = await fetcher("/api/chats");
-      setChats(data.map(chat => {
+      const processed = data.map(chat => {
         const lastRead = getLastRead(chat.id);
         const unread = chat.messages?.filter(m =>
           m.userId !== currentUserId && (!lastRead || new Date(m.createdAt) > lastRead)
@@ -257,7 +291,8 @@ export default function Messages() {
           online: false,
           unread,
         };
-      }));
+      });
+      setChats(sortChatsByLatestMessage(processed));
     } catch (err) {
       console.error("❌ loadChats error:", err);
     }
@@ -265,42 +300,64 @@ export default function Messages() {
 
   useEffect(() => { loadChats(); }, [loadChats]);
 
-  // ---------- Real-time socket events ----------
+  // ---------- Real-time socket events with new chat handling ----------
   useEffect(() => {
     if (!socket) return;
-    socket.on("receiveMessage", ({ chatId, message }) => {
-      setChats(prev => prev.map(chat => {
-        if (chat.id !== chatId) return chat;
-        const isFromOther = message.userId !== currentUserId;
-        const isActive = chat.id === activeChatId;
-        let newUnread = chat.unread;
-        if (isFromOther && !isActive) newUnread = (chat.unread || 0) + 1;
-        else if (isActive && isFromOther) {
-          // auto-mark as read for active chat
-          fetcher(`/api/chats/read/${chatId}`, { method: "PUT" }).catch(console.warn);
-          setLastRead(chatId);
-          newUnread = 0;
+
+    socket.on("receiveMessage", async ({ chatId, message }) => {
+      // Check if chat already exists in state
+      const existingChat = chats.find(c => c.id === chatId);
+      if (existingChat) {
+        // Update existing chat
+        setChats(prev => {
+          const updated = prev.map(chat => {
+            if (chat.id !== chatId) return chat;
+            const isFromOther = message.userId !== currentUserId;
+            const isActive = chat.id === activeChatId;
+            let newUnread = chat.unread;
+            if (isFromOther && !isActive) newUnread = (chat.unread || 0) + 1;
+            else if (isActive && isFromOther) {
+              fetcher(`/api/chats/read/${chatId}`, { method: "PUT" }).catch(console.warn);
+              setLastRead(chatId);
+              newUnread = 0;
+            }
+            return {
+              ...chat,
+              messages: [...chat.messages, message],
+              lastMessage: message.text,
+              unread: newUnread,
+            };
+          });
+          return sortChatsByLatestMessage(updated);
+        });
+      } else {
+        // New chat – fetch full chat object and add to list
+        const newChat = await fetchChat(chatId);
+        if (newChat) {
+          setChats(prev => sortChatsByLatestMessage([...prev, newChat]));
+          // Also mark as read automatically if the active chat is this one? Not possible because not open.
+          // But we can set last read if needed: setLastRead(chatId); // optional
         }
-        return {
-          ...chat,
-          messages: [...chat.messages, message],
-          lastMessage: message.text,
-          unread: newUnread,
-        };
-      }));
+      }
     });
+
     socket.on("typing", ({ chatId, userId }) => {
       if (userId === currentUserId) return;
-      setChats(prev => prev.map(chat => chat.id === chatId ? { ...chat, typing: true } : chat));
+      setChats(prev => prev.map(chat =>
+        chat.id === chatId ? { ...chat, typing: true } : chat
+      ));
       setTimeout(() => {
-        setChats(prev => prev.map(chat => chat.id === chatId ? { ...chat, typing: false } : chat));
+        setChats(prev => prev.map(chat =>
+          chat.id === chatId ? { ...chat, typing: false } : chat
+        ));
       }, 2000);
     });
+
     return () => {
       socket.off("receiveMessage");
       socket.off("typing");
     };
-  }, [socket, activeChatId, currentUserId]);
+  }, [socket, activeChatId, currentUserId, chats]); // include chats in dependency for fetchChat reference
 
   // ---------- Send message ----------
   const sendMessage = async () => {
@@ -309,31 +366,44 @@ export default function Messages() {
     const tempId = Date.now();
     const newMsg = { id: tempId, text, createdAt: new Date(), userId: currentUserId, read: false, pending: true };
     // optimistic update
-    setChats(prev => prev.map(chat => chat.id === activeChatId ? {
-      ...chat,
-      messages: [...chat.messages, newMsg],
-      lastMessage: text,
-    } : chat));
+    setChats(prev => {
+      const updated = prev.map(chat =>
+        chat.id === activeChatId ? {
+          ...chat,
+          messages: [...chat.messages, newMsg],
+          lastMessage: text,
+        } : chat
+      );
+      return sortChatsByLatestMessage(updated);
+    });
     setInput("");
     try {
       const saved = await fetcher(`/api/messages/${activeChatId}`, {
         method: "POST",
         body: JSON.stringify({ text }),
       });
-      // replace temp message with real one
-      setChats(prev => prev.map(chat => chat.id === activeChatId ? {
-        ...chat,
-        messages: chat.messages.map(m => m.id === tempId ? { ...saved, pending: false } : m)
-      } : chat));
-      // update last-read timestamp for this chat (since user just sent and sees the chat)
+      setChats(prev => {
+        const updated = prev.map(chat =>
+          chat.id === activeChatId ? {
+            ...chat,
+            messages: chat.messages.map(m => m.id === tempId ? { ...saved, pending: false } : m)
+          } : chat
+        );
+        return sortChatsByLatestMessage(updated);
+      });
       setLastRead(activeChatId);
       socket?.emit("sendMessage", { chatId: activeChatId, message: saved, receiverId: getReceiverId(activeChatId) });
     } catch (err) {
       console.error("Send failed", err);
-      setChats(prev => prev.map(chat => chat.id === activeChatId ? {
-        ...chat,
-        messages: chat.messages.filter(m => m.id !== tempId)
-      } : chat));
+      setChats(prev => {
+        const updated = prev.map(chat =>
+          chat.id === activeChatId ? {
+            ...chat,
+            messages: chat.messages.filter(m => m.id !== tempId)
+          } : chat
+        );
+        return sortChatsByLatestMessage(updated);
+      });
     }
   };
 
@@ -356,10 +426,12 @@ export default function Messages() {
   };
 
   const deleteMessage = async (msgId) => {
-    setChats(prev => prev.map(chat => chat.id === activeChatId ? {
-      ...chat,
-      messages: chat.messages.filter(m => m.id !== msgId)
-    } : chat));
+    setChats(prev => prev.map(chat =>
+      chat.id === activeChatId ? {
+        ...chat,
+        messages: chat.messages.filter(m => m.id !== msgId)
+      } : chat
+    ));
   };
 
   const openChat = (chatId) => {
@@ -369,27 +441,35 @@ export default function Messages() {
     setSelectedMsgIds([]);
     setShowEmoji(false);
     fetcher(`/api/chats/read/${chatId}`, { method: "PUT" }).catch(console.warn);
-    setChats(prev => prev.map(chat => chat.id === chatId ? { ...chat, unread: 0 } : chat));
+    setChats(prev => prev.map(chat =>
+      chat.id === chatId ? { ...chat, unread: 0 } : chat
+    ));
     setLastRead(chatId);
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
   const deleteSelected = () => {
-    setChats(prev => prev.map(chat => chat.id === activeChatId ? {
-      ...chat,
-      messages: chat.messages.filter(m => !selectedMsgIds.includes(m.id))
-    } : chat));
+    setChats(prev => prev.map(chat =>
+      chat.id === activeChatId ? {
+        ...chat,
+        messages: chat.messages.filter(m => !selectedMsgIds.includes(m.id))
+      } : chat
+    ));
     setSelectMode(false);
     setSelectedMsgIds([]);
   };
 
   const toggleSelect = (msgId) => {
-    setSelectedMsgIds(prev => prev.includes(msgId) ? prev.filter(id => id !== msgId) : [...prev, msgId]);
+    setSelectedMsgIds(prev =>
+      prev.includes(msgId) ? prev.filter(id => id !== msgId) : [...prev, msgId]
+    );
   };
 
   const markContactRead = (chatId) => {
     fetcher(`/api/chats/read/${chatId}`, { method: "PUT" }).catch(console.warn);
-    setChats(prev => prev.map(chat => chat.id === chatId ? { ...chat, unread: 0 } : chat));
+    setChats(prev => prev.map(chat =>
+      chat.id === chatId ? { ...chat, unread: 0 } : chat
+    ));
     setLastRead(chatId);
   };
 
@@ -398,6 +478,7 @@ export default function Messages() {
     if (activeChatId === chatId) setActiveChatId(null);
   };
 
+  // filtered and sorted (already sorted in state)
   const filteredChats = chats.filter(chat => {
     const receiver = chat.receiver || {};
     const name = receiver.username || "";
