@@ -472,8 +472,8 @@ export default function Messages() {
         <div className="flex-1 overflow-y-auto">
           {filteredChats.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-              <div className="text-3xl mb-3 opacity-30">🔍</div>
-              <p className="text-sm font-medium text-slate-500">No conversations found</p>
+              <div className="text-3xl mb-3 opacity-30"><MdSearch size={55} className="text-gray-500" /></div>
+              <p className="text-[18px] font-medium text-slate-500">No conversations found</p>
             </div>
           ) : (
             filteredChats.map(chat => {
