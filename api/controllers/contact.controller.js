@@ -1,7 +1,8 @@
 // controllers/contact.controller.js
 import prisma from "../lib/prisma.js";
-
-/* ── PUBLIC: Submit contact form (no auth required) ──────────── */
+// ==============================================================================================================================================
+//                                                                        Submit Contact
+// ==============================================================================================================================================
 export const submitContact = async (req, res) => {
   const { fullName, email, phone, subject, message } = req.body;
 
@@ -39,8 +40,9 @@ export const submitContact = async (req, res) => {
     res.status(500).json({ message: "Failed to send message. Please try again." });
   }
 };
-
-/* ── ADMIN: Get all contact messages ─────────────────────────── */
+// ==============================================================================================================================================
+//                                                                      Get All Contacts Query
+// ==============================================================================================================================================
 export const getAllContacts = async (req, res) => {
   try {
     const contacts = await prisma.contactMessage.findMany({
@@ -52,8 +54,9 @@ export const getAllContacts = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-/* ── ADMIN: Get unread count only (for dashboard badge) ──────── */
+// ==============================================================================================================================================
+//                                                                         Get UnRead Count
+// ==============================================================================================================================================
 export const getUnreadCount = async (req, res) => {
   try {
     const count = await prisma.contactMessage.count({
@@ -65,8 +68,9 @@ export const getUnreadCount = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-/* ── ADMIN: Mark one message as read ─────────────────────────── */
+// ==============================================================================================================================================
+//                                                                          Mark As Read
+// ==============================================================================================================================================
 export const markAsRead = async (req, res) => {
   const { id } = req.params;
   try {
@@ -80,8 +84,9 @@ export const markAsRead = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-/* ── ADMIN: Delete a message ─────────────────────────────────── */
+// ==============================================================================================================================================
+//                                                                          Delete Contact Query
+// ==============================================================================================================================================
 export const deleteContact = async (req, res) => {
   const { id } = req.params;
   try {
@@ -92,3 +97,6 @@ export const deleteContact = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+// ==============================================================================================================================================
+//                                                                          end
+// ==============================================================================================================================================

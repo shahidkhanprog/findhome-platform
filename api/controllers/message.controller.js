@@ -1,11 +1,14 @@
 import prisma from "../lib/prisma.js";
 
+// ==============================================================================================================================================
+//                                                                           Add Message
+// ==============================================================================================================================================
 export const addMessage = async (req, res) => {
-    const tokenUserId = req.userId;   // ✅ must be req.userId (not req.user.id)
+    const tokenUserId = req.userId;
     const chatId = req.params.chatId;
     const { text } = req.body;
 
-    console.log("📨 addMessage called:", { tokenUserId, chatId, text });
+    console.log("addMessage called:", { tokenUserId, chatId, text });
 
     if (!tokenUserId || !chatId || !text) {
         return res.status(400).json({ message: "Missing required fields" });
@@ -15,7 +18,7 @@ export const addMessage = async (req, res) => {
         // 1. Verify chat exists AND current user is a participant
         const chat = await prisma.chat.findUnique({
             where: { id: chatId },
-            select: { userIDs: true }  // only need userIDs for check
+            select: { userIDs: true }
         });
 
         if (!chat) {
@@ -39,15 +42,15 @@ export const addMessage = async (req, res) => {
             where: { id: chatId },
             data: {
                 lastMessage: text.trim(),
-                seenBy: [tokenUserId]  // sender has seen it
+                seenBy: [tokenUserId]
             }
         });
 
-        console.log("✅ Message saved:", message.id);
+        console.log("Message saved:", message.id);
         res.status(201).json(message);
     } catch (error) {
-        console.error("❌ Error in addMessage:", error);
-        // Send detailed error for debugging (remove in production)
+        console.error("Error in addMessage:", error);
+        
         res.status(500).json({ 
             message: "Failed to send message",
             error: error.message,
@@ -55,3 +58,6 @@ export const addMessage = async (req, res) => {
         });
     }
 };
+// ==============================================================================================================================================
+//                                                                       end
+// ==============================================================================================================================================

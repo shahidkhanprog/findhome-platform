@@ -9,10 +9,9 @@ const generateOtp = () => ({
   code: crypto.randomInt(100000, 999999).toString(),
   expiresAt: new Date(Date.now() + 15 * 60 * 1000),
 });
-//==================================================================================================================
-// NOTE: buildOtpEmail generates a styled HTML email containing the OTP code. This enhances user experience and ensures that the OTP is prominently displayed, improving the chances of successful password resets.
-//==================================================================================================================
-
+// ==============================================================================================================================================
+//                                                             buildOtpEmail
+// ==============================================================================================================================================
 const buildOtpEmail = (otp) => `
 <!DOCTYPE html>
 <html lang="en">
@@ -31,7 +30,7 @@ const buildOtpEmail = (otp) => `
           <tr>
             <td style="background:linear-gradient(135deg,#7c3aed,#6d28d9);padding:32px 40px;text-align:center;">
               <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.5px;">
-                🏠 FindHome
+                 FindHome
               </h1>
               <p style="margin:8px 0 0;color:#ddd6fe;font-size:13px;">Password Reset Request</p>
             </td>
@@ -70,10 +69,9 @@ const buildOtpEmail = (otp) => `
 </body>
 </html>
 `;
-
-// ===================================================================================================================
-// NOTE: All user-related routes are protected by authMiddleware, so we can trust that req.userId and req.isAdmin are set correctly.
-// ===================================================================================================================
+// ===========================================================================================================================================================================
+//                                                                    get All Users
+// ===========================================================================================================================================================================
 export const getAllUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
@@ -85,11 +83,9 @@ export const getAllUsers = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-//==================================================================================================================
-// NOTE: getUser is used both for fetching one's own profile and for viewing other users' profiles. In the former case, req.userId === req.params.id, while in the latter they differ. We allow both but ensure that password is never returned.
-//==================================================================================================================
-
+//==========================================================================================================================================================================
+//                                                                    get User
+//==========================================================================================================================================================================
 export const getUser = async (req, res) => {
   const userId = req.params.id;
   try {
@@ -103,11 +99,9 @@ export const getUser = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-//==================================================================================================================
-// NOTE: updateUser can be used both for updating one's own profile and (if admin) for updating other users' profiles. We check permissions accordingly. Certain fields like password and role require special handling.
-//==================================================================================================================
-
+//==========================================================================================================================================================================
+//                                                                  update User
+//==========================================================================================================================================================================
 export const updateUser = async (req, res) => {
   const userId      = req.params.id;
   const tokenUserId = req.userId;
@@ -156,11 +150,9 @@ export const updateUser = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-//==================================================================================================================
-// NOTE: deleteUser can be used both for deleting one's own account and (if admin) for deleting other users' accounts. We check permissions accordingly. We also ensure that all related data (posts, messages, etc.) is properly cleaned up to maintain data integrity.
-//==================================================================================================================
-
+//==================================================================================================================================================================================================================================
+//                                                                    delete User
+//==================================================================================================================================================================================================================================
 export const deleteUser = async (req, res) => {
   const userId = req.params.id;
   const tokenUserId = req.userId;
@@ -247,11 +239,9 @@ export const deleteUser = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-//==================================================================================================================
-// NOTE: The following three functions implement a secure password reset flow using OTPs. They are designed to prevent common vulnerabilities such as user enumeration, brute-force attacks, and token theft.
-//==================================================================================================================
-
+//==================================================================================================================================================================================================================================
+//                                                                      forgot Password
+//==================================================================================================================================================================================================================================
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
@@ -296,10 +286,9 @@ export const forgotPassword = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-//==================================================================================================================
-// NOTE: The verifyOtp function checks the provided OTP against the stored hash and expiry. If valid, it issues a short-lived reset token that can be used to set a new password. This two-step process (OTP verification followed by password reset) adds an extra layer of security.
-//==================================================================================================================
-
+//==================================================================================================================================================================================================================================
+//                                                                verify Otp
+//==================================================================================================================================================================================================================================
 export const verifyOtp = async (req, res) => {
   const { email, otp } = req.body;
 
@@ -349,10 +338,9 @@ export const verifyOtp = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-//==================================================================================================================
-// NOTE: The resetPassword function validates the reset token and, if valid, updates the user's password. It also ensures that the reset token can only be used once and expires after a short period, mitigating the risk of token theft.
-//==================================================================================================================
-
+//==================================================================================================================================================================================================================================
+//                                                                    reset Password
+//==================================================================================================================================================================================================================================
 export const resetPassword = async (req, res) => {
   const { email, resetToken, newPassword } = req.body;
 
@@ -406,3 +394,6 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+//================================================================================================================================================================================================================================
+//                                                                    end
+//================================================================================================================================================================================================================================

@@ -1,15 +1,15 @@
 import prisma from "../lib/prisma.js";
 
-// =====================================================================================================
-//                                          Chat Controller
-// =====================================================================================================
+// ==============================================================================================================================================
+//                                                                               Get All Chat
+// ==============================================================================================================================================
 export const getAllChats = async (req, res) => {
     const tokenUserId = req.userId;
     try {
         const chats = await prisma.chat.findMany({
             where: { userIDs: { hasSome: [tokenUserId] } },
             include: {
-                messages: { orderBy: { createdAt: "asc" } }   // ✅ add this line
+                messages: { orderBy: { createdAt: "asc" } }
             }
         });
         for(let chat of chats) {
@@ -26,10 +26,12 @@ export const getAllChats = async (req, res) => {
         res.status(500).json({ message: "Failed to fetch chats!" });
     }
 };
-
+// ==============================================================================================================================================
+//                                                                              Get Chat
+// ==============================================================================================================================================
 export const getChat = async (req, res) => {
     try {
-        const tokenUserId = req.userId;   // ✅ fixed
+        const tokenUserId = req.userId;
         const chat = await prisma.chat.findUnique({
             where: {
                 id: req.params.id,
@@ -49,9 +51,11 @@ export const getChat = async (req, res) => {
         res.status(500).json({ message: "Failed to fetch chat!" });
     }
 };
-
+// ==============================================================================================================================================
+//                                                                              Add Chat
+// ==============================================================================================================================================
 export const addChat = async (req, res) => {
-    const tokenUserId = req.userId;   // ✅ fixed
+    const tokenUserId = req.userId;  
     try {
         const newChat = await prisma.chat.create({
             data: { userIDs: [tokenUserId, req.body.receiverId] }
@@ -62,9 +66,11 @@ export const addChat = async (req, res) => {
         res.status(500).json({ message: "Failed to create chat!" });
     }
 };
-
+// ==============================================================================================================================================
+//                                                                              Read Chat
+// ==============================================================================================================================================
 export const readChat = async (req, res) => {
-    const tokenUserId = req.userId;   // ✅ fixed
+    const tokenUserId = req.userId; 
     try {
         await prisma.chat.update({
             where: {
@@ -79,3 +85,6 @@ export const readChat = async (req, res) => {
         res.status(500).json({ message: "Failed to mark chat as read!" });
     }
 };
+// ==============================================================================================================================================
+//                                                                                  end
+// ==============================================================================================================================================

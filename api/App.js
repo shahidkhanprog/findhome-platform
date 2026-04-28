@@ -16,7 +16,7 @@ const app = express();
 const PORT = 3000;
 
 app.use(cors({
-  origin: process.env.CLIENT_URL, // Adjust this to your frontend URL
+  origin: process.env.CLIENT_URL,
   credentials: true, // Allow cookies to be sent
 }));
 

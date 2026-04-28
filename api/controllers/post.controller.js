@@ -2,16 +2,14 @@
 
 import prisma from "../lib/prisma.js";
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   HELPERS
-───────────────────────────────────────────────────────────────────────────── */
-
+// ==============================================================================================================================================
+//                                                                        HELPERS
+// ==============================================================================================================================================
 const canModify = (tokenUserId, isAdmin, post) =>
   isAdmin || post.userId === tokenUserId;
-
-/* ═════════════════════════════════════════════════════════════════════════════
-   PUBLIC — no auth required
-═════════════════════════════════════════════════════════════════════════════ */
+// ==============================================================================================================================================
+//                                                                        no auth required
+// ==============================================================================================================================================
 export const getAllPosts = async (req, res) => {
   const { city, listingType, property, minPrice, maxPrice, bedroom } =
     req.query;
@@ -45,7 +43,9 @@ export const getAllPosts = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
+// ==============================================================================================================================================
+//                                                                            Add Post
+// ==============================================================================================================================================
 export const getPost = async (req, res) => {
   const postId = req.params.id;
 
@@ -70,10 +70,9 @@ export const getPost = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-/* ═════════════════════════════════════════════════════════════════════════════
-   AUTHENTICATED — requires valid JWT
-═════════════════════════════════════════════════════════════════════════════ */
+// ==============================================================================================================================================
+//                                                                 AUTHENTICATED — requires valid JWT
+// ==============================================================================================================================================
 
 export const createPost = async (req, res) => {
   const tokenUserId = req.userId;
@@ -91,7 +90,6 @@ export const createPost = async (req, res) => {
     listingType,
     property,
     status,
-    // postDetails fields (optional — can be added in same request)
     desc,
     utilities,
     pet,
@@ -133,7 +131,6 @@ export const createPost = async (req, res) => {
         property,
         status: status ?? "available",
 
-        // Create postDetails in the same transaction if fields provided
         ...(desc && {
           postDetails: {
             create: {
@@ -158,7 +155,9 @@ export const createPost = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
+// ==============================================================================================================================================
+//                                                                         Create Post Details
+// ==============================================================================================================================================
 export const createPostDetails = async (req, res) => {
   const tokenUserId = req.userId;
   const isAdmin = req.isAdmin;
@@ -215,7 +214,9 @@ export const createPostDetails = async (req, res) => {
     res.status(500).json({ message: "Internal server error ss" });
   }
 };
-
+// ==============================================================================================================================================
+//                                                                         Update Post
+// ==============================================================================================================================================
 export const updatePost = async (req, res) => {
   const postId = req.params.id;
   const tokenUserId = req.userId;
@@ -332,7 +333,9 @@ export const updatePost = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
+// ==============================================================================================================================================
+//                                                                          Delete Post
+// ==============================================================================================================================================
 export const deletePost = async (req, res) => {
   const postId = req.params.id;
   const tokenUserId = req.userId;
@@ -361,7 +364,9 @@ export const deletePost = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
+// ==============================================================================================================================================
+//                                                                          Get User Posts
+// ==============================================================================================================================================
 export const getUserPosts = async (req, res) => {
   const targetUserId = req.params.userId;
   const tokenUserId = req.userId;
@@ -387,9 +392,9 @@ export const getUserPosts = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-// Only return posts that are available and whose owners are active (for public listing page)
-
+// ==============================================================================================================================================
+//                                      Only return posts that are available and whose owners are active (for public listing page)
+// ==============================================================================================================================================
 export const getActiveOwnerPosts = async (req, res) => {
   const { city, listingType, property, minPrice, maxPrice, bedroom } = req.query;
 
@@ -426,26 +431,9 @@ export const getActiveOwnerPosts = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-
-// export const getPostStats = async (req, res) => {
-//   try {
-//     const [available, sold, pending, rented, publicVisible] = await Promise.all([
-//       prisma.post.count({ where: { status: "available" } }),         // all available posts
-//       prisma.post.count({ where: { status: "sold" } }),              // all sold posts
-//       prisma.post.count({ where: { status: "pending" } }),           // all pending posts
-//       prisma.post.count({ where: { status: "rented" } }),            // all rented posts
-//       prisma.post.count({                                            // available + owner isActive
-//         where: { status: "available", user: { isActive: true } },
-//       }),
-//     ]);
-
-//     res.status(200).json({ available, sold, pending, rented, publicVisible });
-//   } catch (error) {
-//     console.error("Error fetching post stats:", error);
-//     res.status(500).json({ message: "Internal server error" });
-//   }
-// };
+// ==============================================================================================================================================
+//                                                                         Get Post Stats
+// ==============================================================================================================================================
 export const getPostStats = async (req, res) => {
   try {
     const { userId, isAdmin } = req.query;
@@ -467,3 +455,6 @@ export const getPostStats = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+// ==============================================================================================================================================
+//                                                                       end
+// ==============================================================================================================================================

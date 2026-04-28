@@ -6,50 +6,18 @@ import crypto from "crypto";
 
 // OTP STORE (TEMP MEMORY)
 const otpStore = new Map();
-
 // ==================================================================================================================================================
-// REGISTER
+//                                                                        REGISTER
 // ==================================================================================================================================================
-// export const register = async (req, res) => {
-//   const { username, email, password } = req.body;
-
-//   try {
-//     const existingUser = await prisma.user.findFirst({
-//       where: {
-//         OR: [{ username }, { email }],
-//       },
-//     });
-
-//     if (existingUser) {
-//       return res.status(400).json({ message: "User already exists" });
-//     }
-
-//     const hashedPassword = await bcrypt.hash(password, 10);
-
-//     await prisma.user.create({
-//       data: {
-//         username,
-//         email,
-//         password: hashedPassword,
-//         role: "USER",
-//       },
-//     });
-
-//     res.status(201).json({ message: "User registered successfully" });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Register error" });
-//   }
-// };
 export const register = async (req, res) => {
   const { username, email, password } = req.body;
 
-  // ✅ Sanitize: trim and lowercase both fields
+  // Sanitize: trim and lowercase both fields
   const cleanUsername = username?.trim().toLowerCase();
   const cleanEmail    = email?.trim().toLowerCase();
 
   try {
-    // ✅ Check username and email separately for specific inline errors
+    // Check username and email separately for specific inline errors
     const existingUsername = await prisma.user.findUnique({
       where: { username: cleanUsername },
     });
@@ -81,9 +49,8 @@ export const register = async (req, res) => {
     res.status(500).json({ message: "Register error" });
   }
 };
-
 // ==================================================================================================================================================
-// LOGIN
+//                                                                              LOGIN
 // ==================================================================================================================================================
 export const login = async (req, res) => {
   const { email, password } = req.body;
@@ -123,16 +90,14 @@ export const login = async (req, res) => {
     res.status(500).json({ message: "Login error" });
   }
 };
-
 // ==================================================================================================================================================
-// LOGOUT
+//                                                                          LOGOUT
 // ==================================================================================================================================================
 export const logout = (req, res) => {
   res.clearCookie("token").json({ message: "Logged out" });
 };
-
 // ==================================================================================================================================================
-// FORGOT PASSWORD (SEND OTP - RESEND)
+//                                                                FORGOT PASSWORD (SEND OTP - RESEND)
 // ==================================================================================================================================================
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
@@ -177,7 +142,7 @@ export const forgotPassword = async (req, res) => {
               <!-- Greeting -->
               <p style="margin:0 0 4px;font-size:13px;color:#9aa0ab;letter-spacing:1px;text-transform:uppercase;">Password Reset</p>
               <h2 style="margin:0 0 20px;font-size:24px;font-weight:600;color:#0f1623;">
-                Hi, ${firstName} 👋
+                Hi, ${firstName} 
               </h2>
 
               <p style="margin:0 0 24px;font-size:15px;color:#4a5568;line-height:1.75;">
@@ -242,9 +207,8 @@ export const forgotPassword = async (req, res) => {
     res.status(500).json({ message: "Failed to send OTP" });
   }
 };
-
-// ======================================================
-// VERIFY OTP
+// =================================================================================================================================================
+//                                                                                          VERIFY OTP
 // ==================================================================================================================================================
 export const verifyOtp = (req, res) => {
   const { email, otp } = req.body;
@@ -269,9 +233,8 @@ export const verifyOtp = (req, res) => {
 
   res.json({ message: "OTP verified" });
 };
-
-// ======================================================
-// RESET PASSWORD
+// ================================================================================================================================================================================================
+//                                                                                          RESET PASSWORD
 // ================================================================================================================================================================================================
 export const resetPassword = async (req, res) => {
   const { email, newPassword } = req.body;
@@ -304,4 +267,5 @@ export const resetPassword = async (req, res) => {
   }
 };
 // ==================================================================================================================================================
+//                                                                     end
 // ==================================================================================================================================================
