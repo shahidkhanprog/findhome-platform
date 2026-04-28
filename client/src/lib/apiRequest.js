@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiRequest = axios.create({
-  baseURL: "http://localhost:3000/api",
+  baseURL: "https://findproperty-platform-api.onrender.com/api",
   withCredentials: true, // Include cookies in requests
 });
 
