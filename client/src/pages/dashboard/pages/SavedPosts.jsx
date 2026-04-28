@@ -71,7 +71,7 @@ export default function SavedPosts() {
     setCurrentPage(1);
   };
 
-  const handleDetails = (id) => navigate(`/dashboard/property/${id}`);
+  const handleDetails = (id) => navigate(`/property-detail/${id}`);
   const handleUnsaveClick = (post) => setUnsaveTarget(post);
 
   const handleUnsaveConfirm = async () => {

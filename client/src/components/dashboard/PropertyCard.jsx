@@ -8,6 +8,7 @@ import {
 import apiRequest from "../../lib/apiRequest";
 import StatusBadge from "../common/StatusBadge";
 import { STATUS_CONFIG, showRooms } from "../../constants/dashboardConstants";
+import { NavLink } from "react-router-dom";
 
 // --- Listing Type Badge (internal to card) ---
 const LISTING_TYPE_MAP = {

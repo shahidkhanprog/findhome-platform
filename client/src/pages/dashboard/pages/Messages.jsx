@@ -443,7 +443,7 @@ export default function Messages() {
                 <button
                   key={chat.id}
                   onClick={() => openChat(chat.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all hover:bg-slate-50 border-r-2 ${activeChatId === chat.id ? "bg-gray-200 border-r-black" : "border-r-transparent"}`}
+                  className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all hover:bg-slate-50 border-r-2 border-b border-gray-300 ${activeChatId === chat.id ? "bg-gray-200 border-r-black" : "border-r-transparent"}`}
                 >
                   <Avatar contact={receiver} />
                   <div className="flex-1 min-w-0">

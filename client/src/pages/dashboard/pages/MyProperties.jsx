@@ -69,7 +69,7 @@ export default function MyProperties() {
 
   // Handlers
   const handleEdit = (post) => navigate(`/dashboard/edit/${post.id}`);
-  const handleDetails = (id) => navigate(`/dashboard/property/${id}`);
+  const handleDetails = (id) => navigate(`/property-detail/${id}`);
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
     setDeleteLoading(true);
