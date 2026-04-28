@@ -10,13 +10,11 @@ export const initSocket = (server) => {
     },
   });
 
-  // userId → { socketId, username, avatar }
   const userSocketMap = {};
 
   io.on("connection", (socket) => {
     console.log("client connected:", socket.id);
 
-    // ✅ Receives full user info — stored so we can enrich forwarded messages
     socket.on("newUser", ({ userId, username, avatar } = {}) => {
       if (!userId) return;
       userSocketMap[userId] = { socketId: socket.id, username, avatar };
@@ -24,11 +22,9 @@ export const initSocket = (server) => {
       console.log(`User registered: ${username} (${userId})`);
     });
 
-    // ✅ Enriches the message with sender info before forwarding to receiver
-    //    This is what fixes the "Unknown / UN avatar" bug on the receiver side
     socket.on("sendMessage", ({ chatId, message, receiverId }) => {
       const receiverEntry = userSocketMap[receiverId];
-      if (!receiverEntry) return; // receiver is offline — they'll see it on next load
+      if (!receiverEntry) return;
 
       const senderEntry = userSocketMap[socket.userId];
       const enrichedMessage = {
