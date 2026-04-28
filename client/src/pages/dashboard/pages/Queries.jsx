@@ -1,5 +1,6 @@
 // pages/dashboard/Queries.jsx
 import { useState, useEffect, useContext } from "react";
+import { useOutletContext } from "react-router-dom";
 import apiRequest from "../../../lib/apiRequest";
 import { AuthContext } from "../../../context/AuthContext";
 import { MdAdminPanelSettings } from "react-icons/md";
@@ -13,21 +14,22 @@ import DeleteModal from "../../../components/dashboard/QueryModals/DeleteModal";
 
 const PAGE_SIZE_OPTIONS = [10, 20, 30];
 
-export default function Queries({ onUnreadChange }) {
+export default function Queries() {
   const { currentUser } = useContext(AuthContext);
+  const { onUnreadChange } = useOutletContext() ?? {};
   const isAdmin = currentUser?.userData?.role === "ADMIN";
 
-  const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [search, setSearch] = useState("");
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [selectedMsg, setSelectedMsg] = useState(null);
+  const [messages, setMessages]         = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [error, setError]               = useState("");
+  const [search, setSearch]             = useState("");
+  const [unreadCount, setUnreadCount]   = useState(0);
+  const [selectedMsg, setSelectedMsg]   = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
-  const [toast, setToast] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [toast, setToast]               = useState(null);
+  const [currentPage, setCurrentPage]   = useState(1);
+  const [pageSize, setPageSize]         = useState(10);
 
   const updateUnread = (count) => {
     setUnreadCount(count);
@@ -113,8 +115,8 @@ export default function Queries({ onUnreadChange }) {
   );
   const totalItems = filtered.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const safePage = Math.min(currentPage, totalPages);
-  const paginated = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const safePage   = Math.min(currentPage, totalPages);
+  const paginated  = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   const handlePageChange = (page) => {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
