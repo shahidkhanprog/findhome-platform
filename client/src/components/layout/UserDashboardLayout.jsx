@@ -3,7 +3,7 @@ import { useState, useRef, useContext, useEffect } from "react";
 import { Navigate, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import Navbar from "../navbar/Navbar";
-import DashSidebar from "../../pages/dashboard/pages/DashSidebar";
+import DashSidebar from "../../pages/dashboard/pages/Dashsidebar";
 import DashHeader from "../../pages/dashboard/pages/DashHeader";
 
 const UserDashboardLayout = () => {
