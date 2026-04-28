@@ -2,7 +2,7 @@
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 
 /* ── Layouts ─────────────────────────────────────────────────────── */
-import AppLayout           from "../components/Layout/AppLayout";
+import AppLayout           from "../components/layout/AppLayout";
 import UserDashboardLayout from "../components/layout/UserDashboardLayout";
 
 /* ── Public pages ────────────────────────────────────────────────── */
