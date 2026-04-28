@@ -2,21 +2,24 @@ import { useState, useEffect, useRef, useContext } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { NavLink, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
+import { ChatContext } from "../../context/ChatContext";
 
 const Navbar = () => {
   const { currentUser, logout } = useContext(AuthContext);
+  const { chats } = useContext(ChatContext);
 
-  // Safely unwrap the nested userData — currentUser can be null when logged out
   const user = currentUser?.userData ?? null;
 
-  const [menuOpen, setMenuOpen]         = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const navigate    = useNavigate();
+  const navigate = useNavigate();
 
   const closeMenu = () => setMenuOpen(false);
 
-  // ── Close dropdown on outside click ──────────────────────────────────────────
+  // Real unread count
+  const totalUnread = chats.reduce((sum, c) => sum + (c.unread || 0), 0);
+
   useEffect(() => {
     const onOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target))
@@ -33,11 +36,9 @@ const Navbar = () => {
   };
 
   const linkClasses = ({ isActive }) =>
-    `transition-colors duration-300 font-medium ${
-      isActive ? "text-blue-500 font-semibold" : "text-gray-300 hover:text-blue-500"
+    `transition-colors duration-300 font-medium ${isActive ? "text-blue-500 font-semibold" : "text-gray-300 hover:text-blue-500"
     }`;
 
-  // ── Reusable avatar circle ────────────────────────────────────────────────────
   const Avatar = ({ size = "w-7 h-7", text = "text-xs" }) =>
     user?.avatar ? (
       <img
@@ -46,14 +47,11 @@ const Navbar = () => {
         className={`${size} rounded-full object-cover flex-shrink-0`}
       />
     ) : (
-      <span
-        className={`${size} rounded-full bg-amber-500 text-white font-bold ${text} flex items-center justify-center uppercase flex-shrink-0`}
-      >
+      <span className={`${size} rounded-full bg-amber-500 text-white font-bold ${text} flex items-center justify-center uppercase flex-shrink-0`}>
         {user?.username?.charAt(0) || "U"}
       </span>
     );
 
-  // ── Desktop trigger pill ──────────────────────────────────────────────────────
   const AvatarButton = () => (
     <button
       onClick={() => setDropdownOpen((p) => !p)}
@@ -72,11 +70,43 @@ const Navbar = () => {
     </button>
   );
 
-  // ── Desktop dropdown ──────────────────────────────────────────────────────────
+  // Shared nav items — Messages carries the live unread count
+  const dropdownItems = [
+    {
+      to: "/dashboard",
+      label: "Dashboard",
+      icon: (
+        <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+          <rect x="3" y="3" width="7" height="7" rx="1" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="14" y="3" width="7" height="7" rx="1" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="3" y="14" width="7" height="7" rx="1" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="14" y="14" width="7" height="7" rx="1" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+    },
+    {
+      to: "/dashboard/favorites",
+      label: "Favorites",
+      icon: (
+        <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+      ),
+    },
+    {
+      to: "/dashboard/messages",
+      label: "Messages",
+      badge: totalUnread,
+      icon: (
+        <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+      ),
+    },
+  ];
+
   const DropdownMenu = () => (
     <div className="absolute right-0 mt-2 w-56 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden z-50 animate-fadeIn">
-
-      {/* User header */}
       <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-700">
         <Avatar size="w-8 h-8" text="text-sm" />
         <div className="min-w-0">
@@ -85,59 +115,28 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Menu items */}
       <div className="py-1">
-        {[
-          {
-            to: "/dashboard",
-            label: "Dashboard",
-            icon: (
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <rect x="3"  y="3"  width="7" height="7" rx="1" strokeLinecap="round" strokeLinejoin="round" />
-                <rect x="14" y="3"  width="7" height="7" rx="1" strokeLinecap="round" strokeLinejoin="round" />
-                <rect x="3"  y="14" width="7" height="7" rx="1" strokeLinecap="round" strokeLinejoin="round" />
-                <rect x="14" y="14" width="7" height="7" rx="1" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            ),
-          },
-          {
-            to: "/dashboard/favorites",
-            label: "Favorites",
-            icon: (
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            ),
-          },
-          {
-            to: "/dashboard/messages",
-            label: "Messages",
-            icon: (
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-            ),
-          },
-        ].map(({ to, label, icon }) => (
+        {dropdownItems.map(({ to, label, icon, badge }) => (
           <NavLink
             key={to}
             to={to}
             onClick={() => setDropdownOpen(false)}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors duration-150 ${
-                isActive
-                  ? "text-blue-400 bg-blue-500/10"
-                  : "text-gray-300 hover:text-white hover:bg-gray-800"
+              `flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors duration-150 ${isActive ? "text-blue-400 bg-blue-500/10" : "text-gray-300 hover:text-white hover:bg-gray-800"
               }`
             }
           >
             {icon}
-            {label}
+            <span className="flex-1">{label}</span>
+            {badge > 0 && (
+              <span className="min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-rose-500 text-white text-[10px] font-bold leading-none">
+                {badge > 99 ? "99+" : badge}
+              </span>
+            )}
           </NavLink>
         ))}
       </div>
 
-      {/* Logout */}
       <div className="border-t border-gray-700 py-1">
         <button
           onClick={handleLogout}
@@ -165,10 +164,10 @@ const Navbar = () => {
           {/* Desktop links */}
           <ul className="hidden md:flex space-x-8 font-medium items-center">
             {[
-              { label: "Home",     to: "/" },
+              { label: "Home", to: "/" },
               { label: "About Us", to: "/about" },
               { label: "Listings", to: "/list" },
-              { label: "Contact",  to: "/contact" },
+              { label: "Contact", to: "/contact" },
             ].map((link) => (
               <NavLink key={link.to} to={link.to} className={linkClasses}>
                 {link.label}
@@ -188,10 +187,7 @@ const Navbar = () => {
                 <NavLink
                   to="/login"
                   className={({ isActive }) =>
-                    `px-4 py-2 rounded-lg font-medium border transition-colors duration-300 text-center ${
-                      isActive
-                        ? "bg-blue-100 border-blue-500 text-blue-500"
-                        : "border-gray-300 text-gray-300 hover:bg-gray-800 hover:text-blue-500"
+                    `px-4 py-2 rounded-lg font-medium border transition-colors duration-300 text-center ${isActive ? "bg-blue-100 border-blue-500 text-blue-500" : "border-gray-300 text-gray-300 hover:bg-gray-800 hover:text-blue-500"
                     }`
                   }
                 >
@@ -200,8 +196,7 @@ const Navbar = () => {
                 <NavLink
                   to="/register"
                   className={({ isActive }) =>
-                    `px-4 py-2 rounded-lg font-medium text-white transition-colors duration-300 text-center ${
-                      isActive ? "bg-blue-700 hover:bg-blue-800" : "bg-blue-500 hover:bg-blue-600"
+                    `px-4 py-2 rounded-lg font-medium text-white transition-colors duration-300 text-center ${isActive ? "bg-blue-700 hover:bg-blue-800" : "bg-blue-500 hover:bg-blue-600"
                     }`
                   }
                 >
@@ -220,17 +215,13 @@ const Navbar = () => {
 
       {/* Overlay */}
       <div
-        className={`fixed inset-0 bg-black/40 transition-opacity duration-300 ${
-          menuOpen ? "opacity-100 visible" : "opacity-0 invisible"
-        }`}
+        className={`fixed inset-0 bg-black/40 transition-opacity duration-300 ${menuOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}
         onClick={closeMenu}
       />
 
       {/* Mobile slide-in */}
       <div
-        className={`fixed top-0 right-0 h-full w-72 bg-gray-900 shadow-lg transform transition-transform duration-300 ease-in-out ${
-          menuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full w-72 bg-gray-900 shadow-lg transform transition-transform duration-300 ease-in-out ${menuOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         <div className="flex justify-between items-center p-5 border-b border-gray-700">
           <h2 className="text-xl font-bold text-white">FindHome</h2>
@@ -239,10 +230,10 @@ const Navbar = () => {
 
         <ul className="flex flex-col p-6 space-y-6 text-lg font-medium">
           {[
-            { label: "Home",     to: "/" },
+            { label: "Home", to: "/" },
             { label: "About Us", to: "/about" },
             { label: "Listings", to: "/list" },
-            { label: "Contact",  to: "/contact" },
+            { label: "Contact", to: "/contact" },
           ].map((link) => (
             <NavLink key={link.to} to={link.to} onClick={closeMenu} className={linkClasses}>
               {link.label}
@@ -261,13 +252,21 @@ const Navbar = () => {
                 </div>
               </div>
 
-              {[
-                { to: "/dashboard", label: "Dashboard", icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><rect x="3" y="3" width="7" height="7" rx="1" strokeLinecap="round" strokeLinejoin="round"/><rect x="14" y="3" width="7" height="7" rx="1" strokeLinecap="round" strokeLinejoin="round"/><rect x="3" y="14" width="7" height="7" rx="1" strokeLinecap="round" strokeLinejoin="round"/><rect x="14" y="14" width="7" height="7" rx="1" strokeLinecap="round" strokeLinejoin="round"/></svg> },
-                { to: "/dashboard/favorites", label: "Favorites",  icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg> },
-                { to: "/dashboard/messages",  label: "Messages",   icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg> },
-              ].map(({ to, label, icon }) => (
-                <NavLink key={to} to={to} onClick={closeMenu} className="flex items-center gap-3 text-gray-300 hover:text-blue-400 transition-colors">
-                  {icon}{label}
+              {dropdownItems.map(({ to, label, icon, badge }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  onClick={closeMenu}
+                  className="flex items-center gap-3 text-gray-300 hover:text-blue-400 transition-colors"
+                >
+                  {/* Mobile uses w-5 h-5 icons — clone with larger size class */}
+                  <span className="[&>svg]:w-5 [&>svg]:h-5">{icon}</span>
+                  <span className="flex-1">{label}</span>
+                  {badge > 0 && (
+                    <span className="min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-rose-500 text-white text-[10px] font-bold leading-none">
+                      {badge > 99 ? "99+" : badge}
+                    </span>
+                  )}
                 </NavLink>
               ))}
 
@@ -283,7 +282,7 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <NavLink to="/login"    onClick={closeMenu} className="px-4 py-2 rounded-lg font-medium border border-gray-300 text-gray-300 hover:bg-gray-800 hover:text-blue-500 text-center transition-colors duration-300">Login</NavLink>
+              <NavLink to="/login" onClick={closeMenu} className="px-4 py-2 rounded-lg font-medium border border-gray-300 text-gray-300 hover:bg-gray-800 hover:text-blue-500 text-center transition-colors duration-300">Login</NavLink>
               <NavLink to="/register" onClick={closeMenu} className="px-4 py-2 rounded-lg font-medium bg-blue-500 text-white hover:bg-blue-600 text-center transition-colors duration-300">Register</NavLink>
             </>
           )}

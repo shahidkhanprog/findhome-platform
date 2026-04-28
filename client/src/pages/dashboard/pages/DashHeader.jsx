@@ -1,9 +1,9 @@
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../../context/AuthContext";
+import { ChatContext } from "../../../context/ChatContext";
 import { MdNotificationsNone } from "react-icons/md";
 
-/* ─── Page titles ────────────────────────────────────────────────── */
 const PAGE_META = {
   "/dashboard/overview": "Overview",
   "/dashboard/myProperties": "My Properties",
@@ -33,21 +33,20 @@ const todayString = () =>
   });
 
 const DashHeader = () => {
-  const [unreadCount] = useState(12);
-
   const { currentUser } = useContext(AuthContext);
+  const { chats } = useContext(ChatContext);
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  //  FIX: correct structure from your system
   const user = currentUser?.userData ?? {};
-
   const avatar = user.avatar ?? null;
   const username = user.username ?? "User";
   const role = user.role ?? "Member";
   const initials = getInitials(username);
-
   const title = getPageTitle(pathname);
+
+  // Real unread count from ChatContext
+  const totalUnread = chats.reduce((sum, c) => sum + (c.unread || 0), 0);
 
   return (
     <header className="h-16 flex items-center md:px-6 gap-4 flex-shrink-0 w-full max-w-[1280px] mx-auto shadow-[0_4px_2px_-2px_rgba(0,0,0,0.1)]">
@@ -63,16 +62,14 @@ const DashHeader = () => {
 
       {/* Bell + user chip */}
       <div className="flex items-center gap-2 flex-shrink-0">
-
         <button
           onClick={() => navigate("/dashboard/messages")}
           className="relative w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:bg-violet-50 hover:border-violet-200 hover:text-violet-700 transition-all"
         >
           <MdNotificationsNone size={20} />
-
-          {unreadCount > 0 && (
+          {totalUnread > 0 && (
             <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-rose-500 border-2 border-white text-white text-[10px] font-bold leading-none">
-              {unreadCount > 99 ? "99+" : unreadCount}
+              {totalUnread > 99 ? "99+" : totalUnread}
             </span>
           )}
         </button>
@@ -87,16 +84,13 @@ const DashHeader = () => {
               src={avatar}
               alt={username}
               className="w-7 h-7 rounded-full object-cover flex-shrink-0 border border-violet-200"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-              }}
+              onError={(e) => { e.currentTarget.style.display = "none"; }}
             />
           ) : (
             <div className="w-7 h-7 rounded-full bg-gray-600 flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 select-none">
               {initials}
             </div>
           )}
-
           <div className="hidden sm:block text-left leading-tight">
             <p className="text-[12px] font-semibold text-slate-700 group-hover:text-violet-700 transition-colors">
               {username}
@@ -104,7 +98,6 @@ const DashHeader = () => {
             <p className="text-[10px] text-slate-400 capitalize">{role}</p>
           </div>
         </button>
-
       </div>
     </header>
   );
