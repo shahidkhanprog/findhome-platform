@@ -5,11 +5,9 @@ import {
   MdDeleteOutline, MdKeyboardArrowDown,
 } from "react-icons/md";
 import { BsThreeDotsVertical } from "react-icons/bs";
-import { AuthContext } from "../../../context/AuthContext";
 import { SocketContext } from "../../../context/SocketContext";
 import { ChatContext } from "../../../context/ChatContext";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 const format12HourTime = (date) =>
   new Date(date).toLocaleTimeString("en-US", {
     hour: "numeric", minute: "2-digit", hour12: true,
@@ -39,7 +37,6 @@ const groupMessagesByDate = (messages) => {
   return items;
 };
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
 const Avatar = ({ contact, size = "md" }) => {
   const sz = { sm: "w-8 h-8 text-xs", md: "w-10 h-10 text-sm", lg: "w-12 h-12 text-base" };
   const initials = contact?.username?.slice(0, 2).toUpperCase() || "??";
@@ -139,12 +136,10 @@ const DateDivider = ({ label }) => (
   </div>
 );
 
-// ─── Main Component ───────────────────────────────────────────────────────────
 export default function Messages() {
   const { socket } = useContext(SocketContext);
   const {
     chats,
-    setChats,
     markChatRead,
     fetchAndAddChat,
     addMessage,
@@ -154,9 +149,10 @@ export default function Messages() {
     fetcher,
     sortByLatest,
     currentUserId,
+    setActiveChatId, // ✅ from context — tells context which chat is open
   } = useContext(ChatContext);
 
-  const [activeChatId, setActiveChatId] = useState(null);
+  const [localActiveChatId, setLocalActiveChatId] = useState(null);
   const [input, setInput] = useState("");
   const [search, setSearch] = useState("");
   const [mobileView, setMobileView] = useState("list");
@@ -171,96 +167,70 @@ export default function Messages() {
   const messagesRef = useRef(null);
   const typingTimeout = useRef(null);
 
-  // ✅ Keep a ref of activeChatId so socket handlers always see latest value
-  //    without needing activeChatId in their dependency array (avoids
-  //    unsubscribe/resubscribe on every chat switch)
-  const activeChatIdRef = useRef(activeChatId);
-  useEffect(() => { activeChatIdRef.current = activeChatId; }, [activeChatId]);
-
   const getReceiverId = (chatId) => {
     const chat = chats.find((c) => c.id === chatId);
     return chat?.userIDs?.find((id) => String(id) !== String(currentUserId));
   };
 
-  // ─── Single socket handler ────────────────────────────────────────────────
+  // ✅ Sync local active chat to context so global socket handler knows
+  const openChat = async (chatId) => {
+    setLocalActiveChatId(chatId);
+    setActiveChatId(chatId); // ✅ tell context
+    setMobileView("chat");
+    setSelectMode(false);
+    setSelectedMsgIds([]);
+    markChatRead(chatId);
+    setTimeout(() => inputRef.current?.focus(), 100);
+
+    // Always fetch full chat data on open — fixes Unknown name/avatar
+    try {
+      const chatDetail = await fetcher(`/api/chats/${chatId}`);
+      if (!chatDetail) return;
+      const { setChats } = await import("../../../context/ChatContext"); // not needed
+      // Use context's setChats via the pattern below
+    } catch (err) {
+      console.error("openChat fetch error:", err);
+    }
+  };
+
+  // ✅ Cleaner openChat — pull setChats from context directly
+  const { setChats } = useContext(ChatContext);
+
+  const openChatFull = async (chatId) => {
+    setLocalActiveChatId(chatId);
+    setActiveChatId(chatId);
+    setMobileView("chat");
+    setSelectMode(false);
+    setSelectedMsgIds([]);
+    markChatRead(chatId);
+    setTimeout(() => inputRef.current?.focus(), 100);
+
+    // Fetch full receiver info — fixes Unknown name on first open
+    try {
+      const chatDetail = await fetcher(`/api/chats/${chatId}`);
+      if (!chatDetail) return;
+      setChats((prev) =>
+        prev.map((chat) =>
+          chat.id !== chatId ? chat : {
+            ...chat,
+            receiver: chatDetail.receiver || chat.receiver,
+            messages: chatDetail.messages?.length ? chatDetail.messages : chat.messages,
+          }
+        )
+      );
+    } catch (err) {
+      console.error("openChat fetch error:", err);
+    }
+  };
+
+  // ✅ Clear activeChatId in context when leaving Messages page
   useEffect(() => {
-    if (!socket) return;
+    return () => setActiveChatId(null);
+  }, []);
 
-    const onReceiveMessage = ({ chatId, message }) => {
-      const isFromOther = String(message.userId) !== String(currentUserId);
-      const isActive = chatId === activeChatIdRef.current;
-
-      // Pull sender info the server attached (fixes Unknown name/avatar)
-      const senderInfo =
-        message.senderUsername
-          ? { username: message.senderUsername, avatar: message.senderAvatar || null }
-          : null;
-
-      setChats((prevChats) => {
-        const chatExists = prevChats.find((c) => c.id === chatId);
-
-        if (!chatExists) {
-          // Brand-new chat — fetch full details (receiver info, history)
-          fetchAndAddChat(chatId, message);
-          return prevChats; // state update comes from fetchAndAddChat
-        }
-
-        // Duplicate guard
-        if (chatExists.messages.some((m) => m.id === message.id)) return prevChats;
-
-        // ✅ Patch receiver inline using senderInfo — no extra API call needed
-        const hasValidReceiver =
-          chatExists.receiver?.username &&
-          chatExists.receiver.username !== "Unknown";
-
-        const patchedReceiver =
-          !hasValidReceiver && senderInfo
-            ? { ...(chatExists.receiver || {}), ...senderInfo }
-            : chatExists.receiver;
-
-        return sortByLatest(
-          prevChats.map((chat) => {
-            if (chat.id !== chatId) return chat;
-            return {
-              ...chat,
-              receiver: patchedReceiver,
-              messages: [...chat.messages, message],
-              lastMessage: message.text,
-              // ✅ Only increment unread if message is from other user AND chat is not open
-              unread: isFromOther && !isActive
-                ? (chat.unread || 0) + 1
-                : chat.unread,
-            };
-          })
-        );
-      });
-
-      // If this chat is currently open, mark it read immediately
-      if (isFromOther && isActive) {
-        markChatRead(chatId);
-      }
-    };
-
-    const onTyping = ({ chatId, userId }) => {
-      if (String(userId) === String(currentUserId)) return;
-      setTyping(chatId, true);
-      setTimeout(() => setTyping(chatId, false), 2000);
-    };
-
-    socket.on("receiveMessage", onReceiveMessage);
-    socket.on("typing", onTyping);
-
-    return () => {
-      socket.off("receiveMessage", onReceiveMessage);
-      socket.off("typing", onTyping);
-    };
-    // ✅ activeChatId deliberately NOT in deps — we use the ref above
-  }, [socket, currentUserId, fetchAndAddChat, markChatRead, setChats, setTyping, sortByLatest]);
-
-  // ─── Send a message ───────────────────────────────────────────────────────
   const sendMessage = async () => {
     const text = input.trim();
-    if (!text || !activeChatId) return;
+    if (!text || !localActiveChatId) return;
 
     const tempId = `temp_${Date.now()}`;
     const newMsg = {
@@ -272,29 +242,24 @@ export default function Messages() {
       pending: true,
     };
 
-    // Optimistic update
-    addMessage(activeChatId, newMsg);
+    addMessage(localActiveChatId, newMsg);
     setInput("");
 
     try {
-      const saved = await fetcher(`/api/messages/${activeChatId}`, {
+      const saved = await fetcher(`/api/messages/${localActiveChatId}`, {
         method: "POST",
         body: JSON.stringify({ text }),
       });
-
-      // Replace temp message with real DB message
-      replaceMessage(activeChatId, tempId, saved);
-      markChatRead(activeChatId);
-
-      // Notify receiver via socket
+      replaceMessage(localActiveChatId, tempId, saved);
+      markChatRead(localActiveChatId);
       socket?.emit("sendMessage", {
-        chatId: activeChatId,
+        chatId: localActiveChatId,
         message: saved,
-        receiverId: getReceiverId(activeChatId),
+        receiverId: getReceiverId(localActiveChatId),
       });
     } catch (err) {
       console.error("Send failed:", err);
-      removeMessage(activeChatId, tempId);
+      removeMessage(localActiveChatId, tempId);
     }
   };
 
@@ -307,28 +272,17 @@ export default function Messages() {
 
   const handleTyping = (e) => {
     setInput(e.target.value);
-    if (!activeChatId || !socket) return;
-    const receiverId = getReceiverId(activeChatId);
-    socket.emit("typing", { chatId: activeChatId, receiverId });
+    if (!localActiveChatId || !socket) return;
+    const receiverId = getReceiverId(localActiveChatId);
+    socket.emit("typing", { chatId: localActiveChatId, receiverId });
     clearTimeout(typingTimeout.current);
     typingTimeout.current = setTimeout(() => {
-      socket.emit("stopTyping", { chatId: activeChatId, receiverId });
+      socket.emit("stopTyping", { chatId: localActiveChatId, receiverId });
     }, 1000);
   };
 
-  // ─── Open / close chat ────────────────────────────────────────────────────
-  const openChat = (chatId) => {
-    setActiveChatId(chatId);
-    setMobileView("chat");
-    setSelectMode(false);
-    setSelectedMsgIds([]);
-    markChatRead(chatId);
-    setTimeout(() => inputRef.current?.focus(), 100);
-  };
-
-  // ─── Multi-select / delete ────────────────────────────────────────────────
   const deleteSelected = () => {
-    selectedMsgIds.forEach((id) => removeMessage(activeChatId, id));
+    selectedMsgIds.forEach((id) => removeMessage(localActiveChatId, id));
     setSelectMode(false);
     setSelectedMsgIds([]);
   };
@@ -338,7 +292,6 @@ export default function Messages() {
       prev.includes(msgId) ? prev.filter((id) => id !== msgId) : [...prev, msgId]
     );
 
-  // ─── Filtered chat list ───────────────────────────────────────────────────
   const filteredChats = chats.filter((chat) => {
     const name = chat.receiver?.username || "";
     const matchSearch = name.toLowerCase().includes(search.toLowerCase());
@@ -346,9 +299,9 @@ export default function Messages() {
     return matchSearch && matchFilter;
   });
 
-  const activeChat = chats.find((c) => c.id === activeChatId);
+  const activeChat = chats.find((c) => c.id === localActiveChatId);
+  const totalUnread = chats.reduce((sum, c) => sum + (c.unread || 0), 0);
 
-  // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (!showScrollBtn) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [activeChat?.messages?.length, showScrollBtn]);
@@ -359,15 +312,11 @@ export default function Messages() {
     setShowScrollBtn(scrollHeight - scrollTop - clientHeight > 120);
   };
 
-  const totalUnread = chats.reduce((sum, c) => sum + (c.unread || 0), 0);
-
-  // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="flex h-[calc(100vh-112px)] bg-slate-50 rounded-2xl overflow-hidden border border-slate-200/80 shadow-sm">
 
-      {/* ── Sidebar ── */}
+      {/* Sidebar */}
       <div className={`flex flex-col w-full md:w-[320px] lg:w-[340px] flex-shrink-0 bg-white border-r border-slate-100 ${mobileView === "chat" ? "hidden md:flex" : "flex"}`}>
-
         <div className="px-5 pt-5 pb-3 border-b border-slate-100 flex-shrink-0">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -442,13 +391,13 @@ export default function Messages() {
               return (
                 <button
                   key={chat.id}
-                  onClick={() => openChat(chat.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all hover:bg-slate-50 border-r-2 border-b border-gray-300 ${activeChatId === chat.id ? "bg-gray-200 border-r-black" : "border-r-transparent"}`}
+                  onClick={() => openChatFull(chat.id)}
+                  className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all hover:bg-slate-50 border-r-2 border-b border-gray-300 ${localActiveChatId === chat.id ? "bg-gray-200 border-r-black" : "border-r-transparent"}`}
                 >
                   <Avatar contact={receiver} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-0.5">
-                      <span className={`text-sm font-semibold truncate ${activeChatId === chat.id ? "text-blue-700" : "text-slate-800"}`}>
+                      <span className={`text-sm font-semibold truncate ${localActiveChatId === chat.id ? "text-blue-700" : "text-slate-800"}`}>
                         {receiver.username}
                       </span>
                       <span className="text-[11px] text-slate-400 flex-shrink-0 ml-2">{lastMsgTime}</span>
@@ -473,11 +422,10 @@ export default function Messages() {
         </div>
       </div>
 
-      {/* ── Chat Panel ── */}
+      {/* Chat Panel */}
       <div className={`flex flex-col flex-1 min-w-0 ${mobileView === "list" ? "hidden md:flex" : "flex"}`}>
         {activeChat ? (
           <>
-            {/* Header */}
             <div className="flex items-center gap-3 px-5 py-3.5 bg-white border-b border-slate-100 flex-shrink-0">
               <button onClick={() => setMobileView("list")} className="md:hidden w-8 h-8 flex items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100">
                 <MdArrowBack size={20} />
@@ -487,9 +435,7 @@ export default function Messages() {
                 <p className="text-sm font-bold text-slate-800 truncate">
                   {activeChat.receiver?.username || "User"}
                 </p>
-                {activeChat.typing && (
-                  <p className="text-xs text-violet-500 italic">typing…</p>
-                )}
+                {activeChat.typing && <p className="text-xs text-violet-500 italic">typing…</p>}
               </div>
               <div className="flex items-center gap-2">
                 {selectMode ? (
@@ -515,12 +461,8 @@ export default function Messages() {
               </div>
             </div>
 
-            {/* Messages */}
-            <div
-              ref={messagesRef}
-              onScroll={handleScroll}
-              className="flex-1 overflow-y-auto px-5 py-5 bg-slate-50/60 relative"
-            >
+            <div ref={messagesRef} onScroll={handleScroll}
+              className="flex-1 overflow-y-auto px-5 py-5 bg-slate-50/60 relative">
               {groupMessagesByDate(activeChat.messages || []).map((item, idx) =>
                 item.type === "divider"
                   ? <DateDivider key={`div-${idx}`} label={item.label} />
@@ -528,7 +470,7 @@ export default function Messages() {
                     <MessageBubble
                       key={item.msg.id}
                       msg={item.msg}
-                      onDelete={(id) => removeMessage(activeChatId, id)}
+                      onDelete={(id) => removeMessage(localActiveChatId, id)}
                       selected={selectedMsgIds.includes(item.msg.id)}
                       onSelect={toggleSelect}
                       selectMode={selectMode}
@@ -548,7 +490,6 @@ export default function Messages() {
               )}
             </div>
 
-            {/* Input */}
             <div className="px-4 py-3.5 bg-white border-t border-slate-100 flex-shrink-0">
               <div className="flex items-end gap-2.5 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 focus-within:border-violet-300">
                 <textarea
@@ -572,7 +513,6 @@ export default function Messages() {
             </div>
           </>
         ) : (
-          /* Empty state */
           <div className="flex flex-col items-center justify-center h-full text-center px-8 bg-slate-50/40">
             <div className="w-20 h-20 rounded-3xl bg-gray-200 flex items-center justify-center mb-5">
               <svg className="w-9 h-9 text-violet-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
