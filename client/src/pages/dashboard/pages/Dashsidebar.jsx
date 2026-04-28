@@ -67,11 +67,6 @@ const NAV_ITEMS = [
 
 export default function DashSidebar({ badges = {} }) {
 
-  const data = useLoaderData();
-
-  console.log(data);
-
-
   const { pathname }    = useLocation();
   const { currentUser } = useContext(AuthContext);
   const role            = currentUser?.userData?.role ?? "";

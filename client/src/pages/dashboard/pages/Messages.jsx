@@ -106,10 +106,10 @@ const MessageBubble = ({ msg, onDelete, selected, onSelect, selectMode, isMe }) 
         <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${isMe ? "bg-[#f36c3a] text-white rounded-br-sm" : "bg-white text-slate-700 rounded-bl-sm shadow-sm border border-slate-100"}`}>
           <p className="whitespace-pre-wrap break-words">{msg.text}</p>
           <div className="flex items-center gap-1 mt-1 justify-end">
-            <span className={`text-[10px] ${isMe ? "text-violet-300" : "text-slate-400"}`}>{timeStr}</span>
+            <span className={`text-[10px] ${isMe ? "text-white" : "text-slate-400"}`}>{timeStr}</span>
             {isMe && (msg.read
-              ? <MdDoneAll size={12} className="text-violet-300" />
-              : <MdDone size={12} className="text-violet-400" />)}
+              ? <MdDoneAll size={12} className="text-blue-900" />
+              : <MdDone size={12} className="text-white" />)}
           </div>
         </div>
       </div>
@@ -348,9 +348,9 @@ export default function Messages() {
                   </div>
                 )}
               </div>
-              <button className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100">
+              {/* <button className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100">
                 <MdEdit size={18} />
-              </button>
+              </button> */}
             </div>
           </div>
 
