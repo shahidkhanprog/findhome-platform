@@ -124,7 +124,7 @@ const FeaturedProperties = () => {
             <p className="text-gray-500 font-semibold">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="mt-4 px-5 w-[100%] py-3 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-600 transition"
+              className="mt-4 px-5 w-[100%] max-w-[250x] py-3 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-600 transition"
             >
               Try Again
             </button>
