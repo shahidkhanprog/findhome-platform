@@ -4,7 +4,7 @@ import { SocketContext } from "./SocketContext";
 
 export const ChatContext = createContext();
 
-const API_BASE = import.meta.env.DEV ? "" : "https://findproperty-platform-api.onrender.com";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const getLastRead = (chatId) => {
   const stored = localStorage.getItem(`chat_last_read_${chatId}`);
