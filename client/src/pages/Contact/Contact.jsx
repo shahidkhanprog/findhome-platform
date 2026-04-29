@@ -22,9 +22,9 @@ const CONTACT_INFO = [
   {
     icon: <FaWhatsapp />,
     title: "WhatsApp",
-    detail: "+92 344 988 5555",
+    detail: "+92 317 067 8832",
     sub: "Quick replies within minutes",
-    link: "https://wa.me/923449885555",
+    link: "https://wa.me/923170678832",
     linkLabel: "Chat on WhatsApp",
     color: "bg-emerald-50 text-emerald-500",
   },

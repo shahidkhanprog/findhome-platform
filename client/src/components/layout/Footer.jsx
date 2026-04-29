@@ -110,6 +110,15 @@ const Footer = () => {
               </a>
             </li>
             <li className="flex items-center gap-3">
+              <FaPhone className="text-blue-500 shrink-0 rotate-90" />
+              <a
+                href="tel:+923170678832"
+                className="hover:text-blue-400 transition-colors duration-300"
+              >
+                +92 317 067 8832
+              </a>
+            </li>
+            <li className="flex items-center gap-3">
               <FaEnvelope className="text-blue-500 shrink-0" />
               <a
                 href="mailto:info@findhome.com"
