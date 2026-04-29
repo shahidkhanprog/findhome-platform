@@ -193,17 +193,19 @@ function List() {
   // Error state
   if (error && allProperties.length === 0) {
     return (
-      <div className="bg-slate-50 min-h-[400px] flex items-center justify-center">
-        <div className="text-center p-8">
-          <div className="text-red-500 text-xl mb-4">⚠️ {error}</div>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700"
-          >
-            Try Again
-          </button>
+      <section className="py-16 sm:py-20 px-5 sm:px-8 lg:px-20 bg-slate-50">
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="bg-white rounded-2xl border border-slate-200 p-8">
+            <p className="text-gray-500 font-semibold">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-5 w-[100%] max-w-sm py-3 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-600 transition"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
-      </div>
+      </section>
     );
   }
 
