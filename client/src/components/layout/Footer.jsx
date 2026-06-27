@@ -121,10 +121,10 @@ const Footer = () => {
             <li className="flex items-center gap-3">
               <FaEnvelope className="text-blue-500 shrink-0" />
               <a
-                href="mailto:info@findhome.com"
+                href="mailto:findhome360@gmail.com"
                 className="hover:text-blue-400 transition-colors duration-300"
               >
-                info@findhome.com
+                findhome360@gmail.com
               </a>
             </li>
           </ul>

@@ -31,9 +31,9 @@ const CONTACT_INFO = [
   {
     icon: <FaEnvelope />,
     title: "Email Us",
-    detail: "info@findhome.com",
+    detail: "findhome360@gmail.com",
     sub: "We reply within 24 hours",
-    link: "mailto:info@findhome.com",
+    link: "mailto:findhome360@gmail.com",
     linkLabel: "Send Email",
     color: "bg-orange-50 text-[#f36c3a]",
   },
